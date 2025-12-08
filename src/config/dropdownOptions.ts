@@ -26,6 +26,96 @@ export const feelings = ['Fresh', 'Normal', 'Tired', 'Injured', 'On Fire'] as co
 
 export const userLevels = ['Beginner', 'Intermediate', 'Advanced', 'Pro'] as const;
 
+export const strategies = ['Attacking', 'Defending', 'Countering', 'Intercepting', 'Transitions', 'Control'] as const;
+
+export type Strategy = typeof strategies[number];
+
+// First movement options by discipline
+export const firstMovementsByDiscipline: Record<Discipline, string[]> = {
+  'MMA': [
+    'Jab',
+    'Cross',
+    'Jab–Cross',
+    'Lead Hook',
+    'Inside Low Kick',
+    'Low Kick',
+    'Right Body Kick',
+    'Lead Teep',
+    'Lead Hand Fake',
+    'Level Change Feint',
+    'Overhand Right',
+    'Double-Leg Shot',
+    'Single-Leg Shot',
+    'Clinch Entry'
+  ],
+  'Muay Thai': [
+    'Jab',
+    'Cross',
+    'Lead Teep',
+    'Rear Teep',
+    'Rear Round House Kick (Body)',
+    'Rear Round Kick (Leg)',
+    'Switch Kick',
+    'Lead Hand Fake',
+    'Level Change Feint',
+    'Clinch Entry'
+  ],
+  'K1': [
+    'Jab',
+    'Cross',
+    'Jab–Cross–Hook',
+    'Inside Low Kick',
+    'Outside Low Kick',
+    'Body Round Kick',
+    'Step-In Knee',
+    'Jab–Low Kick',
+    'Cross–High Kick',
+    'Lead Hand Fake',
+    'Level Change Feint'
+  ],
+  'Wrestling': [
+    'Stance & Motion',
+    'Level Change',
+    'Collar Tie',
+    'Underhook',
+    'Double-Leg',
+    'Single-Leg',
+    'Snap Down',
+    'Sprawl',
+    'Body Lock Entry',
+    'Whizzer Grip',
+    '50/50 Clinch',
+    'Lead Hand Fake',
+    'Level Change Feint'
+  ],
+  'Grappling': [
+    'Guard Pull',
+    'Arm Drag',
+    'Snap Down',
+    'Single-Leg from Tie-Up',
+    'Ankle Pick',
+    'Front Headlock Entry',
+    'Sit-Out / Sit-Through',
+    'Seated Guard Entry',
+    'Lead Hand Fake',
+    'Level Change Feint'
+  ],
+  'BJJ': [
+    'Closed Guard Pull',
+    'Open Guard Pull',
+    'Takedown Grip Fight',
+    'Sitting Guard Entry',
+    'Half Guard Entry',
+    'De La Riva Entry',
+    'Technical Stand-Up',
+    'Hip Escape from Bottom'
+  ]
+};
+
+export function getFirstMovements(discipline: Discipline): string[] {
+  return firstMovementsByDiscipline[discipline] || [];
+}
+
 // Starting actions by discipline and subtype
 export const startingActionsByDisciplineSubType: Record<string, string[]> = {
   'MMA-Striking MMA': [

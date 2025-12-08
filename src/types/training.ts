@@ -3,6 +3,7 @@ export type SessionType = 'Planned' | 'Completed';
 export type Discipline = 'MMA' | 'Muay Thai' | 'K1' | 'Wrestling' | 'Grappling' | 'BJJ';
 export type Feeling = 'Fresh' | 'Normal' | 'Tired' | 'Injured' | 'On Fire';
 export type TacticalGoal = 'Attacking' | 'Defending' | 'Countering' | 'Intercepting';
+export type Strategy = 'Attacking' | 'Defending' | 'Countering' | 'Intercepting' | 'Transitions' | 'Control';
 
 export interface Profile {
   id: string;
@@ -23,6 +24,8 @@ export interface TrainingSession {
   title?: string;
   intensity?: number;
   feeling?: Feeling;
+  strategy?: Strategy;
+  first_movement?: string;
   notes?: string;
   created_at: string;
   updated_at: string;

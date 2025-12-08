@@ -179,6 +179,18 @@ export default function SessionDetail() {
                   <p className="font-semibold">{session.feeling}</p>
                 </div>
               )}
+              {session.strategy && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Strategy</p>
+                  <p className="font-semibold">{session.strategy}</p>
+                </div>
+              )}
+              {session.first_movement && (
+                <div>
+                  <p className="text-sm text-muted-foreground">1st Movement</p>
+                  <p className="font-semibold">{session.first_movement}</p>
+                </div>
+              )}
             </div>
             {session.notes && (
               <div>

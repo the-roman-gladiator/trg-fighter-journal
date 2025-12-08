@@ -9,8 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { TrainingSession, TechniqueChain, Discipline } from '@/types/training';
-import { disciplines, sessionTypes, feelings } from '@/config/dropdownOptions';
+import { TrainingSession, TechniqueChain, Discipline, Strategy } from '@/types/training';
+import { disciplines, sessionTypes, feelings, strategies, getFirstMovements } from '@/config/dropdownOptions';
 import { TechniqueChainForm } from './TechniqueChainForm';
 import { Plus, Trash2 } from 'lucide-react';
 
@@ -31,6 +31,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [title, setTitle] = useState('');
   const [intensity, setIntensity] = useState<number>(5);
   const [feeling, setFeeling] = useState<string>('Normal');
+  const [strategy, setStrategy] = useState<Strategy | ''>('');
+  const [firstMovement, setFirstMovement] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [techniqueChains, setTechniqueChains] = useState<TechniqueChain[]>([]);
   const [showTechniqueForm, setShowTechniqueForm] = useState(false);
@@ -71,6 +73,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setTitle(session.title || '');
       setIntensity(session.intensity || 5);
       setFeeling(session.feeling || 'Normal');
+      setStrategy(session.strategy || '');
+      setFirstMovement(session.first_movement || '');
       setNotes(session.notes || '');
       setTechniqueChains(session.technique_chains || []);
     }
@@ -92,6 +96,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         title: title || null,
         intensity,
         feeling: (feeling as any) || null,
+        strategy: (strategy as any) || null,
+        first_movement: firstMovement || null,
         notes: notes || null,
       };
 
@@ -258,7 +264,10 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </div>
               <div>
                 <Label htmlFor="discipline">Discipline</Label>
-                <Select value={discipline} onValueChange={(value: any) => setDiscipline(value)}>
+                <Select value={discipline} onValueChange={(value: Discipline) => {
+                  setDiscipline(value);
+                  setFirstMovement(''); // Reset first movement when discipline changes
+                }}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -305,6 +314,39 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                     {feelings.map((f) => (
                       <SelectItem key={f} value={f}>
                         {f}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="strategy">Strategy</Label>
+                <Select value={strategy} onValueChange={(value: Strategy) => setStrategy(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select strategy" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {strategies.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="firstMovement">1st Movement</Label>
+                <Select value={firstMovement} onValueChange={setFirstMovement}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select movement" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getFirstMovements(discipline).map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}
                       </SelectItem>
                     ))}
                   </SelectContent>

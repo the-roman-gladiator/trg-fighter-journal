@@ -97,10 +97,12 @@ export type Database = {
           date: string
           discipline: Database["public"]["Enums"]["discipline"]
           feeling: Database["public"]["Enums"]["feeling"] | null
+          first_movement: string | null
           id: string
           intensity: number | null
           notes: string | null
           session_type: Database["public"]["Enums"]["session_type"]
+          strategy: Database["public"]["Enums"]["strategy"] | null
           time: string | null
           title: string | null
           updated_at: string
@@ -111,10 +113,12 @@ export type Database = {
           date?: string
           discipline: Database["public"]["Enums"]["discipline"]
           feeling?: Database["public"]["Enums"]["feeling"] | null
+          first_movement?: string | null
           id?: string
           intensity?: number | null
           notes?: string | null
           session_type: Database["public"]["Enums"]["session_type"]
+          strategy?: Database["public"]["Enums"]["strategy"] | null
           time?: string | null
           title?: string | null
           updated_at?: string
@@ -125,10 +129,12 @@ export type Database = {
           date?: string
           discipline?: Database["public"]["Enums"]["discipline"]
           feeling?: Database["public"]["Enums"]["feeling"] | null
+          first_movement?: string | null
           id?: string
           intensity?: number | null
           notes?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]
+          strategy?: Database["public"]["Enums"]["strategy"] | null
           time?: string | null
           title?: string | null
           updated_at?: string
@@ -147,6 +153,13 @@ export type Database = {
       discipline: "MMA" | "Muay Thai" | "K1" | "Wrestling" | "Grappling" | "BJJ"
       feeling: "Fresh" | "Normal" | "Tired" | "Injured" | "On Fire"
       session_type: "Planned" | "Completed"
+      strategy:
+        | "Attacking"
+        | "Defending"
+        | "Countering"
+        | "Intercepting"
+        | "Transitions"
+        | "Control"
       tactical_goal: "Attacking" | "Defending" | "Countering" | "Intercepting"
       user_level: "Beginner" | "Intermediate" | "Advanced" | "Pro"
     }
@@ -279,6 +292,14 @@ export const Constants = {
       discipline: ["MMA", "Muay Thai", "K1", "Wrestling", "Grappling", "BJJ"],
       feeling: ["Fresh", "Normal", "Tired", "Injured", "On Fire"],
       session_type: ["Planned", "Completed"],
+      strategy: [
+        "Attacking",
+        "Defending",
+        "Countering",
+        "Intercepting",
+        "Transitions",
+        "Control",
+      ],
       tactical_goal: ["Attacking", "Defending", "Countering", "Intercepting"],
       user_level: ["Beginner", "Intermediate", "Advanced", "Pro"],
     },

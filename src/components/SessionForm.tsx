@@ -33,6 +33,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [feeling, setFeeling] = useState<string>('Normal');
   const [strategy, setStrategy] = useState<Strategy | ''>('');
   const [firstMovement, setFirstMovement] = useState<string>('');
+  const [opponentAction, setOpponentAction] = useState<string>('');
+  const [secondMovement, setSecondMovement] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [techniqueChains, setTechniqueChains] = useState<TechniqueChain[]>([]);
   const [showTechniqueForm, setShowTechniqueForm] = useState(false);
@@ -75,6 +77,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setFeeling(session.feeling || 'Normal');
       setStrategy(session.strategy || '');
       setFirstMovement(session.first_movement || '');
+      setOpponentAction(session.opponent_action || '');
+      setSecondMovement(session.second_movement || '');
       setNotes(session.notes || '');
       setTechniqueChains(session.technique_chains || []);
     }
@@ -98,6 +102,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         feeling: (feeling as any) || null,
         strategy: (strategy as any) || null,
         first_movement: firstMovement || null,
+        opponent_action: opponentAction || null,
+        second_movement: secondMovement || null,
         notes: notes || null,
       };
 
@@ -351,6 +357,29 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="opponentAction">Opponent Action</Label>
+                <Textarea
+                  id="opponentAction"
+                  value={opponentAction}
+                  onChange={(e) => setOpponentAction(e.target.value)}
+                  rows={2}
+                  placeholder="e.g., Parried my jab, Checked low kick..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="secondMovement">2nd Movement</Label>
+                <Textarea
+                  id="secondMovement"
+                  value={secondMovement}
+                  onChange={(e) => setSecondMovement(e.target.value)}
+                  rows={2}
+                  placeholder="e.g., Cross to the body, Switch kick counter..."
+                />
               </div>
             </div>
 

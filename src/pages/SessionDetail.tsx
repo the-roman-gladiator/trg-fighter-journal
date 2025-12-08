@@ -192,6 +192,22 @@ export default function SessionDetail() {
                 </div>
               )}
             </div>
+            {(session.opponent_action || session.second_movement) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {session.opponent_action && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Opponent Action</p>
+                    <p className="font-semibold">{session.opponent_action}</p>
+                  </div>
+                )}
+                {session.second_movement && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">2nd Movement</p>
+                    <p className="font-semibold">{session.second_movement}</p>
+                  </div>
+                )}
+              </div>
+            )}
             {session.notes && (
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Notes</p>

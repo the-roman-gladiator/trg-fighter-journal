@@ -101,6 +101,8 @@ export type Database = {
           id: string
           intensity: number | null
           notes: string | null
+          opponent_action: string | null
+          second_movement: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           strategy: Database["public"]["Enums"]["strategy"] | null
           time: string | null
@@ -117,6 +119,8 @@ export type Database = {
           id?: string
           intensity?: number | null
           notes?: string | null
+          opponent_action?: string | null
+          second_movement?: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           strategy?: Database["public"]["Enums"]["strategy"] | null
           time?: string | null
@@ -133,6 +137,8 @@ export type Database = {
           id?: string
           intensity?: number | null
           notes?: string | null
+          opponent_action?: string | null
+          second_movement?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]
           strategy?: Database["public"]["Enums"]["strategy"] | null
           time?: string | null

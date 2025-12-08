@@ -26,6 +26,8 @@ export interface TrainingSession {
   feeling?: Feeling;
   strategy?: Strategy;
   first_movement?: string;
+  opponent_action?: string;
+  second_movement?: string;
   notes?: string;
   created_at: string;
   updated_at: string;

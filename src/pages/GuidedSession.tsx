@@ -50,7 +50,8 @@ export default function GuidedSession() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const workout = CARDIO_WORKOUTS.find(w => w.id === workoutId || w.qrSlug === workoutId);
+  const workout = CARDIO_WORKOUTS.find(w => w.id === workoutId || w.qrSlug === workoutId)
+    || STRENGTH_WORKOUTS.find(w => w.id === workoutId || w.qrSlug === workoutId);
   const steps = workout ? flattenWorkout(workout.sections) : [];
 
   const [state, setState] = useState<SessionState>('ready');

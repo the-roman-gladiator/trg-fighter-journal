@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,9 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { TrainingSession, TechniqueChain, Discipline, Strategy } from '@/types/training';
+import { Discipline, MartialArtsDiscipline, Strategy, TechniqueChain, WorkoutMode, CardioType, StrengthExerciseState, StrengthWorkoutTotals, isMartialArt } from '@/types/training';
 import { disciplines, sessionTypes, feelings, strategies, getFirstMovements } from '@/config/dropdownOptions';
 import { TechniqueChainForm } from './TechniqueChainForm';
+import { StrengthWorkoutForm } from './StrengthWorkoutForm';
+import { CardioActivityForm } from './CardioActivityForm';
 import { Plus, Trash2 } from 'lucide-react';
 
 interface SessionFormProps {
@@ -40,6 +42,34 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [showTechniqueForm, setShowTechniqueForm] = useState(false);
   const [editingTechniqueId, setEditingTechniqueId] = useState<string | null>(null);
 
+  // Strength training state
+  const [workoutName, setWorkoutName] = useState('');
+  const [workoutType, setWorkoutType] = useState('');
+  const [workoutMode, setWorkoutMode] = useState<WorkoutMode>('manual');
+  const [exercises, setExercises] = useState<StrengthExerciseState[]>([]);
+
+  // Cardio state
+  const [cardioActivityName, setCardioActivityName] = useState('');
+  const [cardioType, setCardioType] = useState<CardioType | ''>('');
+  const [durationSeconds, setDurationSeconds] = useState<number | null>(null);
+  const [distanceMeters, setDistanceMeters] = useState<number | null>(null);
+  const [calories, setCalories] = useState<number | null>(null);
+  const [avgPace, setAvgPace] = useState<number | null>(null);
+  const [avgHeartRate, setAvgHeartRate] = useState<number | null>(null);
+  const [maxHeartRate, setMaxHeartRate] = useState<number | null>(null);
+
+  const totals: StrengthWorkoutTotals = useMemo(() => {
+    let totalLoad = 0, totalReps = 0, totalSets = 0;
+    exercises.forEach(ex => {
+      ex.sets.forEach(s => {
+        totalSets++;
+        totalReps += s.reps || 0;
+        totalLoad += (s.reps || 0) * (s.weight || 0);
+      });
+    });
+    return { totalLoad, totalReps, totalSets, totalExercises: exercises.length };
+  }, [exercises]);
+
   useEffect(() => {
     if (sessionId && sessionId !== 'new') {
       fetchSession();
@@ -51,36 +81,71 @@ export function SessionForm({ sessionId }: SessionFormProps) {
 
     const { data: session, error } = await supabase
       .from('training_sessions')
-      .select(`
-        *,
-        technique_chains (*)
-      `)
+      .select(`*, technique_chains (*)`)
       .eq('id', sessionId)
       .single();
 
     if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load session',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Failed to load session', variant: 'destructive' });
       return;
     }
 
     if (session) {
       setDate(session.date);
       setTime(session.time || '');
-      setSessionType(session.session_type);
-      setDiscipline(session.discipline);
+      setSessionType(session.session_type as 'Planned' | 'Completed');
+      setDiscipline(session.discipline as Discipline);
       setTitle(session.title || '');
       setIntensity(session.intensity || 5);
       setFeeling(session.feeling || 'Normal');
-      setStrategy(session.strategy || '');
+      setStrategy((session.strategy as Strategy) || '');
       setFirstMovement(session.first_movement || '');
       setOpponentAction(session.opponent_action || '');
       setSecondMovement(session.second_movement || '');
       setNotes(session.notes || '');
-      setTechniqueChains(session.technique_chains || []);
+      setTechniqueChains((session.technique_chains as TechniqueChain[]) || []);
+
+      // Strength fields
+      setWorkoutName(session.workout_name || '');
+      setWorkoutType(session.workout_type || '');
+      setWorkoutMode((session.workout_mode as WorkoutMode) || 'manual');
+
+      // Cardio fields
+      setCardioActivityName(session.cardio_activity_name || '');
+      setCardioType((session.cardio_type as CardioType) || '');
+      setDurationSeconds(session.duration_seconds);
+      setDistanceMeters(session.distance_meters ? Number(session.distance_meters) : null);
+      setCalories(session.calories);
+      setAvgPace(session.avg_pace_seconds_per_km ? Number(session.avg_pace_seconds_per_km) : null);
+      setAvgHeartRate(session.avg_heart_rate);
+      setMaxHeartRate(session.max_heart_rate);
+
+      // Load strength exercises
+      if (session.discipline === 'Strength Training') {
+        const { data: exData } = await supabase
+          .from('strength_workout_exercises')
+          .select('*, strength_workout_sets(*)')
+          .eq('training_session_id', sessionId)
+          .order('exercise_order');
+
+        if (exData) {
+          const loadedExercises: StrengthExerciseState[] = exData.map((ex: any) => ({
+            id: ex.id,
+            exerciseName: ex.exercise_name,
+            exerciseLibraryId: ex.exercise_library_id || undefined,
+            sets: (ex.strength_workout_sets || [])
+              .sort((a: any, b: any) => a.set_number - b.set_number)
+              .map((s: any) => ({
+                id: s.id,
+                setNumber: s.set_number,
+                reps: s.reps,
+                weight: s.weight ? Number(s.weight) : null,
+                notes: s.notes,
+              })),
+          }));
+          setExercises(loadedExercises);
+        }
+      }
     }
   };
 
@@ -88,10 +153,20 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     e.preventDefault();
     if (!user) return;
 
+    // Validation
+    if (discipline === 'Strength Training' && exercises.length === 0) {
+      toast({ title: 'Validation', description: 'Add at least one exercise', variant: 'destructive' });
+      return;
+    }
+    if (discipline === 'Cardio Activity' && !durationSeconds && !distanceMeters && !calories) {
+      toast({ title: 'Validation', description: 'Enter at least duration, distance, or calories', variant: 'destructive' });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const sessionData = {
+      const sessionData: any = {
         user_id: user.id,
         date,
         time: time || null,
@@ -99,46 +174,84 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         discipline,
         title: title || null,
         intensity,
-        feeling: (feeling as any) || null,
-        strategy: (strategy as any) || null,
-        first_movement: firstMovement || null,
-        opponent_action: opponentAction || null,
-        second_movement: secondMovement || null,
+        feeling: feeling || null,
         notes: notes || null,
       };
+
+      if (isMartialArt(discipline)) {
+        sessionData.strategy = strategy || null;
+        sessionData.first_movement = firstMovement || null;
+        sessionData.opponent_action = opponentAction || null;
+        sessionData.second_movement = secondMovement || null;
+      }
+
+      if (discipline === 'Strength Training') {
+        sessionData.workout_mode = workoutMode;
+        sessionData.workout_name = workoutName || null;
+        sessionData.workout_type = workoutType || null;
+        sessionData.total_load = totals.totalLoad;
+        sessionData.total_reps = totals.totalReps;
+        sessionData.total_sets = totals.totalSets;
+        sessionData.total_exercises = totals.totalExercises;
+      }
+
+      if (discipline === 'Cardio Activity') {
+        sessionData.cardio_activity_name = cardioActivityName || null;
+        sessionData.cardio_type = cardioType || null;
+        sessionData.duration_seconds = durationSeconds;
+        sessionData.distance_meters = distanceMeters;
+        sessionData.calories = calories;
+        sessionData.avg_pace_seconds_per_km = avgPace;
+        sessionData.avg_heart_rate = avgHeartRate;
+        sessionData.max_heart_rate = maxHeartRate;
+      }
 
       let savedSessionId = sessionId;
 
       if (sessionId && sessionId !== 'new') {
-        const { error } = await supabase
-          .from('training_sessions')
-          .update(sessionData)
-          .eq('id', sessionId);
-
+        const { error } = await supabase.from('training_sessions').update(sessionData).eq('id', sessionId);
         if (error) throw error;
       } else {
-        const { data, error } = await supabase
-          .from('training_sessions')
-          .insert([sessionData])
-          .select()
-          .single();
-
+        const { data, error } = await supabase.from('training_sessions').insert([sessionData]).select().single();
         if (error) throw error;
         savedSessionId = data.id;
       }
 
-      toast({
-        title: 'Success',
-        description: 'Session saved successfully',
-      });
+      // Save strength exercises
+      if (discipline === 'Strength Training' && savedSessionId) {
+        // Delete old exercises (cascade deletes sets)
+        await supabase.from('strength_workout_exercises').delete().eq('training_session_id', savedSessionId);
 
+        for (let i = 0; i < exercises.length; i++) {
+          const ex = exercises[i];
+          const { data: savedEx, error: exErr } = await supabase.from('strength_workout_exercises').insert({
+            training_session_id: savedSessionId,
+            exercise_name: ex.exerciseName,
+            exercise_library_id: ex.exerciseLibraryId || null,
+            exercise_order: i,
+          }).select().single();
+
+          if (exErr || !savedEx) throw exErr || new Error('Failed to save exercise');
+
+          const setsData = ex.sets.map(s => ({
+            strength_workout_exercise_id: savedEx.id,
+            set_number: s.setNumber,
+            reps: s.reps,
+            weight: s.weight,
+            notes: s.notes || null,
+          }));
+
+          if (setsData.length > 0) {
+            const { error: setErr } = await supabase.from('strength_workout_sets').insert(setsData);
+            if (setErr) throw setErr;
+          }
+        }
+      }
+
+      toast({ title: 'Success', description: 'Session saved successfully' });
       navigate(`/session/${savedSessionId}`);
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -146,11 +259,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
 
   const handleSaveTechnique = async (technique: Partial<TechniqueChain>) => {
     if (!sessionId || sessionId === 'new') {
-      toast({
-        title: 'Save session first',
-        description: 'Please save the session before adding techniques',
-        variant: 'destructive',
-      });
+      toast({ title: 'Save session first', description: 'Please save the session before adding techniques', variant: 'destructive' });
       return;
     }
 
@@ -167,60 +276,36 @@ export function SessionForm({ sessionId }: SessionFormProps) {
 
     try {
       if (editingTechniqueId) {
-        const { error } = await supabase
-          .from('technique_chains')
-          .update(techniqueData)
-          .eq('id', editingTechniqueId);
-
+        const { error } = await supabase.from('technique_chains').update(techniqueData).eq('id', editingTechniqueId);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('technique_chains')
-          .insert([techniqueData]);
-
+        const { error } = await supabase.from('technique_chains').insert([techniqueData]);
         if (error) throw error;
       }
 
-      toast({
-        title: 'Success',
-        description: 'Technique saved',
-      });
-
+      toast({ title: 'Success', description: 'Technique saved' });
       setShowTechniqueForm(false);
       setEditingTechniqueId(null);
       fetchSession();
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   };
 
   const handleDeleteTechnique = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('technique_chains')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await supabase.from('technique_chains').delete().eq('id', id);
       if (error) throw error;
-
-      toast({
-        title: 'Deleted',
-        description: 'Technique removed',
-      });
-
+      toast({ title: 'Deleted', description: 'Technique removed' });
       fetchSession();
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   };
+
+  const isMartialArtDiscipline = isMartialArt(discipline);
+  const isStrength = discipline === 'Strength Training';
+  const isCardio = discipline === 'Cardio Activity';
 
   return (
     <div className="space-y-6">
@@ -233,56 +318,33 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                />
+                <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
               </div>
               <div>
                 <Label htmlFor="time">Time (optional)</Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                />
+                <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="sessionType">Session Type</Label>
-                <Select value={sessionType} onValueChange={(value: any) => setSessionType(value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                <Label>Session Type</Label>
+                <Select value={sessionType} onValueChange={(v: any) => setSessionType(v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {sessionTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
+                    {sessionTypes.map((type) => (<SelectItem key={type} value={type}>{type}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="discipline">Discipline</Label>
+                <Label>Discipline</Label>
                 <Select value={discipline} onValueChange={(value: Discipline) => {
                   setDiscipline(value);
-                  setFirstMovement(''); // Reset first movement when discipline changes
+                  setFirstMovement('');
                 }}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {disciplines.map((d) => (
-                      <SelectItem key={d} value={d}>
-                        {d}
-                      </SelectItem>
-                    ))}
+                    {disciplines.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
@@ -290,144 +352,132 @@ export function SessionForm({ sessionId }: SessionFormProps) {
 
             <div>
               <Label htmlFor="title">Title (optional)</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., MMA Striking – Cage Work"
-              />
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., MMA Striking – Cage Work" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="intensity">Intensity (1-10)</Label>
-                <Input
-                  id="intensity"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={intensity}
-                  onChange={(e) => setIntensity(parseInt(e.target.value))}
-                />
+                <Label>Intensity (1-10)</Label>
+                <Input type="number" min="1" max="10" value={intensity} onChange={(e) => setIntensity(parseInt(e.target.value))} />
               </div>
               <div>
-                <Label htmlFor="feeling">Feeling</Label>
+                <Label>Feeling</Label>
                 <Select value={feeling} onValueChange={setFeeling}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {feelings.map((f) => (
-                      <SelectItem key={f} value={f}>
-                        {f}
-                      </SelectItem>
-                    ))}
+                    {feelings.map((f) => (<SelectItem key={f} value={f}>{f}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="strategy">Strategy</Label>
-                <Select value={strategy} onValueChange={(value: Strategy) => setStrategy(value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select strategy" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {strategies.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="firstMovement">1st Movement</Label>
-                <Select value={firstMovement} onValueChange={setFirstMovement}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select movement" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getFirstMovements(discipline).map((m) => (
-                      <SelectItem key={m} value={m}>
-                        {m}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            {/* Martial Arts specific fields */}
+            {isMartialArtDiscipline && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Strategy</Label>
+                    <Select value={strategy} onValueChange={(v: Strategy) => setStrategy(v)}>
+                      <SelectTrigger><SelectValue placeholder="Select strategy" /></SelectTrigger>
+                      <SelectContent>
+                        {strategies.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>1st Movement</Label>
+                    <Select value={firstMovement} onValueChange={setFirstMovement}>
+                      <SelectTrigger><SelectValue placeholder="Select movement" /></SelectTrigger>
+                      <SelectContent>
+                        {getFirstMovements(discipline as MartialArtsDiscipline).map((m) => (
+                          <SelectItem key={m} value={m}>{m}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="opponentAction">Opponent Action</Label>
-                <Textarea
-                  id="opponentAction"
-                  value={opponentAction}
-                  onChange={(e) => setOpponentAction(e.target.value)}
-                  rows={2}
-                  placeholder="e.g., Parried my jab, Checked low kick..."
-                />
-              </div>
-              <div>
-                <Label htmlFor="secondMovement">2nd Movement</Label>
-                <Textarea
-                  id="secondMovement"
-                  value={secondMovement}
-                  onChange={(e) => setSecondMovement(e.target.value)}
-                  rows={2}
-                  placeholder="e.g., Cross to the body, Switch kick counter..."
-                />
-              </div>
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Opponent Action</Label>
+                    <Textarea value={opponentAction} onChange={(e) => setOpponentAction(e.target.value)} rows={2} placeholder="e.g., Parried my jab, Checked low kick..." />
+                  </div>
+                  <div>
+                    <Label>2nd Movement</Label>
+                    <Textarea value={secondMovement} onChange={(e) => setSecondMovement(e.target.value)} rows={2} placeholder="e.g., Cross to the body, Switch kick counter..." />
+                  </div>
+                </div>
+              </>
+            )}
 
             <div>
-              <Label htmlFor="notes">Notes (optional)</Label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={4}
-                placeholder="Additional session notes..."
-              />
+              <Label>Notes (optional)</Label>
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} placeholder="Additional session notes..." />
             </div>
           </CardContent>
         </Card>
+
+        {/* Strength Training Section */}
+        {isStrength && user && (
+          <StrengthWorkoutForm
+            sessionId={sessionId}
+            userId={user.id}
+            workoutName={workoutName}
+            setWorkoutName={setWorkoutName}
+            workoutType={workoutType}
+            setWorkoutType={setWorkoutType}
+            workoutMode={workoutMode}
+            setWorkoutMode={setWorkoutMode}
+            exercises={exercises}
+            setExercises={setExercises}
+            totals={totals}
+          />
+        )}
+
+        {/* Cardio Activity Section */}
+        {isCardio && (
+          <CardioActivityForm
+            cardioActivityName={cardioActivityName}
+            setCardioActivityName={setCardioActivityName}
+            cardioType={cardioType}
+            setCardioType={setCardioType}
+            durationSeconds={durationSeconds}
+            setDurationSeconds={setDurationSeconds}
+            distanceMeters={distanceMeters}
+            setDistanceMeters={setDistanceMeters}
+            calories={calories}
+            setCalories={setCalories}
+            avgPace={avgPace}
+            setAvgPace={setAvgPace}
+            avgHeartRate={avgHeartRate}
+            setAvgHeartRate={setAvgHeartRate}
+            maxHeartRate={maxHeartRate}
+            setMaxHeartRate={setMaxHeartRate}
+          />
+        )}
 
         <div className="flex gap-4">
           <Button type="submit" disabled={loading}>
             {loading ? 'Saving...' : 'Save Session'}
           </Button>
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
-            Cancel
-          </Button>
+          <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
         </div>
       </form>
 
-      {sessionId && sessionId !== 'new' && (
+      {/* Technique Chains - only for martial arts */}
+      {isMartialArtDiscipline && sessionId && sessionId !== 'new' && (
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Technique Chains</CardTitle>
-              <Button
-                onClick={() => {
-                  setEditingTechniqueId(null);
-                  setShowTechniqueForm(true);
-                }}
-                size="sm"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Technique
+              <Button onClick={() => { setEditingTechniqueId(null); setShowTechniqueForm(true); }} size="sm">
+                <Plus className="mr-2 h-4 w-4" /> Add Technique
               </Button>
             </div>
           </CardHeader>
           <CardContent>
             {techniqueChains.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                No techniques added yet
-              </p>
+              <p className="text-center text-muted-foreground py-8">No techniques added yet</p>
             ) : (
               <div className="space-y-4">
                 {techniqueChains.map((tc) => (
@@ -436,32 +486,16 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                       <div className="flex justify-between items-start">
                         <div className="space-y-2 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="px-2 py-1 rounded bg-primary/10 text-primary text-sm">
-                              {tc.discipline}
-                            </span>
-                            <span className="px-2 py-1 rounded bg-secondary/10 text-secondary text-sm">
-                              {tc.sub_type}
-                            </span>
-                            <span className="px-2 py-1 rounded bg-accent/10 text-accent text-sm">
-                              {tc.tactical_goal}
-                            </span>
+                            <span className="px-2 py-1 rounded bg-primary/10 text-primary text-sm">{tc.discipline}</span>
+                            <span className="px-2 py-1 rounded bg-secondary/10 text-secondary text-sm">{tc.sub_type}</span>
+                            <span className="px-2 py-1 rounded bg-accent/10 text-accent text-sm">{tc.tactical_goal}</span>
                           </div>
                           <p className="text-sm">
-                            <strong>Start:</strong> {tc.starting_action} →{' '}
-                            <strong>Defense:</strong> {tc.defender_reaction} →{' '}
-                            <strong>Finish:</strong> {tc.continuation_finish}
+                            <strong>Start:</strong> {tc.starting_action} → <strong>Defense:</strong> {tc.defender_reaction} → <strong>Finish:</strong> {tc.continuation_finish}
                           </p>
-                          {tc.custom_notes && (
-                            <p className="text-sm text-muted-foreground">
-                              {tc.custom_notes}
-                            </p>
-                          )}
+                          {tc.custom_notes && <p className="text-sm text-muted-foreground">{tc.custom_notes}</p>}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteTechnique(tc.id)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteTechnique(tc.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -478,10 +512,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         <TechniqueChainForm
           defaultDiscipline={discipline}
           onSave={handleSaveTechnique}
-          onCancel={() => {
-            setShowTechniqueForm(false);
-            setEditingTechniqueId(null);
-          }}
+          onCancel={() => { setShowTechniqueForm(false); setEditingTechniqueId(null); }}
         />
       )}
     </div>

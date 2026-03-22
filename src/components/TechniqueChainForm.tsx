@@ -4,9 +4,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Discipline, TacticalGoal, TechniqueChain } from '@/types/training';
+import { Discipline, MartialArtsDiscipline, TacticalGoal, TechniqueChain, isMartialArt } from '@/types/training';
 import {
-  disciplines,
+  martialArtsDisciplines,
   tacticalGoals,
   getSubTypes,
   getStartingActions,
@@ -27,7 +27,8 @@ export function TechniqueChainForm({
   onSave,
   onCancel,
 }: TechniqueChainFormProps) {
-  const [discipline, setDiscipline] = useState<Discipline>(technique?.discipline || defaultDiscipline);
+  const initialDiscipline: MartialArtsDiscipline = technique?.discipline || (isMartialArt(defaultDiscipline) ? defaultDiscipline : 'MMA');
+  const [discipline, setDiscipline] = useState<MartialArtsDiscipline>(initialDiscipline);
   const [subType, setSubType] = useState(technique?.sub_type || '');
   const [tacticalGoal, setTacticalGoal] = useState<TacticalGoal>(technique?.tactical_goal || 'Attacking');
   const [startingAction, setStartingAction] = useState(technique?.starting_action || '');
@@ -55,8 +56,7 @@ export function TechniqueChainForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    const techniqueData: Partial<TechniqueChain> = {
+    onSave({
       discipline,
       sub_type: subType,
       tactical_goal: tacticalGoal,
@@ -64,9 +64,7 @@ export function TechniqueChainForm({
       defender_reaction: defenderReaction,
       continuation_finish: continuationFinish,
       custom_notes: customNotes || null,
-    };
-
-    onSave(techniqueData);
+    });
   };
 
   return (
@@ -77,16 +75,12 @@ export function TechniqueChainForm({
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="discipline">Discipline</Label>
-            <Select value={discipline} onValueChange={(value: any) => setDiscipline(value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
+            <Label>Discipline</Label>
+            <Select value={discipline} onValueChange={(v: string) => setDiscipline(v as MartialArtsDiscipline)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {disciplines.map((d) => (
-                  <SelectItem key={d} value={d}>
-                    {d}
-                  </SelectItem>
+                {martialArtsDisciplines.map((d) => (
+                  <SelectItem key={d} value={d}>{d}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -94,34 +88,22 @@ export function TechniqueChainForm({
 
           {subTypes.length > 0 && (
             <div>
-              <Label htmlFor="subType">Sub-Type</Label>
+              <Label>Sub-Type</Label>
               <Select value={subType} onValueChange={setSubType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select sub-type" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select sub-type" /></SelectTrigger>
                 <SelectContent>
-                  {subTypes.map((st) => (
-                    <SelectItem key={st} value={st}>
-                      {st}
-                    </SelectItem>
-                  ))}
+                  {subTypes.map((st) => (<SelectItem key={st} value={st}>{st}</SelectItem>))}
                 </SelectContent>
               </Select>
             </div>
           )}
 
           <div>
-            <Label htmlFor="tacticalGoal">Tactical Goal</Label>
-            <Select value={tacticalGoal} onValueChange={(value: any) => setTacticalGoal(value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
+            <Label>Tactical Goal</Label>
+            <Select value={tacticalGoal} onValueChange={(v: string) => setTacticalGoal(v as TacticalGoal)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {tacticalGoals.map((tg) => (
-                  <SelectItem key={tg} value={tg}>
-                    {tg}
-                  </SelectItem>
-                ))}
+                {tacticalGoals.map((tg) => (<SelectItem key={tg} value={tg}>{tg}</SelectItem>))}
               </SelectContent>
             </Select>
           </div>
@@ -129,49 +111,29 @@ export function TechniqueChainForm({
           {subType && (
             <>
               <div>
-                <Label htmlFor="startingAction">Starting Action</Label>
+                <Label>Starting Action</Label>
                 <Select value={startingAction} onValueChange={setStartingAction}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select starting action" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select starting action" /></SelectTrigger>
                   <SelectContent>
-                    {startingActions.map((sa) => (
-                      <SelectItem key={sa} value={sa}>
-                        {sa}
-                      </SelectItem>
-                    ))}
+                    {startingActions.map((sa) => (<SelectItem key={sa} value={sa}>{sa}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
-                <Label htmlFor="defenderReaction">Defender Reaction</Label>
+                <Label>Defender Reaction</Label>
                 <Select value={defenderReaction} onValueChange={setDefenderReaction}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select defender reaction" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select defender reaction" /></SelectTrigger>
                   <SelectContent>
-                    {defenderReactions.map((dr) => (
-                      <SelectItem key={dr} value={dr}>
-                        {dr}
-                      </SelectItem>
-                    ))}
+                    {defenderReactions.map((dr) => (<SelectItem key={dr} value={dr}>{dr}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
-                <Label htmlFor="continuationFinish">Continuation / Finish</Label>
+                <Label>Continuation / Finish</Label>
                 <Select value={continuationFinish} onValueChange={setContinuationFinish}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select continuation/finish" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select continuation/finish" /></SelectTrigger>
                   <SelectContent>
-                    {continuationFinishes.map((cf) => (
-                      <SelectItem key={cf} value={cf}>
-                        {cf}
-                      </SelectItem>
-                    ))}
+                    {continuationFinishes.map((cf) => (<SelectItem key={cf} value={cf}>{cf}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
@@ -179,26 +141,13 @@ export function TechniqueChainForm({
           )}
 
           <div>
-            <Label htmlFor="customNotes">Custom Notes (optional)</Label>
-            <Textarea
-              id="customNotes"
-              value={customNotes}
-              onChange={(e) => setCustomNotes(e.target.value)}
-              rows={3}
-              placeholder="Additional notes about this technique..."
-            />
+            <Label>Custom Notes (optional)</Label>
+            <Textarea value={customNotes} onChange={(e) => setCustomNotes(e.target.value)} rows={3} placeholder="Additional notes..." />
           </div>
 
           <div className="flex gap-4">
-            <Button
-              type="submit"
-              disabled={!subType || !startingAction || !defenderReaction || !continuationFinish}
-            >
-              Save Technique
-            </Button>
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
+            <Button type="submit" disabled={!subType || !startingAction || !defenderReaction || !continuationFinish}>Save Technique</Button>
+            <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
           </div>
         </form>
       </CardContent>

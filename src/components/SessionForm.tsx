@@ -21,15 +21,22 @@ const intensityOptions = ['Low', 'Moderate', 'High', 'Very High'] as const;
 const feelingOptions = ['Sharp', 'Good', 'Average', 'Tired', 'Heavy', 'Frustrated', 'Confident', 'Focused'] as const;
 
 export function SessionForm({ sessionId }: SessionFormProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Parse user's profile disciplines
+  const profileDisciplines: MartialArtsDiscipline[] = profile?.discipline
+    ? (profile.discipline.split(',').map(d => d.trim()).filter(d => disciplines.includes(d as MartialArtsDiscipline)) as MartialArtsDiscipline[])
+    : [];
+  const availableDisciplines = profileDisciplines.length > 0 ? profileDisciplines : disciplines;
+  const singleDiscipline = profileDisciplines.length === 1;
   
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [discipline, setDiscipline] = useState<MartialArtsDiscipline>('MMA');
+  const [discipline, setDiscipline] = useState<MartialArtsDiscipline>(availableDisciplines[0] || 'MMA');
   const [strategy, setStrategy] = useState<Strategy | ''>('');
   const [technique, setTechnique] = useState<string>('');
   const [title, setTitle] = useState('');

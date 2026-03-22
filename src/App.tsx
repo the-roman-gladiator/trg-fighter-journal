@@ -34,6 +34,8 @@ const App = () => (
             <Route path="/strength" element={<StrengthTraining />} />
             <Route path="/strength/workout/:templateId" element={<WorkoutSessionPage />} />
             <Route path="/strength/workout/:logId/resume" element={<WorkoutSessionPage />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/beginner" element={<BeginnerDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

@@ -16,6 +16,7 @@ const MARTIAL_ARTS = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ']
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
+  const { settings, getDisciplineColor } = useUserSettings();
   const navigate = useNavigate();
   const [recentSessions, setRecentSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

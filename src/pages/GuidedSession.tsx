@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Play, Pause, SkipForward, CheckCircle, Timer, Repeat, Dumbbell } from 'lucide-react';
 import { CARDIO_WORKOUTS, GuidedExercise, GuidedWorkoutSection } from '@/data/cardioWorkouts';
+import { STRENGTH_WORKOUTS } from '@/data/strengthWorkouts';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -49,7 +50,8 @@ export default function GuidedSession() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const workout = CARDIO_WORKOUTS.find(w => w.id === workoutId || w.qrSlug === workoutId);
+  const workout = CARDIO_WORKOUTS.find(w => w.id === workoutId || w.qrSlug === workoutId)
+    || STRENGTH_WORKOUTS.find(w => w.id === workoutId || w.qrSlug === workoutId);
   const steps = workout ? flattenWorkout(workout.sections) : [];
 
   const [state, setState] = useState<SessionState>('ready');
@@ -117,7 +119,7 @@ export default function GuidedSession() {
 
     const { error } = await supabase.from('training_sessions').insert({
       user_id: user.id,
-      discipline: 'Cardio Activity' as any,
+      discipline: (workout.phase === 'Beginner Strength' ? 'Strength Training' : 'Cardio Activity') as any,
       session_type: 'Completed' as any,
       title: workout.title,
       cardio_activity_name: workout.title,

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserSettings } from '@/hooks/useUserSettings';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,7 @@ const MARTIAL_ARTS = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ']
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
+  const { settings, getDisciplineColor } = useUserSettings();
   const navigate = useNavigate();
   const [recentSessions, setRecentSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,7 +166,7 @@ export default function Dashboard() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           {/* Title row */}
-                          <p className="text-sm font-bold text-foreground truncate">
+                          <p className="text-sm font-bold truncate" style={{ color: settings.input_text_color }}>
                             {session.title || technique || `${session.discipline} Training`}
                           </p>
 
@@ -176,7 +178,11 @@ export default function Dashboard() {
 
                           {/* Tags row */}
                           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border" style={{ 
+                              backgroundColor: getDisciplineColor(session.discipline) + '22',
+                              color: getDisciplineColor(session.discipline),
+                              borderColor: getDisciplineColor(session.discipline) + '44'
+                            }}>
                               {session.discipline}
                             </Badge>
                             {session.strategy && (
@@ -193,7 +199,7 @@ export default function Dashboard() {
 
                           {/* Movement chain */}
                           {chain && (
-                            <p className="text-[11px] text-primary/60 mt-1.5 font-mono tracking-tight">
+                            <p className="text-[11px] mt-1.5 font-mono tracking-tight" style={{ color: settings.input_text_color + '99' }}>
                               {chain}
                             </p>
                           )}

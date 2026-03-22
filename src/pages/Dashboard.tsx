@@ -126,12 +126,18 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap justify-between items-center gap-3">
           <h2 className="text-3xl font-bold">Dashboard</h2>
-          <Button onClick={() => navigate('/session/new')} size="lg">
-            <Plus className="mr-2 h-5 w-5" />
-            Add Session
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate('/strength')} variant="secondary" size="lg">
+              <Dumbbell className="mr-2 h-5 w-5" />
+              Strength
+            </Button>
+            <Button onClick={() => navigate('/session/new')} size="lg">
+              <Plus className="mr-2 h-5 w-5" />
+              Add Session
+            </Button>
+          </div>
         </div>
 
         <section>

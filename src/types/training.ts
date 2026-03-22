@@ -19,6 +19,11 @@ export interface Profile {
   name: string;
   email: string;
   level: UserLevel;
+  discipline?: string;
+  strength_level?: string;
+  strength_program_start_date?: string;
+  coach_override_enabled?: boolean;
+  assigned_by_coach?: boolean;
   created_at: string;
   updated_at: string;
 }

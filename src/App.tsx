@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import SessionEdit from "./pages/SessionEdit";
 import SessionDetail from "./pages/SessionDetail";
 import Profile from "./pages/Profile";
+import StrengthTraining from "./pages/StrengthTraining";
+import WorkoutSessionPage from "./pages/WorkoutSessionPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +29,9 @@ const App = () => (
             <Route path="/session/:id" element={<SessionDetail />} />
             <Route path="/session/:id/edit" element={<SessionEdit />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/strength" element={<StrengthTraining />} />
+            <Route path="/strength/workout/:templateId" element={<WorkoutSessionPage />} />
+            <Route path="/strength/workout/:logId/resume" element={<WorkoutSessionPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

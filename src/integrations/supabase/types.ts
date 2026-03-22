@@ -49,27 +49,42 @@ export type Database = {
       }
       profiles: {
         Row: {
+          assigned_by_coach: boolean | null
+          coach_override_enabled: boolean | null
           created_at: string
+          discipline: string | null
           email: string
           id: string
           level: Database["public"]["Enums"]["user_level"]
           name: string
+          strength_level: string | null
+          strength_program_start_date: string | null
           updated_at: string
         }
         Insert: {
+          assigned_by_coach?: boolean | null
+          coach_override_enabled?: boolean | null
           created_at?: string
+          discipline?: string | null
           email: string
           id: string
           level?: Database["public"]["Enums"]["user_level"]
           name: string
+          strength_level?: string | null
+          strength_program_start_date?: string | null
           updated_at?: string
         }
         Update: {
+          assigned_by_coach?: boolean | null
+          coach_override_enabled?: boolean | null
           created_at?: string
+          discipline?: string | null
           email?: string
           id?: string
           level?: Database["public"]["Enums"]["user_level"]
           name?: string
+          strength_level?: string | null
+          strength_program_start_date?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -327,35 +342,192 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      workout_log_exercises: {
+        Row: {
+          completed_distance: string | null
+          completed_duration: string | null
+          completed_reps: number | null
+          created_at: string
+          exercise_name: string
+          exercise_order: number
+          id: string
+          is_completed: boolean | null
+          is_skipped: boolean | null
+          notes: string | null
+          set_number: number
+          target_distance: string | null
+          target_duration: string | null
+          target_reps: number | null
+          target_weight: number | null
+          used_weight: number | null
+          workout_log_id: string
+        }
+        Insert: {
+          completed_distance?: string | null
+          completed_duration?: string | null
+          completed_reps?: number | null
+          created_at?: string
+          exercise_name: string
+          exercise_order?: number
+          id?: string
+          is_completed?: boolean | null
+          is_skipped?: boolean | null
+          notes?: string | null
+          set_number?: number
+          target_distance?: string | null
+          target_duration?: string | null
+          target_reps?: number | null
+          target_weight?: number | null
+          used_weight?: number | null
+          workout_log_id: string
+        }
+        Update: {
+          completed_distance?: string | null
+          completed_duration?: string | null
+          completed_reps?: number | null
+          created_at?: string
+          exercise_name?: string
+          exercise_order?: number
+          id?: string
+          is_completed?: boolean | null
+          is_skipped?: boolean | null
+          notes?: string | null
+          set_number?: number
+          target_distance?: string | null
+          target_duration?: string | null
+          target_reps?: number | null
+          target_weight?: number | null
+          used_weight?: number | null
+          workout_log_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_log_exercises_workout_log_id_fkey"
+            columns: ["workout_log_id"]
+            isOneToOne: false
+            referencedRelation: "workout_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_logs: {
+        Row: {
+          completed_at: string | null
+          completion_percentage: number | null
+          created_at: string
+          discipline: string | null
+          id: string
+          level: string | null
+          overall_notes: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          week_number: number | null
+          workout_template_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          completion_percentage?: number | null
+          created_at?: string
+          discipline?: string | null
+          id?: string
+          level?: string | null
+          overall_notes?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          week_number?: number | null
+          workout_template_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          completion_percentage?: number | null
+          created_at?: string
+          discipline?: string | null
+          id?: string
+          level?: string | null
+          overall_notes?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          week_number?: number | null
+          workout_template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_logs_workout_template_id_fkey"
+            columns: ["workout_template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_template_exercises: {
         Row: {
+          default_distance: string | null
+          default_duration: string | null
           default_reps: number
+          default_rounds: number | null
           default_sets: number
           default_weight: number
           exercise_library_id: string | null
           exercise_name: string
           exercise_order: number
           id: string
+          notes: string | null
           workout_template_id: string
         }
         Insert: {
+          default_distance?: string | null
+          default_duration?: string | null
           default_reps?: number
+          default_rounds?: number | null
           default_sets?: number
           default_weight?: number
           exercise_library_id?: string | null
           exercise_name: string
           exercise_order?: number
           id?: string
+          notes?: string | null
           workout_template_id: string
         }
         Update: {
+          default_distance?: string | null
+          default_duration?: string | null
           default_reps?: number
+          default_rounds?: number | null
           default_sets?: number
           default_weight?: number
           exercise_library_id?: string | null
           exercise_name?: string
           exercise_order?: number
           id?: string
+          notes?: string | null
           workout_template_id?: string
         }
         Relationships: [
@@ -377,36 +549,72 @@ export type Database = {
       }
       workout_templates: {
         Row: {
+          category: string | null
+          coach_override_allowed: boolean | null
           created_at: string
           description: string | null
+          discipline: string | null
+          duration_weeks: number | null
+          goal: string | null
           id: string
+          is_active: boolean | null
+          level: string | null
           name: string
+          override_rule: string | null
+          progression_weeks_1_4: string | null
+          progression_weeks_5_8: string | null
+          progression_weeks_9_12: string | null
           qr_code_value: string | null
           source_type: string
+          system_rule: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
           workout_type: string | null
         }
         Insert: {
+          category?: string | null
+          coach_override_allowed?: boolean | null
           created_at?: string
           description?: string | null
+          discipline?: string | null
+          duration_weeks?: number | null
+          goal?: string | null
           id?: string
+          is_active?: boolean | null
+          level?: string | null
           name: string
+          override_rule?: string | null
+          progression_weeks_1_4?: string | null
+          progression_weeks_5_8?: string | null
+          progression_weeks_9_12?: string | null
           qr_code_value?: string | null
           source_type?: string
+          system_rule?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           workout_type?: string | null
         }
         Update: {
+          category?: string | null
+          coach_override_allowed?: boolean | null
           created_at?: string
           description?: string | null
+          discipline?: string | null
+          duration_weeks?: number | null
+          goal?: string | null
           id?: string
+          is_active?: boolean | null
+          level?: string | null
           name?: string
+          override_rule?: string | null
+          progression_weeks_1_4?: string | null
+          progression_weeks_5_8?: string | null
+          progression_weeks_9_12?: string | null
           qr_code_value?: string | null
           source_type?: string
+          system_rule?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           workout_type?: string | null
         }
         Relationships: []
@@ -416,9 +624,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "athlete" | "coach" | "admin"
       cardio_type:
         | "Running"
         | "Walking"
@@ -578,6 +793,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["athlete", "coach", "admin"],
       cardio_type: [
         "Running",
         "Walking",

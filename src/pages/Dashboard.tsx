@@ -126,9 +126,6 @@ export default function Dashboard() {
       <main className="container mx-auto px-4 py-4 max-w-2xl space-y-4">
         {/* Action buttons */}
         <div className="flex gap-2">
-          <Button onClick={() => navigate('/strength')} variant="secondary" className="flex-1 h-12">
-            <Dumbbell className="mr-2 h-4 w-4" /> Strength
-          </Button>
           <Button onClick={() => navigate('/session/new')} className="flex-1 h-12">
             <Plus className="mr-2 h-4 w-4" /> Add Session
           </Button>

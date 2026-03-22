@@ -14,6 +14,137 @@ export type Database = {
   }
   public: {
     Tables: {
+      assigned_program_sessions: {
+        Row: {
+          assigned_program_id: string
+          coach_signed_off: boolean | null
+          completed_date: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          scheduled_date: string | null
+          session_type: string
+          status: string
+          updated_at: string
+          week_number: number
+          workout_template_id: string | null
+        }
+        Insert: {
+          assigned_program_id: string
+          coach_signed_off?: boolean | null
+          completed_date?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          scheduled_date?: string | null
+          session_type: string
+          status?: string
+          updated_at?: string
+          week_number: number
+          workout_template_id?: string | null
+        }
+        Update: {
+          assigned_program_id?: string
+          coach_signed_off?: boolean | null
+          completed_date?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          scheduled_date?: string | null
+          session_type?: string
+          status?: string
+          updated_at?: string
+          week_number?: number
+          workout_template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assigned_program_sessions_assigned_program_id_fkey"
+            columns: ["assigned_program_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_program_sessions_workout_template_id_fkey"
+            columns: ["workout_template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assigned_programs: {
+        Row: {
+          active: boolean | null
+          assessment_id: string | null
+          cardio_sessions_per_week: number
+          classification_result: string
+          coach_override: boolean | null
+          coach_override_reason: string | null
+          created_at: string
+          current_phase: string
+          end_date: string | null
+          id: string
+          martial_arts_sessions_per_week: number
+          phase_week_end: number
+          phase_week_start: number
+          reassessment_date: string | null
+          start_date: string
+          strength_sessions_per_week: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          assessment_id?: string | null
+          cardio_sessions_per_week?: number
+          classification_result: string
+          coach_override?: boolean | null
+          coach_override_reason?: string | null
+          created_at?: string
+          current_phase: string
+          end_date?: string | null
+          id?: string
+          martial_arts_sessions_per_week?: number
+          phase_week_end?: number
+          phase_week_start?: number
+          reassessment_date?: string | null
+          start_date?: string
+          strength_sessions_per_week?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          assessment_id?: string | null
+          cardio_sessions_per_week?: number
+          classification_result?: string
+          coach_override?: boolean | null
+          coach_override_reason?: string | null
+          created_at?: string
+          current_phase?: string
+          end_date?: string | null
+          id?: string
+          martial_arts_sessions_per_week?: number
+          phase_week_end?: number
+          phase_week_start?: number
+          reassessment_date?: string | null
+          start_date?: string
+          strength_sessions_per_week?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assigned_programs_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "user_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       athlete_plan_assignments: {
         Row: {
           assigned_by: string | null
@@ -136,6 +267,56 @@ export type Database = {
             columns: ["workout_template_id"]
             isOneToOne: false
             referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      body_composition_classifications: {
+        Row: {
+          assessment_id: string
+          bmi_class: string
+          bmi_value: number
+          bodyfat_class: string | null
+          created_at: string
+          final_class: string
+          id: string
+          override_by_coach: boolean | null
+          override_reason: string | null
+          performance_class: string
+          updated_at: string
+        }
+        Insert: {
+          assessment_id: string
+          bmi_class: string
+          bmi_value: number
+          bodyfat_class?: string | null
+          created_at?: string
+          final_class: string
+          id?: string
+          override_by_coach?: boolean | null
+          override_reason?: string | null
+          performance_class: string
+          updated_at?: string
+        }
+        Update: {
+          assessment_id?: string
+          bmi_class?: string
+          bmi_value?: number
+          bodyfat_class?: string | null
+          created_at?: string
+          final_class?: string
+          id?: string
+          override_by_coach?: boolean | null
+          override_reason?: string | null
+          performance_class?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "body_composition_classifications_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "user_assessments"
             referencedColumns: ["id"]
           },
         ]
@@ -467,6 +648,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_assessments: {
+        Row: {
+          age: number
+          assessment_date: string
+          body_fat_percent: number | null
+          coach_id: string | null
+          created_at: string
+          discipline: string
+          height_cm: number
+          id: string
+          notes: string | null
+          plank_seconds: number | null
+          pushups_max: number
+          sex: string
+          situps_max: number
+          squats_max: number
+          updated_at: string
+          user_id: string
+          walking_hr_recovery: number | null
+          weight_kg: number
+        }
+        Insert: {
+          age: number
+          assessment_date?: string
+          body_fat_percent?: number | null
+          coach_id?: string | null
+          created_at?: string
+          discipline: string
+          height_cm: number
+          id?: string
+          notes?: string | null
+          plank_seconds?: number | null
+          pushups_max?: number
+          sex: string
+          situps_max?: number
+          squats_max?: number
+          updated_at?: string
+          user_id: string
+          walking_hr_recovery?: number | null
+          weight_kg: number
+        }
+        Update: {
+          age?: number
+          assessment_date?: string
+          body_fat_percent?: number | null
+          coach_id?: string | null
+          created_at?: string
+          discipline?: string
+          height_cm?: number
+          id?: string
+          notes?: string | null
+          plank_seconds?: number | null
+          pushups_max?: number
+          sex?: string
+          situps_max?: number
+          squats_max?: number
+          updated_at?: string
+          user_id?: string
+          walking_hr_recovery?: number | null
+          weight_kg?: number
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

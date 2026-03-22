@@ -799,6 +799,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          created_at: string
+          discipline_colors: Json
+          id: string
+          input_text_color: string
+          theme_mode: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discipline_colors?: Json
+          id?: string
+          input_text_color?: string
+          theme_mode?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discipline_colors?: Json
+          id?: string
+          input_text_color?: string
+          theme_mode?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       workout_log_exercises: {
         Row: {
           completed_distance: string | null

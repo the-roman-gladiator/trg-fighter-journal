@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Play, Pause, SkipForward, CheckCircle, Timer, Repeat, Dumbbell } from 'lucide-react';
 import { CARDIO_WORKOUTS, GuidedExercise, GuidedWorkoutSection } from '@/data/cardioWorkouts';
+import { STRENGTH_WORKOUTS } from '@/data/strengthWorkouts';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';

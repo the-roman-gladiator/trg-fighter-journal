@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Dumbbell, Heart, Swords, Calendar, QrCode, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Dumbbell, Heart, Swords, Calendar, QrCode, ClipboardList, Play } from 'lucide-react';
 import { differenceInWeeks, differenceInDays, parseISO, addWeeks } from 'date-fns';
+import { CARDIO_ROTATION } from '@/data/cardioWorkouts';
 
 interface AssignedProgram {
   id: string;
@@ -152,6 +153,25 @@ export default function BeginnerDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Today's Guided Session */}
+        {(() => {
+          const rotationWeek = ((currentWeek - 1) % 4) + 1;
+          const todayWorkouts = CARDIO_ROTATION[rotationWeek] || CARDIO_ROTATION[1];
+          const todayId = todayWorkouts[0];
+          return (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Today's Guided Session</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => navigate(`/guided-session/${todayId}`)} className="w-full h-14 text-base font-bold">
+                  <Play className="mr-2 h-5 w-5" /> Start Cardio Session
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Quick actions */}
         <div className="grid grid-cols-2 gap-3">

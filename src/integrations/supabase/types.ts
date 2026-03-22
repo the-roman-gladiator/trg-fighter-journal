@@ -612,6 +612,7 @@ export type Database = {
           second_movement: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           strategy: Database["public"]["Enums"]["strategy"] | null
+          technique: string | null
           time: string | null
           title: string | null
           total_exercises: number | null
@@ -646,6 +647,7 @@ export type Database = {
           second_movement?: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           strategy?: Database["public"]["Enums"]["strategy"] | null
+          technique?: string | null
           time?: string | null
           title?: string | null
           total_exercises?: number | null
@@ -680,6 +682,7 @@ export type Database = {
           second_movement?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]
           strategy?: Database["public"]["Enums"]["strategy"] | null
+          technique?: string | null
           time?: string | null
           title?: string | null
           total_exercises?: number | null

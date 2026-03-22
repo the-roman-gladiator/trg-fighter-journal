@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,17 +6,28 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, BookOpen, Network, Search, X, Filter } from 'lucide-react';
+import { ArrowLeft, BookOpen, Network, Search, X, Filter, GitBranch } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-type ViewMode = 'home' | 'all-notes' | 'interactive-map';
+type ViewMode = 'home' | 'all-notes' | 'interactive-map' | 'pathways';
+
+interface PathwayChain {
+  strategy: string;
+  technique: string;
+  firstMovement: string;
+  opponentReaction: string;
+  thirdMovement: string;
+  count: number;
+  sessions: any[];
+}
 
 export default function MyPathway() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [view, setView] = useState<ViewMode>('home');
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [allSessions, setAllSessions] = useState<any[]>([]);
+  const [archivedSessions, setArchivedSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDiscipline, setFilterDiscipline] = useState('all');
@@ -27,6 +38,9 @@ export default function MyPathway() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [mapResults, setMapResults] = useState<any[]>([]);
   const [mapLoading, setMapLoading] = useState(false);
+
+  // Pathway filter
+  const [pathwayFilter, setPathwayFilter] = useState('all');
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
@@ -39,16 +53,18 @@ export default function MyPathway() {
 
     const sevenDaysAgo = subDays(new Date(), 7).toISOString().split('T')[0];
 
-    // All Notes: sessions older than 7 days
-    const { data } = await supabase
+    // All sessions for pathways
+    const { data: all } = await supabase
       .from('training_sessions')
       .select('*')
       .eq('user_id', user.id)
       .eq('session_type', 'Completed')
-      .lt('date', sevenDaysAgo)
       .order('date', { ascending: false });
 
-    setSessions(data || []);
+    setAllSessions(all || []);
+
+    // Archived sessions (older than 7 days)
+    setArchivedSessions((all || []).filter(s => s.date < sevenDaysAgo));
 
     // Load all tags
     const { data: tags } = await supabase.from('tags').select('*').order('name');
@@ -57,19 +73,53 @@ export default function MyPathway() {
     setLoading(false);
   };
 
-  const filteredSessions = sessions.filter(s => {
+  const filteredArchived = archivedSessions.filter(s => {
     if (filterDiscipline !== 'all' && s.discipline !== filterDiscipline) return false;
     if (filterStrategy !== 'all' && s.strategy !== filterStrategy) return false;
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      const matchTitle = s.title?.toLowerCase().includes(term);
-      const matchNotes = s.notes?.toLowerCase().includes(term);
-      const matchDiscipline = s.discipline?.toLowerCase().includes(term);
-      const matchMovement = s.first_movement?.toLowerCase().includes(term);
-      if (!matchTitle && !matchNotes && !matchDiscipline && !matchMovement) return false;
+      const fields = [s.title, s.notes, s.discipline, s.first_movement, (s as any).technique, s.opponent_action, s.second_movement];
+      if (!fields.some(f => f?.toLowerCase().includes(term))) return false;
     }
     return true;
   });
+
+  // Build pathway chains from all sessions
+  const pathwayChains = useMemo(() => {
+    const chains = new Map<string, PathwayChain>();
+    
+    for (const s of allSessions) {
+      if (!s.first_movement && !s.opponent_action && !s.second_movement) continue;
+      
+      const key = [s.strategy || '', (s as any).technique || '', s.first_movement || '', s.opponent_action || '', s.second_movement || ''].join('|||');
+      
+      if (chains.has(key)) {
+        const existing = chains.get(key)!;
+        existing.count++;
+        existing.sessions.push(s);
+      } else {
+        chains.set(key, {
+          strategy: s.strategy || '',
+          technique: (s as any).technique || '',
+          firstMovement: s.first_movement || '',
+          opponentReaction: s.opponent_action || '',
+          thirdMovement: s.second_movement || '',
+          count: 1,
+          sessions: [s],
+        });
+      }
+    }
+
+    return Array.from(chains.values()).sort((a, b) => b.count - a.count);
+  }, [allSessions]);
+
+  const filteredChains = pathwayChains.filter(c => {
+    if (pathwayFilter === 'all') return true;
+    return c.strategy === pathwayFilter || c.technique === pathwayFilter;
+  });
+
+  const uniqueStrategies = [...new Set(pathwayChains.map(c => c.strategy).filter(Boolean))];
+  const uniqueTechniques = [...new Set(pathwayChains.map(c => c.technique).filter(Boolean))];
 
   const toggleTag = async (tagName: string) => {
     const newSelected = selectedTags.includes(tagName)
@@ -83,60 +133,53 @@ export default function MyPathway() {
     if (!user || tags.length === 0) { setMapResults([]); return; }
     setMapLoading(true);
 
-    // Get tag IDs
-    const { data: tagRows } = await supabase
-      .from('tags')
-      .select('id')
-      .in('name', tags);
-
+    const { data: tagRows } = await supabase.from('tags').select('id').in('name', tags);
     if (!tagRows || tagRows.length === 0) { setMapResults([]); setMapLoading(false); return; }
 
     const tagIds = tagRows.map(t => t.id);
-
-    // Get session IDs that have ALL selected tags (AND logic)
-    const { data: sessionTags } = await supabase
-      .from('session_tags')
-      .select('session_id, tag_id')
-      .in('tag_id', tagIds);
-
+    const { data: sessionTags } = await supabase.from('session_tags').select('session_id, tag_id').in('tag_id', tagIds);
     if (!sessionTags) { setMapResults([]); setMapLoading(false); return; }
 
-    // Group by session and filter for sessions that have ALL tags
     const sessionTagCount: Record<string, number> = {};
-    sessionTags.forEach(st => {
-      sessionTagCount[st.session_id] = (sessionTagCount[st.session_id] || 0) + 1;
-    });
+    sessionTags.forEach(st => { sessionTagCount[st.session_id] = (sessionTagCount[st.session_id] || 0) + 1; });
 
-    const matchingSessionIds = Object.entries(sessionTagCount)
-      .filter(([, count]) => count >= tags.length)
-      .map(([id]) => id);
+    const matchingIds = Object.entries(sessionTagCount).filter(([, c]) => c >= tags.length).map(([id]) => id);
+    if (matchingIds.length === 0) { setMapResults([]); setMapLoading(false); return; }
 
-    if (matchingSessionIds.length === 0) { setMapResults([]); setMapLoading(false); return; }
+    const { data: matching } = await supabase
+      .from('training_sessions').select('*').in('id', matchingIds).eq('user_id', user.id).order('date', { ascending: false });
 
-    const { data: matchingSessions } = await supabase
-      .from('training_sessions')
-      .select('*')
-      .in('id', matchingSessionIds)
-      .eq('user_id', user.id)
-      .order('date', { ascending: false });
-
-    setMapResults(matchingSessions || []);
+    setMapResults(matching || []);
     setMapLoading(false);
   };
 
-  const clearMapFilters = () => {
-    setSelectedTags([]);
-    setMapResults([]);
-  };
-
-  const disciplines = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ', 'Strength Training', 'Cardio Activity'];
+  const disciplines = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
   const strategies = ['Attacking', 'Defending', 'Countering', 'Intercepting', 'Transitions', 'Control'];
 
-  if (loading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>;
-  }
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>;
 
-  // Home view
+  const SessionCard = ({ session }: { session: any }) => {
+    const chain = [session.first_movement, session.opponent_action, session.second_movement].filter(Boolean).join(' → ');
+    return (
+      <Card className="cursor-pointer hover:border-primary/20" onClick={() => navigate(`/session/${session.id}`)}>
+        <CardContent className="py-3">
+          <div className="flex justify-between items-start">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium truncate">{session.title || (session as any).technique || `${session.discipline} Training`}</p>
+              <p className="text-xs text-muted-foreground">{format(new Date(session.date), 'MMM d, yyyy')}{session.time && ` – ${session.time}`}</p>
+              {chain && <p className="text-xs text-primary/70 mt-1 font-mono">{chain}</p>}
+              {session.notes && <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{session.notes}</p>}
+            </div>
+            <div className="flex gap-1 ml-2 shrink-0">
+              <Badge variant="outline" className="text-[10px]">{session.discipline}</Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // Home
   if (view === 'home') {
     return (
       <div className="min-h-screen bg-background">
@@ -148,6 +191,18 @@ export default function MyPathway() {
           </div>
         </header>
         <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
+          <Card className="cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setView('pathways')}>
+            <CardContent className="pt-6 pb-6 flex items-center gap-4">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <GitBranch className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Technical Pathways</h3>
+                <p className="text-sm text-muted-foreground">{pathwayChains.length} movement chains recorded</p>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setView('all-notes')}>
             <CardContent className="pt-6 pb-6 flex items-center gap-4">
               <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -155,7 +210,7 @@ export default function MyPathway() {
               </div>
               <div>
                 <h3 className="font-semibold">All Notes</h3>
-                <p className="text-sm text-muted-foreground">{sessions.length} archived sessions</p>
+                <p className="text-sm text-muted-foreground">{archivedSessions.length} archived sessions</p>
               </div>
             </CardContent>
           </Card>
@@ -184,7 +239,88 @@ export default function MyPathway() {
     );
   }
 
-  // All Notes view
+  // Technical Pathways
+  if (view === 'pathways') {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border bg-card">
+          <div className="container mx-auto px-4 py-4">
+            <Button variant="ghost" onClick={() => setView('home')}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
+            <h1 className="text-xl font-bold mt-2">Technical Pathways</h1>
+            <p className="text-sm text-muted-foreground">Your movement chains and patterns</p>
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
+          {/* Quick filters */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            <Badge variant={pathwayFilter === 'all' ? 'default' : 'outline'} className="cursor-pointer shrink-0" onClick={() => setPathwayFilter('all')}>All</Badge>
+            {uniqueStrategies.map(s => (
+              <Badge key={s} variant={pathwayFilter === s ? 'default' : 'outline'} className="cursor-pointer shrink-0" onClick={() => setPathwayFilter(s)}>{s}</Badge>
+            ))}
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {uniqueTechniques.slice(0, 10).map(t => (
+              <Badge key={t} variant={pathwayFilter === t ? 'default' : 'outline'} className="cursor-pointer shrink-0 text-xs" onClick={() => setPathwayFilter(t)}>{t}</Badge>
+            ))}
+          </div>
+
+          {filteredChains.length === 0 ? (
+            <p className="text-center text-muted-foreground text-sm py-8">No movement chains recorded yet. Add 1st/2nd/3rd movements to your sessions.</p>
+          ) : (
+            <div className="space-y-3">
+              {filteredChains.map((chain, i) => (
+                <Card key={i} className="border-l-2 border-l-primary/40">
+                  <CardContent className="py-3">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex gap-1.5">
+                        {chain.strategy && <Badge variant="outline" className="text-[10px]">{chain.strategy}</Badge>}
+                        {chain.technique && <Badge variant="secondary" className="text-[10px]">{chain.technique}</Badge>}
+                      </div>
+                      <Badge variant="default" className="text-[10px]">{chain.count}x</Badge>
+                    </div>
+                    <div className="space-y-1">
+                      {chain.firstMovement && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-primary bg-primary/10 rounded px-1.5 py-0.5">1st</span>
+                          <span className="text-xs">{chain.firstMovement}</span>
+                        </div>
+                      )}
+                      {chain.opponentReaction && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-muted-foreground bg-muted rounded px-1.5 py-0.5">2nd</span>
+                          <span className="text-xs">{chain.opponentReaction}</span>
+                        </div>
+                      )}
+                      {chain.thirdMovement && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-primary bg-primary/10 rounded px-1.5 py-0.5">3rd</span>
+                          <span className="text-xs">{chain.thirdMovement}</span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Session links */}
+                    <div className="mt-2 pt-2 border-t border-border">
+                      <p className="text-[10px] text-muted-foreground mb-1">Sessions:</p>
+                      <div className="flex gap-1 flex-wrap">
+                        {chain.sessions.slice(0, 5).map(s => (
+                          <Badge key={s.id} variant="outline" className="text-[10px] cursor-pointer" onClick={() => navigate(`/session/${s.id}`)}>
+                            {format(new Date(s.date), 'MMM d')}
+                          </Badge>
+                        ))}
+                        {chain.sessions.length > 5 && <Badge variant="outline" className="text-[10px]">+{chain.sessions.length - 5}</Badge>}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+    );
+  }
+
+  // All Notes
   if (view === 'all-notes') {
     return (
       <div className="min-h-screen bg-background">
@@ -196,18 +332,10 @@ export default function MyPathway() {
           </div>
         </header>
         <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
-          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search notes..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+            <Input placeholder="Search notes..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
           </div>
-
-          {/* Filters */}
           <div className="flex gap-2">
             <Select value={filterDiscipline} onValueChange={setFilterDiscipline}>
               <SelectTrigger className="flex-1"><SelectValue placeholder="Discipline" /></SelectTrigger>
@@ -224,29 +352,11 @@ export default function MyPathway() {
               </SelectContent>
             </Select>
           </div>
-
-          {/* Results */}
-          {filteredSessions.length === 0 ? (
+          {filteredArchived.length === 0 ? (
             <p className="text-center text-muted-foreground text-sm py-8">No archived notes found.</p>
           ) : (
             <div className="space-y-2">
-              {filteredSessions.map(session => (
-                <Card key={session.id} className="cursor-pointer hover:border-primary/20" onClick={() => navigate(`/session/${session.id}`)}>
-                  <CardContent className="py-3">
-                    <div className="flex justify-between items-start">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{session.title || `${session.discipline} Training`}</p>
-                        <p className="text-xs text-muted-foreground">{format(new Date(session.date), 'MMM d, yyyy')}</p>
-                        {session.notes && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{session.notes}</p>}
-                      </div>
-                      <div className="flex gap-1 ml-2 shrink-0">
-                        <Badge variant="outline" className="text-xs">{session.discipline}</Badge>
-                        {session.strategy && <Badge variant="outline" className="text-xs">{session.strategy}</Badge>}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              {filteredArchived.map(s => <SessionCard key={s.id} session={s} />)}
             </div>
           )}
         </main>
@@ -254,7 +364,7 @@ export default function MyPathway() {
     );
   }
 
-  // Interactive Map view
+  // Interactive Map
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
@@ -265,13 +375,12 @@ export default function MyPathway() {
         </div>
       </header>
       <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
-        {/* Tag chips */}
         <Card>
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
               <CardTitle className="text-base flex items-center gap-2"><Filter className="h-4 w-4" /> Tags</CardTitle>
               {selectedTags.length > 0 && (
-                <Button variant="ghost" size="sm" onClick={clearMapFilters} className="text-xs">
+                <Button variant="ghost" size="sm" onClick={() => { setSelectedTags([]); setMapResults([]); }} className="text-xs">
                   <X className="h-3 w-3 mr-1" /> Clear
                 </Button>
               )}
@@ -283,12 +392,7 @@ export default function MyPathway() {
             ) : (
               <div className="flex flex-wrap gap-2">
                 {allTags.map(tag => (
-                  <Badge
-                    key={tag.id}
-                    variant={selectedTags.includes(tag.name) ? 'default' : 'outline'}
-                    className="cursor-pointer text-sm px-3 py-1"
-                    onClick={() => toggleTag(tag.name)}
-                  >
+                  <Badge key={tag.id} variant={selectedTags.includes(tag.name) ? 'default' : 'outline'} className="cursor-pointer text-sm px-3 py-1" onClick={() => toggleTag(tag.name)}>
                     {tag.name}
                   </Badge>
                 ))}
@@ -297,26 +401,12 @@ export default function MyPathway() {
           </CardContent>
         </Card>
 
-        {/* Results */}
         {selectedTags.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
               {mapLoading ? 'Searching...' : `${mapResults.length} session${mapResults.length !== 1 ? 's' : ''} matching all selected tags`}
             </p>
-            {mapResults.map(session => (
-              <Card key={session.id} className="cursor-pointer hover:border-primary/20" onClick={() => navigate(`/session/${session.id}`)}>
-                <CardContent className="py-3">
-                  <div className="flex justify-between items-start">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{session.title || `${session.discipline} Training`}</p>
-                      <p className="text-xs text-muted-foreground">{format(new Date(session.date), 'MMM d, yyyy')}</p>
-                      {session.notes && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{session.notes}</p>}
-                    </div>
-                    <Badge variant="outline" className="text-xs ml-2 shrink-0">{session.discipline}</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {mapResults.map(s => <SessionCard key={s.id} session={s} />)}
             {!mapLoading && mapResults.length === 0 && (
               <p className="text-center text-muted-foreground text-sm py-4">No sessions match all selected tags.</p>
             )}
@@ -324,9 +414,7 @@ export default function MyPathway() {
         )}
 
         {selectedTags.length === 0 && (
-          <p className="text-center text-muted-foreground text-sm py-8">
-            Select one or more tags above to explore your training notes.
-          </p>
+          <p className="text-center text-muted-foreground text-sm py-8">Select one or more tags above to explore your training notes.</p>
         )}
       </main>
     </div>

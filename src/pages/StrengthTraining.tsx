@@ -1,16 +1,19 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import StrengthDashboard from '@/components/strength/StrengthDashboard';
+import MyPlan from '@/components/strength/MyPlan';
+import PathwayProgress from '@/components/strength/PathwayProgress';
 import StrengthTemplatesList from '@/components/strength/StrengthTemplatesList';
 import StrengthHistory from '@/components/strength/StrengthHistory';
 
 export default function StrengthTraining() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('tab') || 'plan';
 
   useEffect(() => {
     if (!user) navigate('/auth');
@@ -27,14 +30,18 @@ export default function StrengthTraining() {
         </div>
       </header>
       <main className="container mx-auto px-4 py-4">
-        <Tabs defaultValue="dashboard">
-          <TabsList className="w-full grid grid-cols-3">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+        <Tabs defaultValue={defaultTab}>
+          <TabsList className="w-full grid grid-cols-4">
+            <TabsTrigger value="plan">My Plan</TabsTrigger>
+            <TabsTrigger value="progress">Pathway</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
-          <TabsContent value="dashboard" className="mt-4">
-            <StrengthDashboard />
+          <TabsContent value="plan" className="mt-4">
+            <MyPlan />
+          </TabsContent>
+          <TabsContent value="progress" className="mt-4">
+            <PathwayProgress />
           </TabsContent>
           <TabsContent value="templates" className="mt-4">
             <StrengthTemplatesList />

@@ -43,7 +43,6 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [showTechniqueForm, setShowTechniqueForm] = useState(false);
   const [editingTechniqueId, setEditingTechniqueId] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [editingTechniqueId, setEditingTechniqueId] = useState<string | null>(null);
 
   // Strength training state
   const [workoutName, setWorkoutName] = useState('');

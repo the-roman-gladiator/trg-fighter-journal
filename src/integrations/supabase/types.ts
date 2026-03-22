@@ -396,6 +396,42 @@ export type Database = {
         }
         Relationships: []
       }
+      session_tags: {
+        Row: {
+          created_at: string
+          id: string
+          session_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          session_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          session_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_tags_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       strength_workout_exercises: {
         Row: {
           created_at: string
@@ -485,6 +521,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       technique_chains: {
         Row: {

@@ -13,6 +13,7 @@ import { Discipline, MartialArtsDiscipline, Strategy, TechniqueChain, WorkoutMod
 import { disciplines, sessionTypes, feelings, strategies, getFirstMovements } from '@/config/dropdownOptions';
 import { TechniqueChainForm } from './TechniqueChainForm';
 import { StrengthWorkoutForm } from './StrengthWorkoutForm';
+import { TagSelector } from './TagSelector';
 import { CardioActivityForm } from './CardioActivityForm';
 import { Plus, Trash2 } from 'lucide-react';
 
@@ -41,6 +42,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [techniqueChains, setTechniqueChains] = useState<TechniqueChain[]>([]);
   const [showTechniqueForm, setShowTechniqueForm] = useState(false);
   const [editingTechniqueId, setEditingTechniqueId] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Strength training state
   const [workoutName, setWorkoutName] = useState('');
@@ -105,7 +107,15 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setNotes(session.notes || '');
       setTechniqueChains((session.technique_chains as TechniqueChain[]) || []);
 
-      // Strength fields
+      // Load tags
+      const { data: sessionTagsData } = await supabase
+        .from('session_tags')
+        .select('tag_id, tags(name)')
+        .eq('session_id', sessionId);
+      if (sessionTagsData) {
+        setSelectedTags(sessionTagsData.map((st: any) => st.tags?.name).filter(Boolean));
+      }
+
       setWorkoutName(session.workout_name || '');
       setWorkoutType(session.workout_type || '');
       setWorkoutMode((session.workout_mode as WorkoutMode) || 'manual');
@@ -246,6 +256,26 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             if (setErr) throw setErr;
           }
         }
+      }
+
+      // Save tags
+      if (savedSessionId && selectedTags.length > 0) {
+        // Delete old session tags
+        await supabase.from('session_tags').delete().eq('session_id', savedSessionId);
+        
+        // Get or create tags
+        for (const tagName of selectedTags) {
+          let { data: existingTag } = await supabase.from('tags').select('id').eq('name', tagName).single();
+          if (!existingTag) {
+            const { data: newTag } = await supabase.from('tags').insert({ name: tagName }).select().single();
+            existingTag = newTag;
+          }
+          if (existingTag) {
+            await supabase.from('session_tags').insert({ session_id: savedSessionId, tag_id: existingTag.id });
+          }
+        }
+      } else if (savedSessionId && selectedTags.length === 0) {
+        await supabase.from('session_tags').delete().eq('session_id', savedSessionId);
       }
 
       toast({ title: 'Success', description: 'Session saved successfully' });
@@ -414,6 +444,13 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               <Label>Notes (optional)</Label>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} placeholder="Additional session notes..." />
             </div>
+
+            {/* Tags */}
+            <TagSelector
+              sessionId={sessionId}
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+            />
           </CardContent>
         </Card>
 

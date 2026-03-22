@@ -39,6 +39,7 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/beginner" element={<BeginnerDashboard />} />
             <Route path="/guided-session/:workoutId" element={<GuidedSession />} />
+            <Route path="/pathway" element={<MyPathway />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

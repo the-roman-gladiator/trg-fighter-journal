@@ -119,7 +119,7 @@ export default function GuidedSession() {
 
     const { error } = await supabase.from('training_sessions').insert({
       user_id: user.id,
-      discipline: 'Cardio Activity' as any,
+      discipline: (workout.phase === 'Beginner Strength' ? 'Strength Training' : 'Cardio Activity') as any,
       session_type: 'Completed' as any,
       title: workout.title,
       cardio_activity_name: workout.title,

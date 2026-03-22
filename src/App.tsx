@@ -37,6 +37,7 @@ const App = () => (
             <Route path="/strength/workout/:logId/resume" element={<WorkoutSessionPage />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/beginner" element={<BeginnerDashboard />} />
+            <Route path="/guided-session/:workoutId" element={<GuidedSession />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

@@ -89,6 +89,17 @@ export default function Dashboard() {
     setLoading(false);
   };
 
+  const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const { error } = await supabase.from('training_sessions').delete().eq('id', sessionId);
+    if (error) {
+      toast.error('Failed to delete session');
+    } else {
+      toast.success('Session deleted');
+      setRecentSessions(prev => prev.filter(s => s.id !== sessionId));
+    }
+  };
+
   const readinessColor = readiness.label === 'High' ? 'text-green-500' : readiness.label === 'Moderate' ? 'text-primary' : 'text-destructive';
   const fatigueColor = fatigue.label === 'Fresh' ? 'text-green-500' : fatigue.label === 'Managed' ? 'text-primary' : fatigue.label === 'Elevated' ? 'text-amber-500' : 'text-destructive';
   const trendIcon = trend === 'improving' ? '↑' : trend === 'stable' ? '→' : '↓';

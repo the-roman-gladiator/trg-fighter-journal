@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { MartialArtsDiscipline, Strategy } from '@/types/training';
+import { Badge } from '@/components/ui/badge';
 import { disciplines, strategies, getTechniques, feelings } from '@/config/dropdownOptions';
 import { TagSelector } from './TagSelector';
 
@@ -21,15 +22,22 @@ const intensityOptions = ['Low', 'Moderate', 'High', 'Very High'] as const;
 const feelingOptions = ['Sharp', 'Good', 'Average', 'Tired', 'Heavy', 'Frustrated', 'Confident', 'Focused'] as const;
 
 export function SessionForm({ sessionId }: SessionFormProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Parse user's profile disciplines
+  const profileDisciplines: MartialArtsDiscipline[] = profile?.discipline
+    ? (profile.discipline.split(',').map(d => d.trim()).filter(d => disciplines.includes(d as MartialArtsDiscipline)) as MartialArtsDiscipline[])
+    : [];
+  const availableDisciplines = profileDisciplines.length > 0 ? profileDisciplines : disciplines;
+  const singleDiscipline = profileDisciplines.length === 1;
   
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [discipline, setDiscipline] = useState<MartialArtsDiscipline>('MMA');
+  const [discipline, setDiscipline] = useState<MartialArtsDiscipline>(availableDisciplines[0] || 'MMA');
   const [strategy, setStrategy] = useState<Strategy | ''>('');
   const [technique, setTechnique] = useState<string>('');
   const [title, setTitle] = useState('');
@@ -235,18 +243,44 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             </div>
 
             {/* 3. Discipline */}
-            <div>
-              <Label>Discipline</Label>
-              <Select value={discipline} onValueChange={(value: MartialArtsDiscipline) => {
-                setDiscipline(value);
-                setTechnique('');
-              }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {disciplines.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
+            {singleDiscipline ? (
+              <div>
+                <Label>Discipline</Label>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <Badge variant="secondary" className="text-sm py-1.5 px-3">{discipline}</Badge>
+                  <span className="text-xs text-muted-foreground">From your profile</span>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <Label>Discipline</Label>
+                {availableDisciplines.length <= 3 ? (
+                  <div className="flex gap-2 mt-1.5">
+                    {availableDisciplines.map((d) => (
+                      <Button
+                        key={d}
+                        type="button"
+                        size="sm"
+                        variant={discipline === d ? 'default' : 'outline'}
+                        onClick={() => { setDiscipline(d); setTechnique(''); }}
+                      >
+                        {d}
+                      </Button>
+                    ))}
+                  </div>
+                ) : (
+                  <Select value={discipline} onValueChange={(value: MartialArtsDiscipline) => {
+                    setDiscipline(value);
+                    setTechnique('');
+                  }}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {availableDisciplines.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            )}
 
             {/* 4. Strategy */}
             <div>

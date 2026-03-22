@@ -356,40 +356,49 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: string
           assigned_by_coach: boolean | null
           coach_override_enabled: boolean | null
           created_at: string
           discipline: string | null
           email: string
+          fitness_level: string | null
           id: string
           level: Database["public"]["Enums"]["user_level"]
           name: string
+          nickname: string | null
           strength_level: string | null
           strength_program_start_date: string | null
           updated_at: string
         }
         Insert: {
+          account_type?: string
           assigned_by_coach?: boolean | null
           coach_override_enabled?: boolean | null
           created_at?: string
           discipline?: string | null
           email: string
+          fitness_level?: string | null
           id: string
           level?: Database["public"]["Enums"]["user_level"]
           name: string
+          nickname?: string | null
           strength_level?: string | null
           strength_program_start_date?: string | null
           updated_at?: string
         }
         Update: {
+          account_type?: string
           assigned_by_coach?: boolean | null
           coach_override_enabled?: boolean | null
           created_at?: string
           discipline?: string | null
           email?: string
+          fitness_level?: string | null
           id?: string
           level?: Database["public"]["Enums"]["user_level"]
           name?: string
+          nickname?: string | null
           strength_level?: string | null
           strength_program_start_date?: string | null
           updated_at?: string

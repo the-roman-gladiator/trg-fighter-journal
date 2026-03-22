@@ -14,12 +14,18 @@ export function isMartialArt(discipline: Discipline): discipline is MartialArtsD
   return MARTIAL_ARTS_DISCIPLINES.includes(discipline as MartialArtsDiscipline);
 }
 
+export type AccountType = 'free' | 'basic' | 'pro';
+export type FitnessLevel = 'Beginner' | 'Moderate' | 'Active' | 'Very Active';
+
 export interface Profile {
   id: string;
   name: string;
+  nickname?: string;
   email: string;
   level: UserLevel;
+  account_type: AccountType;
   discipline?: string;
+  fitness_level?: FitnessLevel;
   strength_level?: string;
   strength_program_start_date?: string;
   coach_override_enabled?: boolean;

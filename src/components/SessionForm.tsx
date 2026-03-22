@@ -13,6 +13,7 @@ import { Discipline, MartialArtsDiscipline, Strategy, TechniqueChain, WorkoutMod
 import { disciplines, sessionTypes, feelings, strategies, getFirstMovements } from '@/config/dropdownOptions';
 import { TechniqueChainForm } from './TechniqueChainForm';
 import { StrengthWorkoutForm } from './StrengthWorkoutForm';
+import { TagSelector } from './TagSelector';
 import { CardioActivityForm } from './CardioActivityForm';
 import { Plus, Trash2 } from 'lucide-react';
 

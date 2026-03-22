@@ -35,8 +35,12 @@ interface ExerciseLog {
 export default function WorkoutSessionPage() {
   const { templateId, logId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
   const { toast } = useToast();
+
+  const pathwayAssignmentId = searchParams.get('pathway');
+  const pathwayProgressId = searchParams.get('progress');
 
   const [templateName, setTemplateName] = useState('');
   const [templateGoal, setTemplateGoal] = useState('');

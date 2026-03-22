@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrainingSession } from '@/types/training';
-import { Plus, Calendar, User } from 'lucide-react';
+import { Plus, Calendar, User, Dumbbell } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function Dashboard() {

@@ -258,6 +258,26 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         }
       }
 
+      // Save tags
+      if (savedSessionId && selectedTags.length > 0) {
+        // Delete old session tags
+        await supabase.from('session_tags').delete().eq('session_id', savedSessionId);
+        
+        // Get or create tags
+        for (const tagName of selectedTags) {
+          let { data: existingTag } = await supabase.from('tags').select('id').eq('name', tagName).single();
+          if (!existingTag) {
+            const { data: newTag } = await supabase.from('tags').insert({ name: tagName }).select().single();
+            existingTag = newTag;
+          }
+          if (existingTag) {
+            await supabase.from('session_tags').insert({ session_id: savedSessionId, tag_id: existingTag.id });
+          }
+        }
+      } else if (savedSessionId && selectedTags.length === 0) {
+        await supabase.from('session_tags').delete().eq('session_id', savedSessionId);
+      }
+
       toast({ title: 'Success', description: 'Session saved successfully' });
       navigate(`/session/${savedSessionId}`);
     } catch (error: any) {

@@ -11,6 +11,8 @@ import SessionDetail from "./pages/SessionDetail";
 import Profile from "./pages/Profile";
 import StrengthTraining from "./pages/StrengthTraining";
 import WorkoutSessionPage from "./pages/WorkoutSessionPage";
+import Onboarding from "./pages/Onboarding";
+import BeginnerDashboard from "./pages/BeginnerDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

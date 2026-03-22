@@ -242,18 +242,44 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             </div>
 
             {/* 3. Discipline */}
-            <div>
-              <Label>Discipline</Label>
-              <Select value={discipline} onValueChange={(value: MartialArtsDiscipline) => {
-                setDiscipline(value);
-                setTechnique('');
-              }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {disciplines.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
+            {singleDiscipline ? (
+              <div>
+                <Label>Discipline</Label>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <Badge variant="secondary" className="text-sm py-1.5 px-3">{discipline}</Badge>
+                  <span className="text-xs text-muted-foreground">From your profile</span>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <Label>Discipline</Label>
+                {availableDisciplines.length <= 3 ? (
+                  <div className="flex gap-2 mt-1.5">
+                    {availableDisciplines.map((d) => (
+                      <Button
+                        key={d}
+                        type="button"
+                        size="sm"
+                        variant={discipline === d ? 'default' : 'outline'}
+                        onClick={() => { setDiscipline(d); setTechnique(''); }}
+                      >
+                        {d}
+                      </Button>
+                    ))}
+                  </div>
+                ) : (
+                  <Select value={discipline} onValueChange={(value: MartialArtsDiscipline) => {
+                    setDiscipline(value);
+                    setTechnique('');
+                  }}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {availableDisciplines.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            )}
 
             {/* 4. Strategy */}
             <div>

@@ -5,11 +5,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, User, Map, Heart, Zap, TrendingUp, Activity, Trash2, Swords } from 'lucide-react';
+import { Plus, User, Map, Trash2, Swords } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/sonner';
-import { calculateReadiness, calculateFatigue } from '@/data/strengthWorkouts';
 
 const MARTIAL_ARTS = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
 
@@ -18,9 +17,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [recentSessions, setRecentSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [readiness, setReadiness] = useState({ score: 50, label: 'No Data' });
-  const [fatigue, setFatigue] = useState({ score: 30, label: 'Fresh' });
-  const [trend, setTrend] = useState<'improving' | 'stable' | 'under fatigue'>('stable');
   const [maStats, setMaStats] = useState({ total: 0, thisWeek: 0, discipline: '' });
 
   useEffect(() => {
@@ -41,39 +37,14 @@ export default function Dashboard() {
       .eq('session_type', 'Completed')
       .gte('date', sevenDaysAgo)
       .order('date', { ascending: false })
-      .limit(10);
+      .limit(20);
 
     setRecentSessions(recent || []);
 
-    const { data: allCompleted } = await supabase
-      .from('training_sessions')
-      .select('id, intensity, discipline, date')
-      .eq('user_id', user.id)
-      .eq('session_type', 'Completed')
-      .order('date', { ascending: false })
-      .limit(50);
-
-    const sessions = allCompleted || [];
-    const recentRpe = sessions.filter(s => s.intensity).map(s => s.intensity as number).slice(0, 10);
-    const completionRate = sessions.length > 0 ? Math.min(100, sessions.length * 10) : 0;
-
-    setReadiness(calculateReadiness(recentRpe, completionRate, 0));
-    setFatigue(calculateFatigue(recentRpe, 0));
-
-    if (recentRpe.length >= 4) {
-      const firstHalf = recentRpe.slice(0, Math.floor(recentRpe.length / 2));
-      const secondHalf = recentRpe.slice(Math.floor(recentRpe.length / 2));
-      const avgFirst = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
-      const avgSecond = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-      setTrend(avgFirst < avgSecond - 1 ? 'under fatigue' : avgFirst > avgSecond + 0.5 ? 'improving' : 'stable');
-    }
-
     // Martial arts stats
-    const maSessions = sessions.filter(s => MARTIAL_ARTS.includes(s.discipline));
-    const maThisWeek = (recent || []).filter(s => MARTIAL_ARTS.includes(s.discipline)).length;
+    const maSessions = (recent || []).filter(s => MARTIAL_ARTS.includes(s.discipline));
     const topDiscipline = profile?.discipline || 'MMA';
-
-    setMaStats({ total: maSessions.length, thisWeek: maThisWeek, discipline: topDiscipline });
+    setMaStats({ total: maSessions.length, thisWeek: maSessions.length, discipline: topDiscipline });
 
     setLoading(false);
   };
@@ -88,11 +59,6 @@ export default function Dashboard() {
       setRecentSessions(prev => prev.filter(s => s.id !== sessionId));
     }
   };
-
-  const readinessColor = readiness.label === 'High' ? 'text-green-500' : readiness.label === 'Moderate' ? 'text-primary' : 'text-destructive';
-  const fatigueColor = fatigue.label === 'Fresh' ? 'text-green-500' : fatigue.label === 'Managed' ? 'text-primary' : fatigue.label === 'Elevated' ? 'text-amber-500' : 'text-destructive';
-  const trendIcon = trend === 'improving' ? '↑' : trend === 'stable' ? '→' : '↓';
-  const trendColor = trend === 'improving' ? 'text-green-500' : trend === 'stable' ? 'text-primary' : 'text-amber-500';
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>;
@@ -116,42 +82,14 @@ export default function Dashboard() {
         {/* Action buttons */}
         <div className="flex gap-2">
           <Button onClick={() => navigate('/session/new')} className="flex-1 h-12">
-            <Plus className="mr-2 h-4 w-4" /> Add Session
+            <Plus className="mr-2 h-4 w-4" /> + Session
           </Button>
           <Button onClick={() => navigate('/pathway')} variant="outline" className="flex-1 h-12">
             <Map className="mr-2 h-4 w-4" /> My Pathway
           </Button>
         </div>
 
-        {/* Whoop-style metrics row */}
-        <div className="grid grid-cols-3 gap-3">
-          <Card>
-            <CardContent className="pt-4 pb-4 text-center">
-              <Heart className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
-              <p className={`text-3xl font-black ${readinessColor}`}>{readiness.score}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Readiness</p>
-              <Badge variant="outline" className="mt-1 text-xs">{readiness.label}</Badge>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-4 text-center">
-              <Zap className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
-              <p className={`text-3xl font-black ${fatigueColor}`}>{fatigue.score}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Fatigue</p>
-              <Badge variant="outline" className="mt-1 text-xs">{fatigue.label}</Badge>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-4 text-center">
-              <TrendingUp className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
-              <p className={`text-3xl font-black ${trendColor}`}>{trendIcon}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Trend</p>
-              <Badge variant="outline" className="mt-1 text-xs capitalize">{trend}</Badge>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Current Phase - Martial Arts Journal */}
+        {/* Martial Arts Journal */}
         <Card className="border-primary/20">
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-2 mb-2">
@@ -162,22 +100,9 @@ export default function Dashboard() {
             <div className="flex items-center gap-4 mt-2">
               <div>
                 <p className="text-2xl font-black text-foreground">{maStats.total}</p>
-                <p className="text-xs text-muted-foreground">Total Sessions</p>
-              </div>
-              <div>
-                <p className="text-2xl font-black text-primary">{maStats.thisWeek}</p>
                 <p className="text-xs text-muted-foreground">This Week</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Philosophy */}
-        <Card className="bg-primary/5 border-primary/10">
-          <CardContent className="py-3">
-            <p className="text-sm text-muted-foreground italic text-center">
-              "You are not training to be tired. You are training to be dangerous when tired."
-            </p>
           </CardContent>
         </Card>
 

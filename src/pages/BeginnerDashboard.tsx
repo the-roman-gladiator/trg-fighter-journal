@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Dumbbell, Heart, Swords, Calendar, QrCode, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Dumbbell, Heart, Swords, Calendar, QrCode, ClipboardList, Play } from 'lucide-react';
 import { differenceInWeeks, differenceInDays, parseISO, addWeeks } from 'date-fns';
+import { CARDIO_ROTATION } from '@/data/cardioWorkouts';
 
 interface AssignedProgram {
   id: string;

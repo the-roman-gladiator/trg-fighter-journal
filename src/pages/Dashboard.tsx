@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Plus, User, Dumbbell, Map, Heart, Zap, TrendingUp, Activity } from 'lucide-react';
+import { Plus, User, Dumbbell, Map, Heart, Zap, TrendingUp, Activity, Trash2 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { toast } from '@/components/ui/sonner';
 import { calculateReadiness, calculateFatigue, getStrengthUnlockStatus } from '@/data/strengthWorkouts';
 
 export default function Dashboard() {
@@ -85,6 +87,17 @@ export default function Dashboard() {
     }
 
     setLoading(false);
+  };
+
+  const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const { error } = await supabase.from('training_sessions').delete().eq('id', sessionId);
+    if (error) {
+      toast.error('Failed to delete session');
+    } else {
+      toast.success('Session deleted');
+      setRecentSessions(prev => prev.filter(s => s.id !== sessionId));
+    }
   };
 
   const readinessColor = readiness.label === 'High' ? 'text-green-500' : readiness.label === 'Moderate' ? 'text-primary' : 'text-destructive';
@@ -207,6 +220,23 @@ export default function Dashboard() {
                         <Badge variant="outline" className="text-xs">RPE {session.intensity}</Badge>
                       )}
                       <Badge variant="outline" className="text-xs">{session.discipline}</Badge>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={(e) => e.stopPropagation()}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete session?</AlertDialogTitle>
+                            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={(e) => deleteSession(session.id, e)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 ))}

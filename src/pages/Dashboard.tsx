@@ -5,12 +5,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Plus, User, Dumbbell, Map, Heart, Zap, TrendingUp, Activity, Trash2 } from 'lucide-react';
+import { Plus, User, Map, Heart, Zap, TrendingUp, Activity, Trash2, Swords } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/sonner';
-import { calculateReadiness, calculateFatigue, getStrengthUnlockStatus } from '@/data/strengthWorkouts';
+import { calculateReadiness, calculateFatigue } from '@/data/strengthWorkouts';
+
+const MARTIAL_ARTS = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
@@ -20,8 +21,7 @@ export default function Dashboard() {
   const [readiness, setReadiness] = useState({ score: 50, label: 'No Data' });
   const [fatigue, setFatigue] = useState({ score: 30, label: 'Fresh' });
   const [trend, setTrend] = useState<'improving' | 'stable' | 'under fatigue'>('stable');
-  const [currentPhase, setCurrentPhase] = useState('');
-  const [unlockProgress, setUnlockProgress] = useState({ sessionsCompleted: 0, sessionsRequired: 8, progressPercent: 0, nextPhase: 'Beginner Strength', unlocked: false });
+  const [maStats, setMaStats] = useState({ total: 0, thisWeek: 0, discipline: '' });
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
@@ -34,7 +34,6 @@ export default function Dashboard() {
 
     const sevenDaysAgo = subDays(new Date(), 7).toISOString().split('T')[0];
 
-    // Recent sessions (7 days)
     const { data: recent } = await supabase
       .from('training_sessions')
       .select('*')
@@ -46,7 +45,6 @@ export default function Dashboard() {
 
     setRecentSessions(recent || []);
 
-    // All completed for metrics
     const { data: allCompleted } = await supabase
       .from('training_sessions')
       .select('id, intensity, discipline, date')
@@ -59,11 +57,9 @@ export default function Dashboard() {
     const recentRpe = sessions.filter(s => s.intensity).map(s => s.intensity as number).slice(0, 10);
     const completionRate = sessions.length > 0 ? Math.min(100, sessions.length * 10) : 0;
 
-    // Readiness & Fatigue
     setReadiness(calculateReadiness(recentRpe, completionRate, 0));
     setFatigue(calculateFatigue(recentRpe, 0));
 
-    // Trend
     if (recentRpe.length >= 4) {
       const firstHalf = recentRpe.slice(0, Math.floor(recentRpe.length / 2));
       const secondHalf = recentRpe.slice(Math.floor(recentRpe.length / 2));
@@ -72,19 +68,12 @@ export default function Dashboard() {
       setTrend(avgFirst < avgSecond - 1 ? 'under fatigue' : avgFirst > avgSecond + 0.5 ? 'improving' : 'stable');
     }
 
-    // Phase & unlock
-    const cardioCount = sessions.filter(s => s.discipline === 'Cardio Activity').length;
-    const strengthCount = sessions.filter(s => s.discipline === 'Strength Training').length;
-    const avgRpe = recentRpe.length > 0 ? recentRpe.reduce((a, b) => a + b, 0) / recentRpe.length : 5;
-    const unlock = getStrengthUnlockStatus(cardioCount, 0, avgRpe);
+    // Martial arts stats
+    const maSessions = sessions.filter(s => MARTIAL_ARTS.includes(s.discipline));
+    const maThisWeek = (recent || []).filter(s => MARTIAL_ARTS.includes(s.discipline)).length;
+    const topDiscipline = profile?.discipline || 'MMA';
 
-    if (unlock.unlocked) {
-      setCurrentPhase('Beginner Strength Phase');
-      setUnlockProgress({ sessionsCompleted: strengthCount, sessionsRequired: 12, progressPercent: Math.min(100, Math.round((strengthCount / 12) * 100)), nextPhase: 'Intermediate Strength', unlocked: strengthCount >= 12 });
-    } else {
-      setCurrentPhase('Early Beginner – Cardio Base');
-      setUnlockProgress({ ...unlock, nextPhase: 'Beginner Strength', sessionsRequired: 8 });
-    }
+    setMaStats({ total: maSessions.length, thisWeek: maThisWeek, discipline: topDiscipline });
 
     setLoading(false);
   };
@@ -136,7 +125,6 @@ export default function Dashboard() {
 
         {/* Whoop-style metrics row */}
         <div className="grid grid-cols-3 gap-3">
-          {/* Readiness */}
           <Card>
             <CardContent className="pt-4 pb-4 text-center">
               <Heart className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
@@ -145,7 +133,6 @@ export default function Dashboard() {
               <Badge variant="outline" className="mt-1 text-xs">{readiness.label}</Badge>
             </CardContent>
           </Card>
-          {/* Fatigue */}
           <Card>
             <CardContent className="pt-4 pb-4 text-center">
               <Zap className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
@@ -154,7 +141,6 @@ export default function Dashboard() {
               <Badge variant="outline" className="mt-1 text-xs">{fatigue.label}</Badge>
             </CardContent>
           </Card>
-          {/* Performance Trend */}
           <Card>
             <CardContent className="pt-4 pb-4 text-center">
               <TrendingUp className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
@@ -165,20 +151,23 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Current Phase */}
+        {/* Current Phase - Martial Arts Journal */}
         <Card className="border-primary/20">
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-2 mb-2">
-              <Activity className="h-4 w-4 text-primary" />
-              <p className="text-sm font-semibold">Current Phase</p>
+              <Swords className="h-4 w-4 text-primary" />
+              <p className="text-sm font-semibold">Martial Arts Journal</p>
             </div>
-            <p className="text-lg font-bold">{currentPhase}</p>
-            <div className="mt-2">
-              <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>{unlockProgress.sessionsCompleted}/{unlockProgress.sessionsRequired} sessions</span>
-                <span>Next: {unlockProgress.nextPhase}</span>
+            <p className="text-lg font-bold">{maStats.discipline}</p>
+            <div className="flex items-center gap-4 mt-2">
+              <div>
+                <p className="text-2xl font-black text-foreground">{maStats.total}</p>
+                <p className="text-xs text-muted-foreground">Total Sessions</p>
               </div>
-              <Progress value={unlockProgress.progressPercent} className="h-2" />
+              <div>
+                <p className="text-2xl font-black text-primary">{maStats.thisWeek}</p>
+                <p className="text-xs text-muted-foreground">This Week</p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -187,7 +176,7 @@ export default function Dashboard() {
         <Card className="bg-primary/5 border-primary/10">
           <CardContent className="py-3">
             <p className="text-sm text-muted-foreground italic text-center">
-              "If the body cannot sustain effort, strength has no value."
+              "You are not training to be tired. You are training to be dangerous when tired."
             </p>
           </CardContent>
         </Card>

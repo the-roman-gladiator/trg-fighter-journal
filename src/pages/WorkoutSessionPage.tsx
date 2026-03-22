@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, Copy, ChevronDown, ChevronUp, SkipForward, Save, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Plus, Copy, ChevronDown, ChevronUp, SkipForward, Save, CheckCircle2, Trash2, ArrowUp, ArrowDown, BookOpen, Search } from 'lucide-react';
 
 interface SetLog {
   setNumber: number;
@@ -44,11 +45,17 @@ export default function WorkoutSessionPage() {
 
   const [templateName, setTemplateName] = useState('');
   const [templateGoal, setTemplateGoal] = useState('');
+  const [templateSourceName, setTemplateSourceName] = useState('');
   const [exercises, setExercises] = useState<ExerciseLog[]>([]);
   const [overallNotes, setOverallNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [existingLogId, setExistingLogId] = useState<string | null>(logId || null);
+  const [wasCustomized, setWasCustomized] = useState(false);
+  const [showAddExercise, setShowAddExercise] = useState(false);
+  const [exerciseSearch, setExerciseSearch] = useState('');
+  const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
+  const [customExerciseName, setCustomExerciseName] = useState('');
 
   const strengthProfile = profile as any;
   const discipline = strengthProfile?.discipline || 'MMA';
@@ -66,7 +73,18 @@ export default function WorkoutSessionPage() {
     } else if (templateId) {
       loadTemplate(templateId);
     }
+    fetchExerciseLibrary();
   }, [user, templateId, logId]);
+
+  const fetchExerciseLibrary = async () => {
+    const { data } = await supabase.from('exercise_library').select('*').order('name');
+    if (data) setExerciseLibrary(data);
+  };
+
+  const filteredLibrary = useMemo(() => {
+    if (!exerciseSearch) return exerciseLibrary;
+    return exerciseLibrary.filter(e => e.name.toLowerCase().includes(exerciseSearch.toLowerCase()));
+  }, [exerciseLibrary, exerciseSearch]);
 
   const loadTemplate = async (tid: string) => {
     setLoading(true);
@@ -85,11 +103,11 @@ export default function WorkoutSessionPage() {
     const t = template as any;
     setTemplateName(t.name);
     setTemplateGoal(t.goal || '');
+    setTemplateSourceName(t.name);
 
     const templateExercises = (t.workout_template_exercises || [])
       .sort((a: any, b: any) => a.exercise_order - b.exercise_order);
 
-    // Check for previous session data for weight suggestions
     const { data: prevLogs } = await supabase
       .from('workout_log_exercises' as any)
       .select('exercise_name, used_weight, completed_reps')
@@ -190,6 +208,53 @@ export default function WorkoutSessionPage() {
     setLoading(false);
   };
 
+  const markCustomized = () => { if (!wasCustomized) setWasCustomized(true); };
+
+  const addExerciseFromLibrary = (item: any) => {
+    markCustomized();
+    const newEx: ExerciseLog = {
+      exerciseName: item.name,
+      exerciseOrder: exercises.length,
+      isSkipped: false,
+      isOpen: true,
+      sets: [{ setNumber: 1, targetReps: 10, completedReps: null, targetWeight: null, usedWeight: null, targetDuration: null, completedDuration: null, isCompleted: false, notes: '' }],
+    };
+    setExercises(prev => [...prev, newEx]);
+    setShowAddExercise(false);
+    setExerciseSearch('');
+  };
+
+  const addCustomExercise = () => {
+    if (!customExerciseName.trim()) return;
+    markCustomized();
+    const newEx: ExerciseLog = {
+      exerciseName: customExerciseName.trim(),
+      exerciseOrder: exercises.length,
+      isSkipped: false,
+      isOpen: true,
+      sets: [{ setNumber: 1, targetReps: 10, completedReps: null, targetWeight: null, usedWeight: null, targetDuration: null, completedDuration: null, isCompleted: false, notes: '' }],
+    };
+    setExercises(prev => [...prev, newEx]);
+    setCustomExerciseName('');
+    setShowAddExercise(false);
+  };
+
+  const removeExercise = (index: number) => {
+    markCustomized();
+    setExercises(prev => prev.filter((_, i) => i !== index).map((ex, i) => ({ ...ex, exerciseOrder: i })));
+  };
+
+  const moveExercise = (index: number, direction: 'up' | 'down') => {
+    markCustomized();
+    setExercises(prev => {
+      const arr = [...prev];
+      const swapIdx = direction === 'up' ? index - 1 : index + 1;
+      if (swapIdx < 0 || swapIdx >= arr.length) return arr;
+      [arr[index], arr[swapIdx]] = [arr[swapIdx], arr[index]];
+      return arr.map((ex, i) => ({ ...ex, exerciseOrder: i }));
+    });
+  };
+
   const addSet = (exIndex: number) => {
     setExercises(prev => {
       const updated = [...prev];
@@ -258,6 +323,38 @@ export default function WorkoutSessionPage() {
     return { totalSets, totalReps, totalLoad, totalExercises: exercises.filter(e => !e.isSkipped).length };
   }, [exercises]);
 
+  const saveAsCustomWorkout = async () => {
+    if (!user || exercises.length === 0) return;
+    setSaving(true);
+    try {
+      const { data: tmpl, error } = await supabase.from('workout_templates').insert({
+        user_id: user.id,
+        name: templateName || 'Custom Workout',
+        workout_type: null,
+        source_type: 'manual',
+        description: `Custom workout based on ${templateSourceName || 'manual entry'}`,
+      }).select().single();
+
+      if (error || !tmpl) throw error || new Error('Failed to save');
+
+      const templateExercises = exercises.filter(e => !e.isSkipped).map((ex, i) => ({
+        workout_template_id: tmpl.id,
+        exercise_name: ex.exerciseName,
+        exercise_order: i,
+        default_sets: ex.sets.length,
+        default_reps: ex.sets[0]?.targetReps || 10,
+        default_weight: ex.sets[0]?.usedWeight || ex.sets[0]?.targetWeight || 0,
+      }));
+
+      await supabase.from('workout_template_exercises').insert(templateExercises);
+      toast({ title: 'Saved!', description: `"${templateName}" saved as custom workout` });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const saveWorkout = async (status: 'in_progress' | 'incomplete' | 'completed') => {
     if (!user) return;
     setSaving(true);
@@ -304,14 +401,12 @@ export default function WorkoutSessionPage() {
           } as any)
           .eq('id', wLogId);
 
-        // Delete existing exercises to re-insert
         await supabase
           .from('workout_log_exercises' as any)
           .delete()
           .eq('workout_log_id', wLogId);
       }
 
-      // Insert all exercise sets
       const rows: any[] = [];
       exercises.forEach(ex => {
         ex.sets.forEach(s => {
@@ -349,9 +444,7 @@ export default function WorkoutSessionPage() {
       toast({ title: 'Success', description: statusLabels[status] });
 
       if (status === 'completed') {
-        // If this is a pathway session, mark progress as completed and unlock next
         if (pathwayProgressId && pathwayAssignmentId && wLogId) {
-          // Mark current session completed
           await supabase
             .from('athlete_plan_session_progress' as any)
             .update({
@@ -362,7 +455,6 @@ export default function WorkoutSessionPage() {
             } as any)
             .eq('id', pathwayProgressId);
 
-          // Find and unlock next locked session
           const { data: allProgress } = await supabase
             .from('athlete_plan_session_progress' as any)
             .select('*')
@@ -382,7 +474,6 @@ export default function WorkoutSessionPage() {
             }
           }
 
-          // Update assignment stats
           const completedCount = progressList.filter((p: any) => p.status === 'completed').length + 1;
           const nextWeek = currentIdx < progressList.length - 1 ? progressList[currentIdx + 1].week_number : progressList[currentIdx].week_number;
           await supabase
@@ -428,11 +519,22 @@ export default function WorkoutSessionPage() {
             </div>
             <Badge variant="outline">Week {Math.min(currentWeek, 12)}</Badge>
           </div>
+          {/* Template source + customization label */}
+          <div className="flex items-center gap-2 mt-1">
+            {templateSourceName && (
+              <span className="text-[10px] text-muted-foreground">
+                Based on: <span className="font-medium">{templateSourceName}</span>
+              </span>
+            )}
+            {wasCustomized && (
+              <Badge variant="secondary" className="text-[10px]">Customized</Badge>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Live Totals */}
-      <div className="sticky top-[88px] z-10 bg-card border-b border-border">
+      <div className="sticky top-[100px] z-10 bg-card border-b border-border">
         <div className="container mx-auto px-4 py-2 flex justify-around text-center">
           <div>
             <p className="text-xs text-muted-foreground">Exercises</p>
@@ -452,6 +554,15 @@ export default function WorkoutSessionPage() {
           </div>
         </div>
       </div>
+
+      {/* Guidance message */}
+      {pathwayProgressId && (
+        <div className="container mx-auto px-4 pt-3">
+          <div className="bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">Guided Session</span> — Changes here affect only this workout. Template remains unchanged.
+          </div>
+        </div>
+      )}
 
       <main className="container mx-auto px-4 py-4 space-y-3">
         {exercises.map((ex, exIndex) => (
@@ -481,7 +592,6 @@ export default function WorkoutSessionPage() {
                 <CardContent className="pt-0 px-4 pb-4">
                   {!ex.isSkipped && (
                     <div className="space-y-2">
-                      {/* Set Header */}
                       <div className="grid grid-cols-12 gap-1 text-xs text-muted-foreground px-1">
                         <span className="col-span-1">Set</span>
                         <span className="col-span-2">Target</span>
@@ -535,22 +645,76 @@ export default function WorkoutSessionPage() {
                     </div>
                   )}
 
-                  <div className="flex justify-end mt-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-xs text-muted-foreground"
-                      onClick={() => toggleSkip(exIndex)}
-                    >
-                      <SkipForward className="mr-1 h-3 w-3" />
-                      {ex.isSkipped ? 'Unskip' : 'Skip Exercise'}
-                    </Button>
+                  {/* Exercise actions */}
+                  <div className="flex justify-between items-center mt-2 pt-2 border-t border-border">
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => moveExercise(exIndex, 'up')} disabled={exIndex === 0}>
+                        <ArrowUp className="h-3 w-3" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => moveExercise(exIndex, 'down')} disabled={exIndex === exercises.length - 1}>
+                        <ArrowDown className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={() => toggleSkip(exIndex)}>
+                        <SkipForward className="mr-1 h-3 w-3" />
+                        {ex.isSkipped ? 'Unskip' : 'Skip'}
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-xs text-destructive" onClick={() => removeExercise(exIndex)}>
+                        <Trash2 className="mr-1 h-3 w-3" /> Remove
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </CollapsibleContent>
             </Collapsible>
           </Card>
         ))}
+
+        {/* Add Exercise */}
+        {!showAddExercise ? (
+          <Button variant="outline" className="w-full" onClick={() => setShowAddExercise(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Add Exercise
+          </Button>
+        ) : (
+          <Card>
+            <CardContent className="pt-4 space-y-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search exercises..."
+                  value={exerciseSearch}
+                  onChange={e => setExerciseSearch(e.target.value)}
+                  className="pl-9"
+                  autoFocus
+                />
+              </div>
+              <div className="max-h-40 overflow-y-auto space-y-1">
+                {filteredLibrary.map(item => (
+                  <Button
+                    key={item.id} type="button" variant="ghost"
+                    className="w-full justify-start text-sm h-auto py-2"
+                    onClick={() => addExerciseFromLibrary(item)}
+                  >
+                    <span>{item.name}</span>
+                    {item.muscle_group && <span className="text-xs text-muted-foreground ml-2">({item.muscle_group})</span>}
+                  </Button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Or type custom exercise..."
+                  value={customExerciseName}
+                  onChange={e => setCustomExerciseName(e.target.value)}
+                />
+                <Button size="sm" onClick={addCustomExercise} disabled={!customExerciseName.trim()}>Add</Button>
+              </div>
+              <Button variant="ghost" size="sm" className="w-full" onClick={() => { setShowAddExercise(false); setExerciseSearch(''); }}>
+                Cancel
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Overall Notes */}
         <Card>
@@ -563,6 +727,11 @@ export default function WorkoutSessionPage() {
             />
           </CardContent>
         </Card>
+
+        {/* Save as Custom Workout */}
+        <Button variant="outline" className="w-full" onClick={saveAsCustomWorkout} disabled={saving || exercises.length === 0}>
+          <BookOpen className="mr-2 h-4 w-4" /> Save as Custom Workout
+        </Button>
       </main>
 
       {/* Sticky Footer */}
@@ -574,7 +743,7 @@ export default function WorkoutSessionPage() {
             disabled={saving}
             onClick={() => saveWorkout('in_progress')}
           >
-            <Save className="mr-1 h-4 w-4" /> Save Draft
+            <Save className="mr-1 h-4 w-4" /> Draft
           </Button>
           <Button
             variant="secondary"
@@ -582,7 +751,7 @@ export default function WorkoutSessionPage() {
             disabled={saving}
             onClick={() => saveWorkout('incomplete')}
           >
-            Save Incomplete
+            Incomplete
           </Button>
           <Button
             className="flex-1"

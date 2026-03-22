@@ -82,7 +82,7 @@ export default function Dashboard() {
         {/* Action buttons */}
         <div className="flex gap-2">
           <Button onClick={() => navigate('/session/new')} className="flex-1 h-12">
-            <Plus className="mr-2 h-4 w-4" /> + Session
+            <Plus className="mr-2 h-4 w-4" /> Session
           </Button>
           <Button onClick={() => navigate('/pathway')} variant="outline" className="flex-1 h-12">
             <Map className="mr-2 h-4 w-4" /> My Pathway

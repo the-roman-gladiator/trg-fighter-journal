@@ -13,6 +13,7 @@ import StrengthTraining from "./pages/StrengthTraining";
 import WorkoutSessionPage from "./pages/WorkoutSessionPage";
 import Onboarding from "./pages/Onboarding";
 import BeginnerDashboard from "./pages/BeginnerDashboard";
+import GuidedSession from "./pages/GuidedSession";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

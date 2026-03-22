@@ -444,6 +444,13 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               <Label>Notes (optional)</Label>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} placeholder="Additional session notes..." />
             </div>
+
+            {/* Tags */}
+            <TagSelector
+              sessionId={sessionId}
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+            />
           </CardContent>
         </Card>
 

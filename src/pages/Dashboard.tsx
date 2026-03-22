@@ -178,7 +178,11 @@ export default function Dashboard() {
 
                           {/* Tags row */}
                           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border" style={{ 
+                              backgroundColor: getDisciplineColor(session.discipline) + '22',
+                              color: getDisciplineColor(session.discipline),
+                              borderColor: getDisciplineColor(session.discipline) + '44'
+                            }}>
                               {session.discipline}
                             </Badge>
                             {session.strategy && (

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -35,8 +35,12 @@ interface ExerciseLog {
 export default function WorkoutSessionPage() {
   const { templateId, logId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
   const { toast } = useToast();
+
+  const pathwayAssignmentId = searchParams.get('pathway');
+  const pathwayProgressId = searchParams.get('progress');
 
   const [templateName, setTemplateName] = useState('');
   const [templateGoal, setTemplateGoal] = useState('');
@@ -345,6 +349,52 @@ export default function WorkoutSessionPage() {
       toast({ title: 'Success', description: statusLabels[status] });
 
       if (status === 'completed') {
+        // If this is a pathway session, mark progress as completed and unlock next
+        if (pathwayProgressId && pathwayAssignmentId && wLogId) {
+          // Mark current session completed
+          await supabase
+            .from('athlete_plan_session_progress' as any)
+            .update({
+              status: 'completed',
+              workout_log_id: wLogId,
+              completed_at: new Date().toISOString(),
+              completion_percentage: 100,
+            } as any)
+            .eq('id', pathwayProgressId);
+
+          // Find and unlock next locked session
+          const { data: allProgress } = await supabase
+            .from('athlete_plan_session_progress' as any)
+            .select('*')
+            .eq('athlete_plan_assignment_id', pathwayAssignmentId)
+            .order('week_number')
+            .order('session_number');
+
+          const progressList = (allProgress || []) as any[];
+          const currentIdx = progressList.findIndex((p: any) => p.id === pathwayProgressId);
+          if (currentIdx >= 0 && currentIdx < progressList.length - 1) {
+            const nextP = progressList[currentIdx + 1];
+            if (nextP.status === 'locked') {
+              await supabase
+                .from('athlete_plan_session_progress' as any)
+                .update({ status: 'available' } as any)
+                .eq('id', nextP.id);
+            }
+          }
+
+          // Update assignment stats
+          const completedCount = progressList.filter((p: any) => p.status === 'completed').length + 1;
+          const nextWeek = currentIdx < progressList.length - 1 ? progressList[currentIdx + 1].week_number : progressList[currentIdx].week_number;
+          await supabase
+            .from('athlete_plan_assignments' as any)
+            .update({
+              completed_sessions_count: completedCount,
+              completion_percentage: Math.round((completedCount / progressList.length) * 100),
+              current_week: nextWeek,
+              status: completedCount >= progressList.length ? 'completed' : 'active',
+            } as any)
+            .eq('id', pathwayAssignmentId);
+        }
         navigate('/strength');
       }
     } catch (error: any) {

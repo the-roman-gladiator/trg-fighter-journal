@@ -1,4 +1,8 @@
-import { MartialArtsDiscipline } from "@/types/training";
+import { MartialArtsDiscipline, CardioType } from "@/types/training";
+
+export const cardioTypes: CardioType[] = [
+  'Running', 'Walking', 'Bike', 'Rowing', 'AssaultBike', 'Swimming', 'StairClimber', 'Hiking', 'JumpRope', 'Other'
+];
 
 export const disciplines: MartialArtsDiscipline[] = [
   'MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { MartialArtsDiscipline, Strategy } from '@/types/training';
+import { Badge } from '@/components/ui/badge';
 import { disciplines, strategies, getTechniques, feelings } from '@/config/dropdownOptions';
 import { TagSelector } from './TagSelector';
 

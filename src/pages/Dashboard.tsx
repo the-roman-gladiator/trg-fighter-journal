@@ -199,7 +199,7 @@ export default function Dashboard() {
 
                           {/* Movement chain */}
                           {chain && (
-                            <p className="text-[11px] text-primary/60 mt-1.5 font-mono tracking-tight">
+                            <p className="text-[11px] mt-1.5 font-mono tracking-tight" style={{ color: settings.input_text_color + '99' }}>
                               {chain}
                             </p>
                           )}

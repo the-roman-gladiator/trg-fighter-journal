@@ -17,6 +17,12 @@ export default function Auth() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Detect recovery token in URL hash
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      setMode('reset');
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setMode('reset');

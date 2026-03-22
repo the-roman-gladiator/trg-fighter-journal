@@ -45,7 +45,6 @@ export default function SessionDetail() {
 
     setSession(data);
 
-    // Load tags
     const { data: sessionTagsData } = await supabase
       .from('session_tags')
       .select('tag_id, tags(name)')
@@ -72,6 +71,9 @@ export default function SessionDetail() {
   if (loading) return <div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>;
   if (!session) return null;
 
+  const hasMovementChain = session.first_movement || session.opponent_action || session.second_movement;
+  const technique = (session as any).technique || '';
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
@@ -82,10 +84,11 @@ export default function SessionDetail() {
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-xl font-bold text-primary">
-                {session.title || session.first_movement || `${session.discipline} Training`}
+                {session.title || technique || `${session.discipline} Training`}
               </h1>
               <p className="text-sm text-muted-foreground">
                 {format(new Date(session.date), 'MMMM d, yyyy')}
+                {session.time && ` – ${session.time}`}
               </p>
             </div>
             <div className="flex gap-2">
@@ -113,6 +116,7 @@ export default function SessionDetail() {
       </header>
 
       <main className="container mx-auto px-4 py-4 max-w-2xl space-y-4">
+        {/* Core info */}
         <Card>
           <CardContent className="pt-6 space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -126,10 +130,10 @@ export default function SessionDetail() {
                   <p className="font-semibold text-sm">{session.strategy}</p>
                 </div>
               )}
-              {session.first_movement && (
+              {technique && (
                 <div>
                   <p className="text-xs text-muted-foreground">Technique</p>
-                  <p className="font-semibold text-sm">{session.first_movement}</p>
+                  <p className="font-semibold text-sm">{technique}</p>
                 </div>
               )}
               {session.intensity && (
@@ -145,26 +149,61 @@ export default function SessionDetail() {
                 </div>
               )}
             </div>
-
-            {session.notes && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Notes</p>
-                <p className="text-sm whitespace-pre-wrap">{session.notes}</p>
-              </div>
-            )}
-
-            {tags.length > 0 && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Tags</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {tags.map(tag => (
-                    <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
-                  ))}
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
+
+        {/* Movement Chain */}
+        {hasMovementChain && (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-xs text-muted-foreground mb-3 font-semibold uppercase tracking-wide">Movement Chain</p>
+              <div className="space-y-2">
+                {session.first_movement && (
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs font-bold text-primary bg-primary/10 rounded px-2 py-0.5 shrink-0">1st</span>
+                    <p className="text-sm">{session.first_movement}</p>
+                  </div>
+                )}
+                {session.opponent_action && (
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs font-bold text-muted-foreground bg-muted rounded px-2 py-0.5 shrink-0">2nd</span>
+                    <p className="text-sm">{session.opponent_action}</p>
+                  </div>
+                )}
+                {session.second_movement && (
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs font-bold text-primary bg-primary/10 rounded px-2 py-0.5 shrink-0">3rd</span>
+                    <p className="text-sm">{session.second_movement}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Notes */}
+        {session.notes && (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-xs text-muted-foreground mb-1">Notes</p>
+              <p className="text-sm whitespace-pre-wrap">{session.notes}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tags */}
+        {tags.length > 0 && (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-xs text-muted-foreground mb-2">Tags</p>
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map(tag => (
+                  <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   );

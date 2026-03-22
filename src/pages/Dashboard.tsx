@@ -17,7 +17,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [recentSessions, setRecentSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [maStats, setMaStats] = useState({ total: 0, thisWeek: 0, discipline: '' });
+  const [maStats, setMaStats] = useState({ total: 0, discipline: '' });
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
@@ -41,10 +41,8 @@ export default function Dashboard() {
 
     setRecentSessions(recent || []);
 
-    // Martial arts stats
     const maSessions = (recent || []).filter(s => MARTIAL_ARTS.includes(s.discipline));
-    const topDiscipline = profile?.discipline || 'MMA';
-    setMaStats({ total: maSessions.length, thisWeek: maSessions.length, discipline: topDiscipline });
+    setMaStats({ total: maSessions.length, discipline: profile?.discipline || 'MMA' });
 
     setLoading(false);
   };
@@ -63,6 +61,12 @@ export default function Dashboard() {
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>;
   }
+
+  const buildChainPreview = (session: any) => {
+    const parts = [session.first_movement, session.opponent_action, session.second_movement].filter(Boolean);
+    if (parts.length === 0) return null;
+    return parts.join(' → ');
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,41 +120,52 @@ export default function Dashboard() {
               <p className="text-center text-muted-foreground text-sm py-4">No sessions in the last 7 days.</p>
             ) : (
               <div className="space-y-2">
-                {recentSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="flex items-center justify-between py-2 border-b border-border last:border-0 cursor-pointer hover:bg-muted/10 rounded px-2 -mx-2"
-                    onClick={() => navigate(`/session/${session.id}`)}
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{session.title || `${session.discipline} Training`}</p>
-                      <p className="text-xs text-muted-foreground">{format(new Date(session.date), 'EEE, MMM d')}</p>
+                {recentSessions.map((session) => {
+                  const chain = buildChainPreview(session);
+                  const technique = (session as any).technique || '';
+                  return (
+                    <div
+                      key={session.id}
+                      className="py-2 border-b border-border last:border-0 cursor-pointer hover:bg-muted/10 rounded px-2 -mx-2"
+                      onClick={() => navigate(`/session/${session.id}`)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium">{session.title || technique || `${session.discipline} Training`}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(session.date), 'EEE, MMM d')}
+                            {session.time && ` – ${session.time}`}
+                          </p>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">{session.discipline}</Badge>
+                            {session.strategy && <Badge variant="outline" className="text-[10px] px-1.5 py-0">{session.strategy}</Badge>}
+                            {technique && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{technique}</Badge>}
+                          </div>
+                          {chain && (
+                            <p className="text-xs text-primary/70 mt-1 font-mono">{chain}</p>
+                          )}
+                        </div>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0" onClick={(e) => e.stopPropagation()}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete session?</AlertDialogTitle>
+                              <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={(e) => deleteSession(session.id, e)}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {session.intensity && (
-                        <Badge variant="outline" className="text-xs">RPE {session.intensity}</Badge>
-                      )}
-                      <Badge variant="outline" className="text-xs">{session.discipline}</Badge>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={(e) => e.stopPropagation()}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete session?</AlertDialogTitle>
-                            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={(e) => deleteSession(session.id, e)}>Delete</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>

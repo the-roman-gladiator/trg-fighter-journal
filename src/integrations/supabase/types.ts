@@ -568,7 +568,7 @@ export type Database = {
           source_type: string
           system_rule: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
           workout_type: string | null
         }
         Insert: {
@@ -591,7 +591,7 @@ export type Database = {
           source_type?: string
           system_rule?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           workout_type?: string | null
         }
         Update: {
@@ -614,7 +614,7 @@ export type Database = {
           source_type?: string
           system_rule?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           workout_type?: string | null
         }
         Relationships: []

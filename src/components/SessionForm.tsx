@@ -107,7 +107,15 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setNotes(session.notes || '');
       setTechniqueChains((session.technique_chains as TechniqueChain[]) || []);
 
-      // Strength fields
+      // Load tags
+      const { data: sessionTagsData } = await supabase
+        .from('session_tags')
+        .select('tag_id, tags(name)')
+        .eq('session_id', sessionId);
+      if (sessionTagsData) {
+        setSelectedTags(sessionTagsData.map((st: any) => st.tags?.name).filter(Boolean));
+      }
+
       setWorkoutName(session.workout_name || '');
       setWorkoutType(session.workout_type || '');
       setWorkoutMode((session.workout_mode as WorkoutMode) || 'manual');

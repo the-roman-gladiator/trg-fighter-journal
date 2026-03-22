@@ -14,6 +14,132 @@ export type Database = {
   }
   public: {
     Tables: {
+      athlete_plan_assignments: {
+        Row: {
+          assigned_by: string | null
+          completed_sessions_count: number
+          completion_percentage: number | null
+          created_at: string
+          current_session_number: number
+          current_week: number
+          id: string
+          is_active: boolean | null
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+          workout_plan_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          completed_sessions_count?: number
+          completion_percentage?: number | null
+          created_at?: string
+          current_session_number?: number
+          current_week?: number
+          id?: string
+          is_active?: boolean | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          workout_plan_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          completed_sessions_count?: number
+          completion_percentage?: number | null
+          created_at?: string
+          current_session_number?: number
+          current_week?: number
+          id?: string
+          is_active?: boolean | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          workout_plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_plan_assignments_workout_plan_id_fkey"
+            columns: ["workout_plan_id"]
+            isOneToOne: false
+            referencedRelation: "workout_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      athlete_plan_session_progress: {
+        Row: {
+          athlete_plan_assignment_id: string
+          completed_at: string | null
+          completion_percentage: number | null
+          created_at: string
+          id: string
+          scheduled_date: string | null
+          session_number: number
+          started_at: string | null
+          status: string
+          updated_at: string
+          week_number: number
+          workout_log_id: string | null
+          workout_template_id: string
+        }
+        Insert: {
+          athlete_plan_assignment_id: string
+          completed_at?: string | null
+          completion_percentage?: number | null
+          created_at?: string
+          id?: string
+          scheduled_date?: string | null
+          session_number: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          week_number: number
+          workout_log_id?: string | null
+          workout_template_id: string
+        }
+        Update: {
+          athlete_plan_assignment_id?: string
+          completed_at?: string | null
+          completion_percentage?: number | null
+          created_at?: string
+          id?: string
+          scheduled_date?: string | null
+          session_number?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          week_number?: number
+          workout_log_id?: string | null
+          workout_template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_plan_session_progress_athlete_plan_assignment_id_fkey"
+            columns: ["athlete_plan_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "athlete_plan_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athlete_plan_session_progress_workout_log_id_fkey"
+            columns: ["workout_log_id"]
+            isOneToOne: false
+            referencedRelation: "workout_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "athlete_plan_session_progress_workout_template_id_fkey"
+            columns: ["workout_template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_library: {
         Row: {
           category: string | null
@@ -486,6 +612,149 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workout_plan_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          is_required: boolean | null
+          session_label: string | null
+          session_number: number
+          updated_at: string
+          week_number: number
+          workout_plan_id: string
+          workout_template_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_required?: boolean | null
+          session_label?: string | null
+          session_number: number
+          updated_at?: string
+          week_number: number
+          workout_plan_id: string
+          workout_template_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_required?: boolean | null
+          session_label?: string | null
+          session_number?: number
+          updated_at?: string
+          week_number?: number
+          workout_plan_id?: string
+          workout_template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_plan_sessions_workout_plan_id_fkey"
+            columns: ["workout_plan_id"]
+            isOneToOne: false
+            referencedRelation: "workout_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_plan_sessions_workout_template_id_fkey"
+            columns: ["workout_template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_plan_weeks: {
+        Row: {
+          created_at: string
+          id: string
+          phase_label: string
+          updated_at: string
+          week_number: number
+          weekly_goal: string | null
+          workout_plan_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          phase_label: string
+          updated_at?: string
+          week_number: number
+          weekly_goal?: string | null
+          workout_plan_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          phase_label?: string
+          updated_at?: string
+          week_number?: number
+          weekly_goal?: string | null
+          workout_plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_plan_weeks_workout_plan_id_fkey"
+            columns: ["workout_plan_id"]
+            isOneToOne: false
+            referencedRelation: "workout_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_plans: {
+        Row: {
+          auto_progression_enabled: boolean | null
+          coach_override_allowed: boolean | null
+          created_at: string
+          description: string | null
+          discipline: string
+          duration_weeks: number
+          id: string
+          is_active: boolean | null
+          level: string
+          name: string
+          progression_weeks_1_4: string | null
+          progression_weeks_5_8: string | null
+          progression_weeks_9_12: string | null
+          sessions_per_week: number
+          updated_at: string
+        }
+        Insert: {
+          auto_progression_enabled?: boolean | null
+          coach_override_allowed?: boolean | null
+          created_at?: string
+          description?: string | null
+          discipline: string
+          duration_weeks?: number
+          id?: string
+          is_active?: boolean | null
+          level: string
+          name: string
+          progression_weeks_1_4?: string | null
+          progression_weeks_5_8?: string | null
+          progression_weeks_9_12?: string | null
+          sessions_per_week?: number
+          updated_at?: string
+        }
+        Update: {
+          auto_progression_enabled?: boolean | null
+          coach_override_allowed?: boolean | null
+          created_at?: string
+          description?: string | null
+          discipline?: string
+          duration_weeks?: number
+          id?: string
+          is_active?: boolean | null
+          level?: string
+          name?: string
+          progression_weeks_1_4?: string | null
+          progression_weeks_5_8?: string | null
+          progression_weeks_9_12?: string | null
+          sessions_per_week?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       workout_template_exercises: {
         Row: {

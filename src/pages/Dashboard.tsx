@@ -166,7 +166,7 @@ export default function Dashboard() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           {/* Title row */}
-                          <p className="text-sm font-bold text-foreground truncate">
+                          <p className="text-sm font-bold truncate" style={{ color: settings.input_text_color }}>
                             {session.title || technique || `${session.discipline} Training`}
                           </p>
 

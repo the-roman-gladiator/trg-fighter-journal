@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useFighterProfile } from '@/hooks/useFighterProfile';
 import { useUserSettings, DEFAULT_DISCIPLINE_COLORS, INPUT_COLOR_PRESETS, DEFAULT_SETTINGS } from '@/hooks/useUserSettings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,9 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords } from 'lucide-react';
 import { AccountType, FitnessLevel } from '@/types/training';
 import { disciplines } from '@/config/dropdownOptions';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 
 const accountTypes: AccountType[] = ['free', 'basic', 'pro'];
 const martialLevels = ['Beginner', 'Intermediate', 'Advanced', 'Fighter'] as const;

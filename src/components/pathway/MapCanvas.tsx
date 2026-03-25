@@ -11,11 +11,13 @@ interface MapCanvasProps {
 }
 
 const NODE_COLORS: Record<string, { core: string; glow: string }> = {
-  concept:     { core: '#06b6d4', glow: '#22d3ee' },
+  root:        { core: '#ffffff', glow: '#e0f2fe' },
+  discipline:  { core: '#06b6d4', glow: '#22d3ee' },
+  strategy:    { core: '#f59e0b', glow: '#fbbf24' },
   technique:   { core: '#8b5cf6', glow: '#a78bfa' },
-  achievement: { core: '#f59e0b', glow: '#fbbf24' },
-  milestone:   { core: '#10b981', glow: '#34d399' },
-  session:     { core: '#f43f5e', glow: '#fb7185' },
+  movement:    { core: '#10b981', glow: '#34d399' },
+  reaction:    { core: '#f43f5e', glow: '#fb7185' },
+  followup:    { core: '#3b82f6', glow: '#60a5fa' },
   default:     { core: '#06b6d4', glow: '#22d3ee' },
 };
 

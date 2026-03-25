@@ -34,6 +34,8 @@ export default function Dashboard() {
 
   const [recentSessions, setRecentSessions] = useState<any[]>([]);
   const [coachSessions, setCoachSessions] = useState<any[]>([]);
+  const [completedCoachSessions, setCompletedCoachSessions] = useState<any[]>([]);
+  const [loggedCoachSessionIds, setLoggedCoachSessionIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [maStats, setMaStats] = useState({ total: 0, discipline: '' });
 
@@ -58,7 +60,7 @@ export default function Dashboard() {
     const maSessions = (recent || []).filter(s => MARTIAL_ARTS.includes(s.discipline));
     setMaStats({ total: maSessions.length, discipline: profile?.discipline || 'MMA' });
 
-    // Fetch scheduled coach sessions
+    // Fetch scheduled coach sessions (upcoming)
     const { data: coachData } = await supabase
       .from('coach_sessions')
       .select('*')
@@ -68,7 +70,48 @@ export default function Dashboard() {
       .limit(10);
     setCoachSessions(coachData || []);
 
+    // Fetch completed coach sessions (available to record)
+    const { data: completedData } = await supabase
+      .from('coach_sessions')
+      .select('*')
+      .eq('status', 'completed')
+      .order('scheduled_date', { ascending: false })
+      .limit(20);
+    setCompletedCoachSessions(completedData || []);
+
+    // Check which coach sessions user already logged
+    if (completedData && completedData.length > 0) {
+      const { data: logged } = await supabase
+        .from('training_sessions')
+        .select('coach_session_id')
+        .eq('user_id', user.id)
+        .not('coach_session_id', 'is', null);
+      const ids = new Set((logged || []).map((l: any) => l.coach_session_id));
+      setLoggedCoachSessionIds(ids);
+    }
+
     setLoading(false);
+  };
+
+  const recordCoachSession = async (cs: any) => {
+    if (!user) return;
+    const discipline = MARTIAL_ARTS.includes(cs.discipline) ? cs.discipline : 'MMA';
+    const { error } = await supabase.from('training_sessions').insert({
+      user_id: user.id,
+      title: cs.title,
+      discipline: discipline as any,
+      session_type: 'Completed',
+      date: cs.scheduled_date || format(new Date(), 'yyyy-MM-dd'),
+      notes: `Coach class: ${cs.session_plan || ''}\nDrills: ${cs.drills || ''}`.trim(),
+      coach_session_id: cs.id,
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success('Session recorded in your journal!');
+    setLoggedCoachSessionIds(prev => new Set(prev).add(cs.id));
+    fetchData();
   };
 
   const deleteSession = async (sessionId: string, e: React.MouseEvent) => {

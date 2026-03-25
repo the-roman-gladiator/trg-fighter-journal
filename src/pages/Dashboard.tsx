@@ -8,7 +8,7 @@ import { ModeSwitcher } from '@/components/ModeSwitcher';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, User, Map, Trash2, Swords, ChevronRight, Shield, Network, GraduationCap } from 'lucide-react';
+import { Plus, User, Map, Trash2, Swords, ChevronRight, Shield, Network, GraduationCap, CalendarDays, Clock } from 'lucide-react';
 import { format, startOfWeek } from 'date-fns';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/sonner';
@@ -33,6 +33,7 @@ export default function Dashboard() {
   }, [mode]);
 
   const [recentSessions, setRecentSessions] = useState<any[]>([]);
+  const [coachSessions, setCoachSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [maStats, setMaStats] = useState({ total: 0, discipline: '' });
 
@@ -56,6 +57,17 @@ export default function Dashboard() {
     setRecentSessions(recent || []);
     const maSessions = (recent || []).filter(s => MARTIAL_ARTS.includes(s.discipline));
     setMaStats({ total: maSessions.length, discipline: profile?.discipline || 'MMA' });
+
+    // Fetch scheduled coach sessions
+    const { data: coachData } = await supabase
+      .from('coach_sessions')
+      .select('*')
+      .eq('status', 'scheduled')
+      .gte('scheduled_date', format(new Date(), 'yyyy-MM-dd'))
+      .order('scheduled_date', { ascending: true })
+      .limit(10);
+    setCoachSessions(coachData || []);
+
     setLoading(false);
   };
 
@@ -133,7 +145,54 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent Sessions */}
+        {/* Upcoming Coach Sessions */}
+        {coachSessions.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">Upcoming Classes</h2>
+              <span className="text-[10px] text-muted-foreground">From your coaches</span>
+            </div>
+            <div className="space-y-2">
+              {coachSessions.map((cs) => (
+                <Card key={cs.id} className="bg-card border-border border-l-4 border-l-primary/60">
+                  <CardContent className="py-3 px-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold truncate text-foreground">{cs.title}</p>
+                        <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
+                          <CalendarDays className="h-3 w-3" />
+                          <span>{format(new Date(cs.scheduled_date), 'EEE, MMM d')}</span>
+                          {cs.duration_minutes && (
+                            <>
+                              <Clock className="h-3 w-3 ml-1" />
+                              <span>{cs.duration_minutes} min</span>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 border border-primary/30 text-primary">
+                            {cs.discipline}
+                          </Badge>
+                          {cs.target_level && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                              {cs.target_level}
+                            </Badge>
+                          )}
+                        </div>
+                        {cs.session_plan && (
+                          <p className="text-[11px] mt-1.5 text-muted-foreground line-clamp-2">{cs.session_plan}</p>
+                        )}
+                      </div>
+                      <GraduationCap className="h-4 w-4 text-primary/40 shrink-0 mt-1" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">Recent Sessions</h2>

@@ -145,7 +145,54 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent Sessions */}
+        {/* Upcoming Coach Sessions */}
+        {coachSessions.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">Upcoming Classes</h2>
+              <span className="text-[10px] text-muted-foreground">From your coaches</span>
+            </div>
+            <div className="space-y-2">
+              {coachSessions.map((cs) => (
+                <Card key={cs.id} className="bg-card border-border border-l-4 border-l-primary/60">
+                  <CardContent className="py-3 px-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold truncate text-foreground">{cs.title}</p>
+                        <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
+                          <CalendarDays className="h-3 w-3" />
+                          <span>{format(new Date(cs.scheduled_date), 'EEE, MMM d')}</span>
+                          {cs.duration_minutes && (
+                            <>
+                              <Clock className="h-3 w-3 ml-1" />
+                              <span>{cs.duration_minutes} min</span>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 border border-primary/30 text-primary">
+                            {cs.discipline}
+                          </Badge>
+                          {cs.target_level && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                              {cs.target_level}
+                            </Badge>
+                          )}
+                        </div>
+                        {cs.session_plan && (
+                          <p className="text-[11px] mt-1.5 text-muted-foreground line-clamp-2">{cs.session_plan}</p>
+                        )}
+                      </div>
+                      <GraduationCap className="h-4 w-4 text-primary/40 shrink-0 mt-1" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">Recent Sessions</h2>

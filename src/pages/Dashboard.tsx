@@ -137,6 +137,7 @@ export default function Dashboard() {
               Coach Dashboard
             </Button>
           )}
+        </div>
 
         {/* Current Phase Card */}
         <Card className="border-primary/20 bg-card">

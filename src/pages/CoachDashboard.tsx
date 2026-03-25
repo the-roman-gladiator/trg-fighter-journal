@@ -254,6 +254,9 @@ export default function CoachDashboard() {
                           {cs.session_plan && <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-1">{cs.session_plan}</p>}
                         </div>
                         <div className="flex gap-1 ml-2 shrink-0">
+                          <Badge variant={cs.status === 'scheduled' ? 'default' : 'outline'} className="text-[10px]">
+                            {cs.status === 'scheduled' ? 'Scheduled' : 'Draft'}
+                          </Badge>
                           <Badge variant="outline" className="text-[10px]">{cs.discipline}</Badge>
                           <Badge variant="secondary" className="text-[10px]">{cs.target_level || 'All'}</Badge>
                         </div>

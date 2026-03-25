@@ -59,7 +59,7 @@ export default function CoachSessionEdit() {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (status: string = 'draft') => {
     if (!user || !form.title.trim()) {
       toast.error('Title is required');
       return;
@@ -70,16 +70,17 @@ export default function CoachSessionEdit() {
       ...form,
       user_id: user.id,
       duration_minutes: Number(form.duration_minutes) || 60,
+      status,
     };
 
     if (isNew) {
       const { error } = await supabase.from('coach_sessions').insert(payload);
       if (error) { toast.error(error.message); setSaving(false); return; }
-      toast.success('Coach session created');
+      toast.success(status === 'scheduled' ? 'Session scheduled — visible to athletes!' : 'Draft saved');
     } else {
       const { error } = await supabase.from('coach_sessions').update(payload).eq('id', id);
       if (error) { toast.error(error.message); setSaving(false); return; }
-      toast.success('Coach session updated');
+      toast.success(status === 'scheduled' ? 'Session scheduled!' : 'Draft updated');
     }
 
     setSaving(false);
@@ -180,9 +181,14 @@ export default function CoachSessionEdit() {
         </div>
 
         {/* Save */}
-        <Button onClick={handleSave} disabled={saving} className="w-full h-12 text-base font-bold">
-          {saving ? 'Saving...' : isNew ? 'Create Session' : 'Update Session'}
-        </Button>
+        <div className="grid grid-cols-2 gap-3">
+          <Button variant="outline" onClick={() => handleSave('draft')} disabled={saving} className="h-12 text-base font-bold">
+            {saving ? 'Saving...' : 'Save Draft'}
+          </Button>
+          <Button onClick={() => handleSave('scheduled')} disabled={saving} className="h-12 text-base font-bold">
+            {saving ? 'Saving...' : 'Schedule'}
+          </Button>
+        </div>
       </main>
     </div>
   );

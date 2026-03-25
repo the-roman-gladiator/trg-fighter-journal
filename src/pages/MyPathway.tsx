@@ -366,58 +366,5 @@ export default function MyPathway() {
   }
 
   // Interactive Map
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => setView('home')}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
-          <h1 className="text-xl font-bold mt-2">Interactive Map</h1>
-          <p className="text-sm text-muted-foreground">Select tags to explore your knowledge</p>
-        </div>
-      </header>
-      <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-base flex items-center gap-2"><Filter className="h-4 w-4" /> Tags</CardTitle>
-              {selectedTags.length > 0 && (
-                <Button variant="ghost" size="sm" onClick={() => { setSelectedTags([]); setMapResults([]); }} className="text-xs">
-                  <X className="h-3 w-3 mr-1" /> Clear
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {allTags.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No tags yet. Add tags when creating sessions.</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {allTags.map(tag => (
-                  <Badge key={tag.id} variant={selectedTags.includes(tag.name) ? 'default' : 'outline'} className="cursor-pointer text-sm px-3 py-1" onClick={() => toggleTag(tag.name)}>
-                    {tag.name}
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {selectedTags.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              {mapLoading ? 'Searching...' : `${mapResults.length} session${mapResults.length !== 1 ? 's' : ''} matching all selected tags`}
-            </p>
-            {mapResults.map(s => <SessionCard key={s.id} session={s} />)}
-            {!mapLoading && mapResults.length === 0 && (
-              <p className="text-center text-muted-foreground text-sm py-4">No sessions match all selected tags.</p>
-            )}
-          </div>
-        )}
-
-        {selectedTags.length === 0 && (
-          <p className="text-center text-muted-foreground text-sm py-8">Select one or more tags above to explore your training notes.</p>
-        )}
-      </main>
-    </div>
-  );
+  return <InteractiveMap sessions={allSessions} onBack={() => setView('home')} />;
 }

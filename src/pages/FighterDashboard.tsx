@@ -123,7 +123,7 @@ export default function FighterDashboard() {
           </Button>
         </div>
 
-      <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
+
         {/* Quick links */}
         <div className="grid grid-cols-2 gap-3">
           <Card className="cursor-pointer hover:border-primary/30" onClick={() => navigate('/fighter/pathway')}>

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, BookOpen, Network, Search, X, Filter, GitBranch } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { InteractiveMap } from '@/components/pathway/InteractiveMap';
 
 type ViewMode = 'home' | 'all-notes' | 'interactive-map' | 'pathways';
 

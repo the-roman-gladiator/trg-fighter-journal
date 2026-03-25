@@ -327,7 +327,7 @@ export default function MyPathway() {
           <div className="container mx-auto px-4 py-4">
             <Button variant="ghost" onClick={() => setView('home')}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
             <h1 className="text-xl font-bold mt-2">All Notes</h1>
-            <p className="text-sm text-muted-foreground">Sessions older than 7 days</p>
+            <p className="text-sm text-muted-foreground">All your training sessions</p>
           </div>
         </header>
         <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">

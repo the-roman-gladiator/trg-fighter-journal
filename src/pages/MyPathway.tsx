@@ -52,8 +52,6 @@ export default function MyPathway() {
     if (!user) return;
     setLoading(true);
 
-    const sevenDaysAgo = subDays(new Date(), 7).toISOString().split('T')[0];
-
     // All sessions for pathways
     const { data: all } = await supabase
       .from('training_sessions')
@@ -64,8 +62,8 @@ export default function MyPathway() {
 
     setAllSessions(all || []);
 
-    // Archived sessions (older than 7 days)
-    setArchivedSessions((all || []).filter(s => s.date < sevenDaysAgo));
+    // All Notes = ALL sessions (no date filter)
+    setArchivedSessions(all || []);
 
     // Load all tags
     const { data: tags } = await supabase.from('tags').select('*').order('name');

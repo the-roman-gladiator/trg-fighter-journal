@@ -39,7 +39,7 @@ export default function Dashboard() {
       .select('*')
       .eq('user_id', user.id)
       .eq('session_type', 'Completed')
-      .gte('date', sevenDaysAgo)
+      .gte('date', mondayOfThisWeek)
       .order('date', { ascending: false })
       .limit(20);
 

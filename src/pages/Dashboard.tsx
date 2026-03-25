@@ -117,6 +117,28 @@ export default function Dashboard() {
           </Button>
         </div>
 
+        {/* Fighter & Coach Links */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 text-xs"
+            onClick={() => navigate('/fighter')}
+          >
+            <Swords className="mr-1 h-3.5 w-3.5" /> Fighters Area
+          </Button>
+          {profile?.coach_level === 'head_coach' && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs"
+              onClick={() => navigate('/coach')}
+            >
+              Coach Dashboard
+            </Button>
+          )}
+        </div>
+
         {/* Current Phase Card */}
         <Card className="border-primary/20 bg-card">
           <CardContent className="pt-4 pb-4">

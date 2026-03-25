@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useFighterProfile } from '@/hooks/useFighterProfile';
 import { useUserSettings, DEFAULT_DISCIPLINE_COLORS, INPUT_COLOR_PRESETS, DEFAULT_SETTINGS } from '@/hooks/useUserSettings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,9 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords } from 'lucide-react';
 import { AccountType, FitnessLevel } from '@/types/training';
 import { disciplines } from '@/config/dropdownOptions';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 
 const accountTypes: AccountType[] = ['free', 'basic', 'pro'];
 const martialLevels = ['Beginner', 'Intermediate', 'Advanced', 'Fighter'] as const;
@@ -26,9 +29,12 @@ const accountBadgeColor: Record<AccountType, string> = {
 
 const ALL_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
 
+const FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
+
 export default function Profile() {
   const { user, profile, refreshProfile } = useAuth();
   const { settings, updateSettings } = useUserSettings();
+  const { fighterProfile, requestFighterAccess, refreshFighterProfile } = useFighterProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -315,11 +321,77 @@ export default function Profile() {
             </CollapsibleContent>
           </Collapsible>
 
+          {/* Fighter Access Request */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Swords className="h-4 w-4" /> Fighter Access
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {fighterProfile?.fighter_status === 'approved' ? (
+                <div>
+                  <Badge className="bg-emerald-500/20 text-emerald-400">Approved Fighter</Badge>
+                  <div className="flex gap-1 flex-wrap mt-2">
+                    {(fighterProfile.approved_fight_disciplines || []).map(d => (
+                      <Badge key={d} variant="default" className="text-xs">{d}</Badge>
+                    ))}
+                  </div>
+                </div>
+              ) : fighterProfile?.fighter_status === 'pending' ? (
+                <div>
+                  <Badge variant="outline" className="text-amber-500 border-amber-500/30">Request Pending</Badge>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Requested: {(fighterProfile.requested_fight_disciplines || []).join(', ')}
+                  </p>
+                </div>
+              ) : (
+                <FighterRequestForm onSubmit={requestFighterAccess} />
+              )}
+            </CardContent>
+          </Card>
+
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Saving...' : 'Save Changes'}
           </Button>
         </form>
       </main>
+    </div>
+  );
+}
+
+function FighterRequestForm({ onSubmit }: { onSubmit: (discs: string[]) => Promise<void> }) {
+  const [selected, setSelected] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const toggle = (d: string) => setSelected(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
+
+  const handleRequest = async () => {
+    if (selected.length === 0) {
+      toast({ title: 'Select at least one discipline', variant: 'destructive' });
+      return;
+    }
+    setSubmitting(true);
+    await onSubmit(selected);
+    toast({ title: 'Request Sent', description: 'Your fighter request has been submitted for Head Coach approval.' });
+    setSubmitting(false);
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">Select the disciplines you want to compete in:</p>
+      <div className="flex gap-2 flex-wrap">
+        {FIGHT_DISCIPLINES.map(d => (
+          <label key={d} className="flex items-center gap-1.5 text-xs cursor-pointer">
+            <Checkbox checked={selected.includes(d)} onCheckedChange={() => toggle(d)} />
+            {d}
+          </label>
+        ))}
+      </div>
+      <Button size="sm" onClick={handleRequest} disabled={submitting || selected.length === 0}>
+        {submitting ? 'Submitting...' : 'Request Fighter Access'}
+      </Button>
     </div>
   );
 }

@@ -357,7 +357,11 @@ export type Database = {
       profiles: {
         Row: {
           account_type: string
+          approval_status: Database["public"]["Enums"]["approval_status"] | null
+          approved_by: string | null
           assigned_by_coach: boolean | null
+          coach_discipline: string | null
+          coach_level: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled: boolean | null
           created_at: string
           discipline: string | null
@@ -373,7 +377,13 @@ export type Database = {
         }
         Insert: {
           account_type?: string
+          approval_status?:
+            | Database["public"]["Enums"]["approval_status"]
+            | null
+          approved_by?: string | null
           assigned_by_coach?: boolean | null
+          coach_discipline?: string | null
+          coach_level?: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled?: boolean | null
           created_at?: string
           discipline?: string | null
@@ -389,7 +399,13 @@ export type Database = {
         }
         Update: {
           account_type?: string
+          approval_status?:
+            | Database["public"]["Enums"]["approval_status"]
+            | null
+          approved_by?: string | null
           assigned_by_coach?: boolean | null
+          coach_discipline?: string | null
+          coach_level?: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled?: boolean | null
           created_at?: string
           discipline?: string | null
@@ -1243,6 +1259,7 @@ export type Database = {
     }
     Enums: {
       app_role: "athlete" | "coach" | "admin"
+      approval_status: "pending" | "approved" | "rejected"
       cardio_type:
         | "Running"
         | "Walking"
@@ -1254,6 +1271,7 @@ export type Database = {
         | "Hiking"
         | "JumpRope"
         | "Other"
+      coach_level: "head_coach" | "main_coach" | "level_2" | "level_1"
       discipline:
         | "MMA"
         | "Muay Thai"
@@ -1403,6 +1421,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["athlete", "coach", "admin"],
+      approval_status: ["pending", "approved", "rejected"],
       cardio_type: [
         "Running",
         "Walking",
@@ -1415,6 +1434,7 @@ export const Constants = {
         "JumpRope",
         "Other",
       ],
+      coach_level: ["head_coach", "main_coach", "level_2", "level_1"],
       discipline: [
         "MMA",
         "Muay Thai",

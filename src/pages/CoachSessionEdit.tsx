@@ -181,9 +181,14 @@ export default function CoachSessionEdit() {
         </div>
 
         {/* Save */}
-        <Button onClick={handleSave} disabled={saving} className="w-full h-12 text-base font-bold">
-          {saving ? 'Saving...' : isNew ? 'Create Session' : 'Update Session'}
-        </Button>
+        <div className="grid grid-cols-2 gap-3">
+          <Button variant="outline" onClick={() => handleSave('draft')} disabled={saving} className="h-12 text-base font-bold">
+            {saving ? 'Saving...' : 'Save Draft'}
+          </Button>
+          <Button onClick={() => handleSave('scheduled')} disabled={saving} className="h-12 text-base font-bold">
+            {saving ? 'Saving...' : 'Schedule'}
+          </Button>
+        </div>
       </main>
     </div>
   );

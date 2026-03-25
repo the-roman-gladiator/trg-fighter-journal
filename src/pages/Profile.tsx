@@ -29,9 +29,12 @@ const accountBadgeColor: Record<AccountType, string> = {
 
 const ALL_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
 
+const FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
+
 export default function Profile() {
   const { user, profile, refreshProfile } = useAuth();
   const { settings, updateSettings } = useUserSettings();
+  const { fighterProfile, requestFighterAccess, refreshFighterProfile } = useFighterProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
 

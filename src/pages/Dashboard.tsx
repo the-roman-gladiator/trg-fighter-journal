@@ -31,7 +31,8 @@ export default function Dashboard() {
     if (!user) return;
     setLoading(true);
 
-    const sevenDaysAgo = subDays(new Date(), 7).toISOString().split('T')[0];
+    // Current week: Monday to Sunday
+    const mondayOfThisWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
 
     const { data: recent } = await supabase
       .from('training_sessions')

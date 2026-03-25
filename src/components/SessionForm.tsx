@@ -19,7 +19,7 @@ interface SessionFormProps {
 }
 
 const intensityOptions = ['Low', 'Moderate', 'High', 'Very High'] as const;
-const feelingOptions = ['Sharp', 'Good', 'Average', 'Tired', 'Heavy', 'Frustrated', 'Confident', 'Focused'] as const;
+const feelingOptions = ['Fresh', 'Normal', 'Tired', 'Injured', 'On Fire'] as const;
 
 export function SessionForm({ sessionId }: SessionFormProps) {
   const { user, profile } = useAuth();

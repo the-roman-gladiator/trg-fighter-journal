@@ -57,6 +57,17 @@ export default function Dashboard() {
     setRecentSessions(recent || []);
     const maSessions = (recent || []).filter(s => MARTIAL_ARTS.includes(s.discipline));
     setMaStats({ total: maSessions.length, discipline: profile?.discipline || 'MMA' });
+
+    // Fetch scheduled coach sessions
+    const { data: coachData } = await supabase
+      .from('coach_sessions')
+      .select('*')
+      .eq('status', 'scheduled')
+      .gte('scheduled_date', format(new Date(), 'yyyy-MM-dd'))
+      .order('scheduled_date', { ascending: true })
+      .limit(10);
+    setCoachSessions(coachData || []);
+
     setLoading(false);
   };
 

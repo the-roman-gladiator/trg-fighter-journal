@@ -6,8 +6,10 @@ import { useFighterProfile } from '@/hooks/useFighterProfile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Swords, Network, Shield, Clock } from 'lucide-react';
+import { ArrowLeft, Plus, Swords, Network, Shield, Clock, User } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAppMode } from '@/hooks/useAppMode';
+import { ModeSwitcher } from '@/components/ModeSwitcher';
 
 export default function FighterDashboard() {
   const { user } = useAuth();

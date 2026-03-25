@@ -364,6 +364,6 @@ export default function MyPathway() {
     );
   }
 
-  // Interactive Map
-  return <InteractiveMap sessions={allSessions} onBack={() => setView('home')} />;
+  // Interactive Map - Futuristic version
+  return <FuturisticMap onBack={() => setView('home')} />;
 }

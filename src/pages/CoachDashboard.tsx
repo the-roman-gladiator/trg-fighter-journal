@@ -220,6 +220,44 @@ export default function CoachDashboard() {
             )}
           </TabsList>
 
+          {/* My Coach Sessions */}
+          <TabsContent value="my_sessions" className="space-y-3 mt-4">
+            <div className="space-y-2">
+              {coachSessions.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <p className="text-sm text-muted-foreground">No coach sessions yet.</p>
+                    <Button size="sm" className="mt-3" onClick={() => navigate('/coach/session/new')}>
+                      Plan First Session
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                coachSessions.map(cs => (
+                  <Card key={cs.id} className="cursor-pointer hover:border-primary/20"
+                    onClick={() => navigate(`/coach/session/${cs.id}/edit`)}>
+                    <CardContent className="py-3">
+                      <div className="flex justify-between items-start">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{cs.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {cs.scheduled_date ? format(new Date(cs.scheduled_date), 'MMM d, yyyy') : 'No date'}
+                            {cs.duration_minutes && ` · ${cs.duration_minutes}min`}
+                          </p>
+                          {cs.session_plan && <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-1">{cs.session_plan}</p>}
+                        </div>
+                        <div className="flex gap-1 ml-2 shrink-0">
+                          <Badge variant="outline" className="text-[10px]">{cs.discipline}</Badge>
+                          <Badge variant="secondary" className="text-[10px]">{cs.target_level || 'All'}</Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
           {/* Pending Requests */}
           <TabsContent value="requests" className="space-y-3 mt-4">
             {loading ? (

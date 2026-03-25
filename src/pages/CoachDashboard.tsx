@@ -166,6 +166,20 @@ export default function CoachDashboard() {
     fetchData();
   };
 
+  const handleCompleteCoachSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const { error } = await supabase
+      .from('coach_sessions')
+      .update({ status: 'completed' })
+      .eq('id', sessionId);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Session Completed', description: 'Students can now record this in their journal.' });
+    fetchData();
+  };
+
   if (!isCoach) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">

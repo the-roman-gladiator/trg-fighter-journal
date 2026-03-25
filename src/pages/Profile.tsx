@@ -321,6 +321,36 @@ export default function Profile() {
             </CollapsibleContent>
           </Collapsible>
 
+          {/* Fighter Access Request */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Swords className="h-4 w-4" /> Fighter Access
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {fighterProfile?.fighter_status === 'approved' ? (
+                <div>
+                  <Badge className="bg-emerald-500/20 text-emerald-400">Approved Fighter</Badge>
+                  <div className="flex gap-1 flex-wrap mt-2">
+                    {(fighterProfile.approved_fight_disciplines || []).map(d => (
+                      <Badge key={d} variant="default" className="text-xs">{d}</Badge>
+                    ))}
+                  </div>
+                </div>
+              ) : fighterProfile?.fighter_status === 'pending' ? (
+                <div>
+                  <Badge variant="outline" className="text-amber-500 border-amber-500/30">Request Pending</Badge>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Requested: {(fighterProfile.requested_fight_disciplines || []).join(', ')}
+                  </p>
+                </div>
+              ) : (
+                <FighterRequestForm onSubmit={requestFighterAccess} />
+              )}
+            </CardContent>
+          </Card>
+
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Saving...' : 'Save Changes'}
           </Button>

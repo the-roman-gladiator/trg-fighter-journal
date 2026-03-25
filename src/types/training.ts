@@ -17,6 +17,9 @@ export function isMartialArt(discipline: Discipline): discipline is MartialArtsD
 export type AccountType = 'free' | 'basic' | 'pro';
 export type FitnessLevel = 'Beginner' | 'Moderate' | 'Active' | 'Very Active';
 
+export type CoachLevel = 'head_coach' | 'main_coach' | 'level_2' | 'level_1';
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+
 export interface Profile {
   id: string;
   name: string;
@@ -30,6 +33,10 @@ export interface Profile {
   strength_program_start_date?: string;
   coach_override_enabled?: boolean;
   assigned_by_coach?: boolean;
+  coach_level?: CoachLevel;
+  coach_discipline?: string;
+  approval_status?: ApprovalStatus;
+  approved_by?: string;
   created_at: string;
   updated_at: string;
 }

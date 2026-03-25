@@ -32,6 +32,7 @@ export default function CoachDashboard() {
   const { toast } = useToast();
   const [requests, setRequests] = useState<FighterRequest[]>([]);
   const [fighterSessions, setFighterSessions] = useState<any[]>([]);
+  const [coachSessions, setCoachSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvalDisciplines, setApprovalDisciplines] = useState<Record<string, string[]>>({});
 

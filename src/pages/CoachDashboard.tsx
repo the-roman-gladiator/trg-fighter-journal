@@ -28,6 +28,7 @@ interface FighterRequest {
 
 export default function CoachDashboard() {
   const { user, profile } = useAuth();
+  const { mode } = useAppMode();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [requests, setRequests] = useState<FighterRequest[]>([]);
@@ -39,6 +40,12 @@ export default function CoachDashboard() {
   const isHeadCoach = profile?.coach_level === 'head_coach';
 
   const isCoach = !!profile?.coach_level;
+
+  // Redirect when mode changes away from coach
+  useEffect(() => {
+    if (mode === 'athlete') navigate('/');
+    else if (mode === 'fighter') navigate('/fighter');
+  }, [mode]);
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }

@@ -19,6 +19,12 @@ export default function FighterDashboard() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Redirect when mode changes away from fighter
+  useEffect(() => {
+    if (mode === 'athlete') navigate('/');
+    else if (mode === 'coach') navigate('/coach');
+  }, [mode]);
+
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
     if (!fpLoading && !isFighterApproved) return;

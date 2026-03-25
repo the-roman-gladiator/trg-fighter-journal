@@ -12,8 +12,9 @@ import { useAppMode } from '@/hooks/useAppMode';
 import { ModeSwitcher } from '@/components/ModeSwitcher';
 
 export default function FighterDashboard() {
-  const { user } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { fighterProfile, isFighterApproved, loading: fpLoading } = useFighterProfile();
+  const { mode } = useAppMode();
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

@@ -7,8 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Check, X, Swords, Shield } from 'lucide-react';
+import { ArrowLeft, Check, X, Swords, Shield, Plus, User, GraduationCap } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useAppMode } from '@/hooks/useAppMode';
+import { ModeSwitcher } from '@/components/ModeSwitcher';
+import { format } from 'date-fns';
 
 const ALL_FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
 

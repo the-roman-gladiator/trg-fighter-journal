@@ -33,6 +33,7 @@ export default function Dashboard() {
   }, [mode]);
 
   const [recentSessions, setRecentSessions] = useState<any[]>([]);
+  const [coachSessions, setCoachSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [maStats, setMaStats] = useState({ total: 0, discipline: '' });
 

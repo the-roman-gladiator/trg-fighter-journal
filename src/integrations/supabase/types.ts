@@ -856,6 +856,7 @@ export type Database = {
           calories: number | null
           cardio_activity_name: string | null
           cardio_type: Database["public"]["Enums"]["cardio_type"] | null
+          coach_session_id: string | null
           created_at: string
           date: string
           discipline: Database["public"]["Enums"]["discipline"]
@@ -891,6 +892,7 @@ export type Database = {
           calories?: number | null
           cardio_activity_name?: string | null
           cardio_type?: Database["public"]["Enums"]["cardio_type"] | null
+          coach_session_id?: string | null
           created_at?: string
           date?: string
           discipline: Database["public"]["Enums"]["discipline"]
@@ -926,6 +928,7 @@ export type Database = {
           calories?: number | null
           cardio_activity_name?: string | null
           cardio_type?: Database["public"]["Enums"]["cardio_type"] | null
+          coach_session_id?: string | null
           created_at?: string
           date?: string
           discipline?: Database["public"]["Enums"]["discipline"]
@@ -956,6 +959,13 @@ export type Database = {
           workout_type?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "training_sessions_coach_session_id_fkey"
+            columns: ["coach_session_id"]
+            isOneToOne: false
+            referencedRelation: "coach_sessions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "training_sessions_workout_template_id_fkey"
             columns: ["workout_template_id"]

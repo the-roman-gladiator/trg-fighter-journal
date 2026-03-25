@@ -8,7 +8,7 @@ import { ModeSwitcher } from '@/components/ModeSwitcher';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, User, Map, Trash2, Swords, ChevronRight, Shield, Network, GraduationCap, CalendarDays, Clock } from 'lucide-react';
+import { Plus, User, Map, Trash2, Swords, ChevronRight, Shield, Network, GraduationCap, CalendarDays, Clock, BookOpen, CheckCircle2 } from 'lucide-react';
 import { format, startOfWeek } from 'date-fns';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/sonner';
@@ -34,6 +34,8 @@ export default function Dashboard() {
 
   const [recentSessions, setRecentSessions] = useState<any[]>([]);
   const [coachSessions, setCoachSessions] = useState<any[]>([]);
+  const [completedCoachSessions, setCompletedCoachSessions] = useState<any[]>([]);
+  const [loggedCoachSessionIds, setLoggedCoachSessionIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [maStats, setMaStats] = useState({ total: 0, discipline: '' });
 
@@ -58,7 +60,7 @@ export default function Dashboard() {
     const maSessions = (recent || []).filter(s => MARTIAL_ARTS.includes(s.discipline));
     setMaStats({ total: maSessions.length, discipline: profile?.discipline || 'MMA' });
 
-    // Fetch scheduled coach sessions
+    // Fetch scheduled coach sessions (upcoming)
     const { data: coachData } = await supabase
       .from('coach_sessions')
       .select('*')
@@ -68,7 +70,48 @@ export default function Dashboard() {
       .limit(10);
     setCoachSessions(coachData || []);
 
+    // Fetch completed coach sessions (available to record)
+    const { data: completedData } = await supabase
+      .from('coach_sessions')
+      .select('*')
+      .eq('status', 'completed')
+      .order('scheduled_date', { ascending: false })
+      .limit(20);
+    setCompletedCoachSessions(completedData || []);
+
+    // Check which coach sessions user already logged
+    if (completedData && completedData.length > 0) {
+      const { data: logged } = await supabase
+        .from('training_sessions')
+        .select('coach_session_id')
+        .eq('user_id', user.id)
+        .not('coach_session_id', 'is', null);
+      const ids = new Set((logged || []).map((l: any) => l.coach_session_id));
+      setLoggedCoachSessionIds(ids);
+    }
+
     setLoading(false);
+  };
+
+  const recordCoachSession = async (cs: any) => {
+    if (!user) return;
+    const discipline = MARTIAL_ARTS.includes(cs.discipline) ? cs.discipline : 'MMA';
+    const { error } = await supabase.from('training_sessions').insert({
+      user_id: user.id,
+      title: cs.title,
+      discipline: discipline as any,
+      session_type: 'Completed',
+      date: cs.scheduled_date || format(new Date(), 'yyyy-MM-dd'),
+      notes: `Coach class: ${cs.session_plan || ''}\nDrills: ${cs.drills || ''}`.trim(),
+      coach_session_id: cs.id,
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success('Session recorded in your journal!');
+    setLoggedCoachSessionIds(prev => new Set(prev).add(cs.id));
+    fetchData();
   };
 
   const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
@@ -188,6 +231,65 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Completed Coach Sessions — Record in Journal */}
+        {completedCoachSessions.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">Completed Classes</h2>
+              <span className="text-[10px] text-muted-foreground">Record to your journal</span>
+            </div>
+            <div className="space-y-2">
+              {completedCoachSessions.map((cs) => {
+                const alreadyLogged = loggedCoachSessionIds.has(cs.id);
+                return (
+                  <Card key={cs.id} className={`bg-card border-border border-l-4 ${alreadyLogged ? 'border-l-muted-foreground/30' : 'border-l-accent'}`}>
+                    <CardContent className="py-3 px-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold truncate text-foreground">{cs.title}</p>
+                          <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
+                            <CalendarDays className="h-3 w-3" />
+                            <span>{cs.scheduled_date ? format(new Date(cs.scheduled_date), 'EEE, MMM d') : 'No date'}</span>
+                            {cs.duration_minutes && (
+                              <>
+                                <Clock className="h-3 w-3 ml-1" />
+                                <span>{cs.duration_minutes} min</span>
+                              </>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border border-primary/30 text-primary">
+                              {cs.discipline}
+                            </Badge>
+                            {cs.target_level && (
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                {cs.target_level}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="shrink-0 mt-1">
+                          {alreadyLogged ? (
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <CheckCircle2 className="h-4 w-4" />
+                              <span className="text-[10px]">Logged</span>
+                            </div>
+                          ) : (
+                            <Button size="sm" variant="outline" className="h-7 text-[11px] px-2.5"
+                              onClick={() => recordCoachSession(cs)}>
+                              <BookOpen className="h-3 w-3 mr-1" /> Record
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}

@@ -38,11 +38,13 @@ export default function CoachDashboard() {
 
   const isHeadCoach = profile?.coach_level === 'head_coach';
 
+  const isCoach = !!profile?.coach_level;
+
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
-    if (!isHeadCoach) return;
+    if (!isCoach) return;
     fetchData();
-  }, [user, isHeadCoach]);
+  }, [user, isCoach]);
 
   const fetchData = async () => {
     if (!user) return;

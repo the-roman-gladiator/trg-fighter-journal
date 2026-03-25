@@ -354,6 +354,99 @@ export type Database = {
         }
         Relationships: []
       }
+      pathway_edges: {
+        Row: {
+          connection_type: string
+          created_at: string
+          id: string
+          source_node_id: string
+          target_node_id: string
+          user_id: string
+          visual_strength: number
+        }
+        Insert: {
+          connection_type?: string
+          created_at?: string
+          id?: string
+          source_node_id: string
+          target_node_id: string
+          user_id: string
+          visual_strength?: number
+        }
+        Update: {
+          connection_type?: string
+          created_at?: string
+          id?: string
+          source_node_id?: string
+          target_node_id?: string
+          user_id?: string
+          visual_strength?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pathway_edges_source_node_id_fkey"
+            columns: ["source_node_id"]
+            isOneToOne: false
+            referencedRelation: "pathway_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pathway_edges_target_node_id_fkey"
+            columns: ["target_node_id"]
+            isOneToOne: false
+            referencedRelation: "pathway_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pathway_nodes: {
+        Row: {
+          color_tag: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_root: boolean
+          node_type: string
+          position_x: number
+          position_y: number
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color_tag?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_root?: boolean
+          node_type?: string
+          position_x?: number
+          position_y?: number
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color_tag?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_root?: boolean
+          node_type?: string
+          position_x?: number
+          position_y?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_type: string

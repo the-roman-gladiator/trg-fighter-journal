@@ -88,6 +88,15 @@ export default function CoachDashboard() {
       .order('created_at', { ascending: false });
     setFighterSessions(sessions || []);
 
+    // Fetch coach's own planned sessions
+    const { data: cSessions } = await supabase
+      .from('coach_sessions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    setCoachSessions(cSessions || []);
+
     setLoading(false);
   };
 

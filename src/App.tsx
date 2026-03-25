@@ -16,6 +16,11 @@ import Onboarding from "./pages/Onboarding";
 import BeginnerDashboard from "./pages/BeginnerDashboard";
 import GuidedSession from "./pages/GuidedSession";
 import MyPathway from "./pages/MyPathway";
+import FighterDashboard from "./pages/FighterDashboard";
+import FighterSessionEdit from "./pages/FighterSessionEdit";
+import FighterSessionDetail from "./pages/FighterSessionDetail";
+import FighterPathway from "./pages/FighterPathway";
+import CoachDashboard from "./pages/CoachDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

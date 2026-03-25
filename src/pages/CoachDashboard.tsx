@@ -159,12 +159,12 @@ export default function CoachDashboard() {
     fetchData();
   };
 
-  if (!isHeadCoach) {
+  if (!isCoach) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Shield className="h-12 w-12 text-destructive/50 mx-auto mb-4" />
-          <p className="text-muted-foreground">Head Coach access only.</p>
+          <p className="text-muted-foreground">Coach access only.</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate('/')}>Go Home</Button>
         </div>
       </div>
@@ -176,26 +176,48 @@ export default function CoachDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate('/')}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-          <h1 className="text-xl font-bold mt-2">Coach Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Head Coach Control Panel</p>
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-display font-bold tracking-wide text-primary">TRG</h1>
+            <p className="text-[10px] text-muted-foreground tracking-widest uppercase">Coach Mode</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <ModeSwitcher />
+            <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/profile')}>
+              <User className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-4 max-w-2xl">
-        <Tabs defaultValue="requests">
+        {/* New Coach Session button */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold">Coach Dashboard</h2>
+          <Button size="sm" onClick={() => navigate('/coach/session/new')}>
+            <Plus className="h-4 w-4 mr-1" /> Plan Session
+          </Button>
+        </div>
+
+        <Tabs defaultValue="my_sessions">
           <TabsList className="w-full">
-            <TabsTrigger value="requests" className="flex-1">
-              Fighter Requests {pendingRequests.length > 0 && <Badge variant="destructive" className="ml-1 text-[10px]">{pendingRequests.length}</Badge>}
+            <TabsTrigger value="my_sessions" className="flex-1">
+              <GraduationCap className="h-3.5 w-3.5 mr-1" /> My Sessions
             </TabsTrigger>
-            <TabsTrigger value="fighters" className="flex-1">Approved Fighters</TabsTrigger>
-            <TabsTrigger value="sessions" className="flex-1">
-              Sessions {fighterSessions.length > 0 && <Badge variant="secondary" className="ml-1 text-[10px]">{fighterSessions.length}</Badge>}
-            </TabsTrigger>
+            {isHeadCoach && (
+              <TabsTrigger value="requests" className="flex-1">
+                Requests {pendingRequests.length > 0 && <Badge variant="destructive" className="ml-1 text-[10px]">{pendingRequests.length}</Badge>}
+              </TabsTrigger>
+            )}
+            {isHeadCoach && (
+              <TabsTrigger value="fighters" className="flex-1">Fighters</TabsTrigger>
+            )}
+            {isHeadCoach && (
+              <TabsTrigger value="sessions" className="flex-1">
+                Reviews {fighterSessions.length > 0 && <Badge variant="secondary" className="ml-1 text-[10px]">{fighterSessions.length}</Badge>}
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Pending Requests */}

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, User, Map, Trash2, Swords, ChevronRight } from 'lucide-react';
-import { format, subDays } from 'date-fns';
+import { format, startOfWeek } from 'date-fns';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/sonner';
 import { getStrategyClass } from '@/lib/strategyColors';

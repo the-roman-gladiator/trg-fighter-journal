@@ -7,8 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Check, X, Swords, Shield } from 'lucide-react';
+import { ArrowLeft, Check, X, Swords, Shield, Plus, User, GraduationCap } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useAppMode } from '@/hooks/useAppMode';
+import { ModeSwitcher } from '@/components/ModeSwitcher';
+import { format } from 'date-fns';
 
 const ALL_FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
 
@@ -29,16 +32,19 @@ export default function CoachDashboard() {
   const { toast } = useToast();
   const [requests, setRequests] = useState<FighterRequest[]>([]);
   const [fighterSessions, setFighterSessions] = useState<any[]>([]);
+  const [coachSessions, setCoachSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvalDisciplines, setApprovalDisciplines] = useState<Record<string, string[]>>({});
 
   const isHeadCoach = profile?.coach_level === 'head_coach';
 
+  const isCoach = !!profile?.coach_level;
+
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
-    if (!isHeadCoach) return;
+    if (!isCoach) return;
     fetchData();
-  }, [user, isHeadCoach]);
+  }, [user, isCoach]);
 
   const fetchData = async () => {
     if (!user) return;
@@ -81,6 +87,15 @@ export default function CoachDashboard() {
       .eq('status', 'in_review')
       .order('created_at', { ascending: false });
     setFighterSessions(sessions || []);
+
+    // Fetch coach's own planned sessions
+    const { data: cSessions } = await supabase
+      .from('coach_sessions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    setCoachSessions(cSessions || []);
 
     setLoading(false);
   };
@@ -144,12 +159,12 @@ export default function CoachDashboard() {
     fetchData();
   };
 
-  if (!isHeadCoach) {
+  if (!isCoach) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Shield className="h-12 w-12 text-destructive/50 mx-auto mb-4" />
-          <p className="text-muted-foreground">Head Coach access only.</p>
+          <p className="text-muted-foreground">Coach access only.</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate('/')}>Go Home</Button>
         </div>
       </div>
@@ -161,27 +176,87 @@ export default function CoachDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate('/')}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-          <h1 className="text-xl font-bold mt-2">Coach Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Head Coach Control Panel</p>
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-display font-bold tracking-wide text-primary">TRG</h1>
+            <p className="text-[10px] text-muted-foreground tracking-widest uppercase">Coach Mode</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <ModeSwitcher />
+            <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/profile')}>
+              <User className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-4 max-w-2xl">
-        <Tabs defaultValue="requests">
+        {/* New Coach Session button */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold">Coach Dashboard</h2>
+          <Button size="sm" onClick={() => navigate('/coach/session/new')}>
+            <Plus className="h-4 w-4 mr-1" /> Plan Session
+          </Button>
+        </div>
+
+        <Tabs defaultValue="my_sessions">
           <TabsList className="w-full">
-            <TabsTrigger value="requests" className="flex-1">
-              Fighter Requests {pendingRequests.length > 0 && <Badge variant="destructive" className="ml-1 text-[10px]">{pendingRequests.length}</Badge>}
+            <TabsTrigger value="my_sessions" className="flex-1">
+              <GraduationCap className="h-3.5 w-3.5 mr-1" /> My Sessions
             </TabsTrigger>
-            <TabsTrigger value="fighters" className="flex-1">Approved Fighters</TabsTrigger>
-            <TabsTrigger value="sessions" className="flex-1">
-              Sessions {fighterSessions.length > 0 && <Badge variant="secondary" className="ml-1 text-[10px]">{fighterSessions.length}</Badge>}
-            </TabsTrigger>
+            {isHeadCoach && (
+              <TabsTrigger value="requests" className="flex-1">
+                Requests {pendingRequests.length > 0 && <Badge variant="destructive" className="ml-1 text-[10px]">{pendingRequests.length}</Badge>}
+              </TabsTrigger>
+            )}
+            {isHeadCoach && (
+              <TabsTrigger value="fighters" className="flex-1">Fighters</TabsTrigger>
+            )}
+            {isHeadCoach && (
+              <TabsTrigger value="sessions" className="flex-1">
+                Reviews {fighterSessions.length > 0 && <Badge variant="secondary" className="ml-1 text-[10px]">{fighterSessions.length}</Badge>}
+              </TabsTrigger>
+            )}
           </TabsList>
+
+          {/* My Coach Sessions */}
+          <TabsContent value="my_sessions" className="space-y-3 mt-4">
+            <div className="space-y-2">
+              {coachSessions.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <p className="text-sm text-muted-foreground">No coach sessions yet.</p>
+                    <Button size="sm" className="mt-3" onClick={() => navigate('/coach/session/new')}>
+                      Plan First Session
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                coachSessions.map(cs => (
+                  <Card key={cs.id} className="cursor-pointer hover:border-primary/20"
+                    onClick={() => navigate(`/coach/session/${cs.id}/edit`)}>
+                    <CardContent className="py-3">
+                      <div className="flex justify-between items-start">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{cs.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {cs.scheduled_date ? format(new Date(cs.scheduled_date), 'MMM d, yyyy') : 'No date'}
+                            {cs.duration_minutes && ` · ${cs.duration_minutes}min`}
+                          </p>
+                          {cs.session_plan && <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-1">{cs.session_plan}</p>}
+                        </div>
+                        <div className="flex gap-1 ml-2 shrink-0">
+                          <Badge variant="outline" className="text-[10px]">{cs.discipline}</Badge>
+                          <Badge variant="secondary" className="text-[10px]">{cs.target_level || 'All'}</Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
 
           {/* Pending Requests */}
           <TabsContent value="requests" className="space-y-3 mt-4">

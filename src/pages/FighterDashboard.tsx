@@ -6,12 +6,15 @@ import { useFighterProfile } from '@/hooks/useFighterProfile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Swords, Network, Shield, Clock } from 'lucide-react';
+import { ArrowLeft, Plus, Swords, Network, Shield, Clock, User } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAppMode } from '@/hooks/useAppMode';
+import { ModeSwitcher } from '@/components/ModeSwitcher';
 
 export default function FighterDashboard() {
-  const { user } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { fighterProfile, isFighterApproved, loading: fpLoading } = useFighterProfile();
+  const { mode } = useAppMode();
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,26 +92,38 @@ export default function FighterDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate('/')}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-          <div className="flex justify-between items-start mt-2">
-            <div>
-              <h1 className="text-xl font-bold">Fighter Dashboard</h1>
-              <p className="text-sm text-muted-foreground">
-                Fighting in: {fighterProfile?.approved_fight_disciplines?.join(', ') || 'Pending'}
-              </p>
-            </div>
-            <Button size="sm" onClick={() => navigate('/fighter/session/new')}>
-              <Plus className="h-4 w-4 mr-1" /> New Session
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-display font-bold tracking-wide text-primary">TRG</h1>
+            <p className="text-[10px] text-muted-foreground tracking-widest uppercase">Fighter Mode</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <ModeSwitcher />
+            <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/profile')}>
+              <User className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={signOut}>
+              Sign Out
             </Button>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-lg font-bold">Fighter Dashboard</h2>
+            <p className="text-xs text-muted-foreground">
+              Fighting in: {fighterProfile?.approved_fight_disciplines?.join(', ') || 'Pending'}
+            </p>
+          </div>
+          <Button size="sm" onClick={() => navigate('/fighter/session/new')}>
+            <Plus className="h-4 w-4 mr-1" /> New Session
+          </Button>
+        </div>
+
+
         {/* Quick links */}
         <div className="grid grid-cols-2 gap-3">
           <Card className="cursor-pointer hover:border-primary/30" onClick={() => navigate('/fighter/pathway')}>

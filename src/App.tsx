@@ -47,7 +47,12 @@ const App = () => (
               <Route path="/beginner" element={<BeginnerDashboard />} />
               <Route path="/guided-session/:workoutId" element={<GuidedSession />} />
               <Route path="/pathway" element={<MyPathway />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/fighter" element={<FighterDashboard />} />
+              <Route path="/fighter/session/new" element={<FighterSessionEdit />} />
+              <Route path="/fighter/session/:id" element={<FighterSessionDetail />} />
+              <Route path="/fighter/session/:id/edit" element={<FighterSessionEdit />} />
+              <Route path="/fighter/pathway" element={<FighterPathway />} />
+              <Route path="/coach" element={<CoachDashboard />} />
             </Routes>
           </UserSettingsProvider>
         </AuthProvider>

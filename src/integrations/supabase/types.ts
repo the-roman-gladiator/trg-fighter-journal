@@ -354,6 +354,96 @@ export type Database = {
         }
         Relationships: []
       }
+      fighter_profiles: {
+        Row: {
+          approved_at: string | null
+          approved_by_head_coach: string | null
+          approved_fight_disciplines: string[]
+          created_at: string
+          discipline_approved_at: string | null
+          discipline_approved_by: string | null
+          fighter_status: string
+          id: string
+          requested_fight_disciplines: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by_head_coach?: string | null
+          approved_fight_disciplines?: string[]
+          created_at?: string
+          discipline_approved_at?: string | null
+          discipline_approved_by?: string | null
+          fighter_status?: string
+          id?: string
+          requested_fight_disciplines?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by_head_coach?: string | null
+          approved_fight_disciplines?: string[]
+          created_at?: string
+          discipline_approved_at?: string | null
+          discipline_approved_by?: string | null
+          fighter_status?: string
+          id?: string
+          requested_fight_disciplines?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fighter_sessions: {
+        Row: {
+          action: string | null
+          created_at: string
+          discipline: string
+          goal: string | null
+          id: string
+          notes: string | null
+          opponent_scenario: string | null
+          status: string
+          strategy: string | null
+          tactic: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action?: string | null
+          created_at?: string
+          discipline: string
+          goal?: string | null
+          id?: string
+          notes?: string | null
+          opponent_scenario?: string | null
+          status?: string
+          strategy?: string | null
+          tactic?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action?: string | null
+          created_at?: string
+          discipline?: string
+          goal?: string | null
+          id?: string
+          notes?: string | null
+          opponent_scenario?: string | null
+          status?: string
+          strategy?: string | null
+          tactic?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pathway_edges: {
         Row: {
           connection_type: string

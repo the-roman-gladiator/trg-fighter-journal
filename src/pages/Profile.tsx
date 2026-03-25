@@ -359,3 +359,39 @@ export default function Profile() {
     </div>
   );
 }
+
+function FighterRequestForm({ onSubmit }: { onSubmit: (discs: string[]) => Promise<void> }) {
+  const [selected, setSelected] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const toggle = (d: string) => setSelected(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
+
+  const handleRequest = async () => {
+    if (selected.length === 0) {
+      toast({ title: 'Select at least one discipline', variant: 'destructive' });
+      return;
+    }
+    setSubmitting(true);
+    await onSubmit(selected);
+    toast({ title: 'Request Sent', description: 'Your fighter request has been submitted for Head Coach approval.' });
+    setSubmitting(false);
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">Select the disciplines you want to compete in:</p>
+      <div className="flex gap-2 flex-wrap">
+        {FIGHT_DISCIPLINES.map(d => (
+          <label key={d} className="flex items-center gap-1.5 text-xs cursor-pointer">
+            <Checkbox checked={selected.includes(d)} onCheckedChange={() => toggle(d)} />
+            {d}
+          </label>
+        ))}
+      </div>
+      <Button size="sm" onClick={handleRequest} disabled={submitting || selected.length === 0}>
+        {submitting ? 'Submitting...' : 'Request Fighter Access'}
+      </Button>
+    </div>
+  );
+}

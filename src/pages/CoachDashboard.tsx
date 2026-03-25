@@ -255,7 +255,7 @@ export default function CoachDashboard() {
                 </Card>
               ) : (
                 coachSessions.map(cs => (
-                  <Card key={cs.id} className="cursor-pointer hover:border-primary/20"
+                   <Card key={cs.id} className="cursor-pointer hover:border-primary/20"
                     onClick={() => navigate(`/coach/session/${cs.id}/edit`)}>
                     <CardContent className="py-3">
                       <div className="flex justify-between items-start">
@@ -267,12 +267,17 @@ export default function CoachDashboard() {
                           </p>
                           {cs.session_plan && <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-1">{cs.session_plan}</p>}
                         </div>
-                        <div className="flex gap-1 ml-2 shrink-0">
-                          <Badge variant={cs.status === 'scheduled' ? 'default' : 'outline'} className="text-[10px]">
-                            {cs.status === 'scheduled' ? 'Scheduled' : 'Draft'}
+                        <div className="flex gap-1 ml-2 shrink-0 items-center">
+                          <Badge variant={cs.status === 'scheduled' ? 'default' : cs.status === 'completed' ? 'secondary' : 'outline'} className="text-[10px]">
+                            {cs.status === 'scheduled' ? 'Scheduled' : cs.status === 'completed' ? 'Completed' : 'Draft'}
                           </Badge>
                           <Badge variant="outline" className="text-[10px]">{cs.discipline}</Badge>
-                          <Badge variant="secondary" className="text-[10px]">{cs.target_level || 'All'}</Badge>
+                          {cs.status === 'scheduled' && (
+                            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 ml-1"
+                              onClick={(e) => handleCompleteCoachSession(cs.id, e)}>
+                              <Check className="h-3 w-3 mr-0.5" /> Done
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>

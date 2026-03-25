@@ -1,13 +1,10 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Pencil, Trash2, Link2, Zap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Zap } from 'lucide-react';
 import { MapCanvas } from './MapCanvas';
 import { PathwayPanel } from './PathwayPanel';
-import { NodeFormModal } from './NodeFormModal';
-import { toast } from 'sonner';
 
 export interface PathwayNode {
   id: string;
@@ -39,15 +36,183 @@ interface FuturisticMapProps {
   onBack: () => void;
 }
 
+// Layout helpers
+function radialLayout(
+  centerX: number,
+  centerY: number,
+  items: string[],
+  radius: number,
+  startAngle: number = 0
+): Map<string, { x: number; y: number }> {
+  const positions = new Map<string, { x: number; y: number }>();
+  const count = items.length;
+  if (count === 0) return positions;
+  if (count === 1) {
+    positions.set(items[0], { x: centerX + radius, y: centerY });
+    return positions;
+  }
+  const angleStep = (Math.PI * 2) / count;
+  items.forEach((id, i) => {
+    const angle = startAngle + i * angleStep;
+    positions.set(id, {
+      x: centerX + Math.cos(angle) * radius,
+      y: centerY + Math.sin(angle) * radius,
+    });
+  });
+  return positions;
+}
+
 export function FuturisticMap({ onBack }: FuturisticMapProps) {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [nodes, setNodes] = useState<PathwayNode[]>([]);
-  const [edges, setEdges] = useState<PathwayEdge[]>([]);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
-  const [reconnectMode, setReconnectMode] = useState(false);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  const loadSessions = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from('training_sessions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('session_type', 'Completed')
+      .order('date', { ascending: false });
+    setSessions(data || []);
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => { loadSessions(); }, [loadSessions]);
+
+  // Auto-generate graph from sessions
+  const { nodes, edges } = useMemo(() => {
+    const nodeMap = new Map<string, { label: string; type: string; count: number; sessions: any[] }>();
+    const edgeMap = new Map<string, { source: string; target: string; weight: number }>();
+
+    const ensureNode = (id: string, label: string, type: string, session: any) => {
+      const existing = nodeMap.get(id);
+      if (existing) {
+        existing.count++;
+        existing.sessions.push(session);
+      } else {
+        nodeMap.set(id, { label, type, count: 1, sessions: [session] });
+      }
+    };
+
+    const ensureEdge = (sourceId: string, targetId: string) => {
+      if (!sourceId || !targetId) return;
+      const key = `${sourceId}→${targetId}`;
+      const existing = edgeMap.get(key);
+      if (existing) existing.weight++;
+      else edgeMap.set(key, { source: sourceId, target: targetId, weight: 1 });
+    };
+
+    // Create a central root node
+    const rootId = 'root:training';
+    nodeMap.set(rootId, { label: 'My Training', type: 'root', count: sessions.length, sessions: [] });
+
+    for (const s of sessions) {
+      const discId = s.discipline ? `disc:${s.discipline}` : null;
+      const stratId = s.strategy ? `strat:${s.strategy}` : null;
+      const techId = s.technique ? `tech:${s.technique}` : null;
+      const m1Id = s.first_movement ? `move:${s.first_movement}` : null;
+      const m2Id = s.opponent_action ? `react:${s.opponent_action}` : null;
+      const m3Id = s.second_movement ? `follow:${s.second_movement}` : null;
+
+      if (discId) { ensureNode(discId, s.discipline, 'discipline', s); ensureEdge(rootId, discId); }
+      if (stratId) { ensureNode(stratId, s.strategy, 'strategy', s); if (discId) ensureEdge(discId, stratId); }
+      if (techId) { ensureNode(techId, s.technique, 'technique', s); if (stratId) ensureEdge(stratId, techId); else if (discId) ensureEdge(discId, techId); }
+      if (m1Id) { ensureNode(m1Id, s.first_movement, 'movement', s); if (techId) ensureEdge(techId, m1Id); else if (stratId) ensureEdge(stratId, m1Id); }
+      if (m2Id) { ensureNode(m2Id, s.opponent_action, 'reaction', s); if (m1Id) ensureEdge(m1Id, m2Id); }
+      if (m3Id) { ensureNode(m3Id, s.second_movement, 'followup', s); if (m2Id) ensureEdge(m2Id, m3Id); }
+    }
+
+    // --- Layout: radial layers from center ---
+    const CENTER_X = 400;
+    const CENTER_Y = 300;
+
+    const positions = new Map<string, { x: number; y: number }>();
+    positions.set(rootId, { x: CENTER_X, y: CENTER_Y });
+
+    // Layer 1: Disciplines around root
+    const discIds = [...nodeMap.keys()].filter(k => k.startsWith('disc:'));
+    const discPositions = radialLayout(CENTER_X, CENTER_Y, discIds, 140);
+    discPositions.forEach((pos, id) => positions.set(id, pos));
+
+    // Layer 2: Strategies around their discipline
+    const stratIds = [...nodeMap.keys()].filter(k => k.startsWith('strat:'));
+    // Group strategies by discipline connection
+    const stratByDisc = new Map<string, string[]>();
+    stratIds.forEach(sid => {
+      const parentEdge = [...edgeMap.values()].find(e => e.target === sid && e.source.startsWith('disc:'));
+      const parent = parentEdge?.source || discIds[0] || rootId;
+      if (!stratByDisc.has(parent)) stratByDisc.set(parent, []);
+      stratByDisc.get(parent)!.push(sid);
+    });
+    stratByDisc.forEach((strats, discId) => {
+      const discPos = positions.get(discId) || { x: CENTER_X, y: CENTER_Y };
+      const angle = Math.atan2(discPos.y - CENTER_Y, discPos.x - CENTER_X);
+      const sp = radialLayout(discPos.x, discPos.y, strats, 100, angle - Math.PI / 4);
+      sp.forEach((pos, id) => positions.set(id, pos));
+    });
+
+    // Layer 3: Techniques around their strategy
+    const techIds = [...nodeMap.keys()].filter(k => k.startsWith('tech:'));
+    techIds.forEach(tid => {
+      const parentEdge = [...edgeMap.values()].find(e => e.target === tid);
+      const parentPos = parentEdge ? (positions.get(parentEdge.source) || { x: CENTER_X, y: CENTER_Y }) : { x: CENTER_X, y: CENTER_Y };
+      const angle = Math.atan2(parentPos.y - CENTER_Y, parentPos.x - CENTER_X) + (Math.random() - 0.5) * 0.8;
+      const dist = 80 + Math.random() * 30;
+      positions.set(tid, { x: parentPos.x + Math.cos(angle) * dist, y: parentPos.y + Math.sin(angle) * dist });
+    });
+
+    // Layer 4: Movements around their technique
+    const moveIds = [...nodeMap.keys()].filter(k => k.startsWith('move:') || k.startsWith('react:') || k.startsWith('follow:'));
+    moveIds.forEach(mid => {
+      const parentEdge = [...edgeMap.values()].find(e => e.target === mid);
+      const parentPos = parentEdge ? (positions.get(parentEdge.source) || { x: CENTER_X, y: CENTER_Y }) : { x: CENTER_X, y: CENTER_Y };
+      const angle = Math.atan2(parentPos.y - CENTER_Y, parentPos.x - CENTER_X) + (Math.random() - 0.5) * 1.2;
+      const dist = 60 + Math.random() * 30;
+      positions.set(mid, { x: parentPos.x + Math.cos(angle) * dist, y: parentPos.y + Math.sin(angle) * dist });
+    });
+
+    // Build final nodes array
+    const now = new Date().toISOString();
+    const builtNodes: PathwayNode[] = [];
+    nodeMap.forEach((data, id) => {
+      const pos = positions.get(id) || { x: CENTER_X, y: CENTER_Y };
+      builtNodes.push({
+        id,
+        user_id: user?.id || '',
+        title: data.label,
+        description: `${data.count} session${data.count !== 1 ? 's' : ''} recorded`,
+        node_type: data.type,
+        status: 'active',
+        color_tag: null,
+        icon: null,
+        position_x: pos.x,
+        position_y: pos.y,
+        is_root: id === rootId,
+        created_at: now,
+        updated_at: now,
+      });
+    });
+
+    const builtEdges: PathwayEdge[] = [];
+    let edgeIdx = 0;
+    edgeMap.forEach((data) => {
+      builtEdges.push({
+        id: `edge-${edgeIdx++}`,
+        user_id: user?.id || '',
+        source_node_id: data.source,
+        target_node_id: data.target,
+        connection_type: 'auto',
+        visual_strength: data.weight,
+        created_at: now,
+      });
+    });
+
+    return { nodes: builtNodes, edges: builtEdges };
+  }, [sessions, user]);
 
   const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);
 
@@ -64,122 +229,12 @@ export function FuturisticMap({ onBack }: FuturisticMapProps) {
     return nodes.find(n => n.id === parentEdge.source_node_id) || null;
   }, [selectedNodeId, edges, nodes]);
 
-  const loadData = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    const [{ data: n }, { data: e }] = await Promise.all([
-      supabase.from('pathway_nodes').select('*').eq('user_id', user.id).order('created_at'),
-      supabase.from('pathway_edges').select('*').eq('user_id', user.id),
-    ]);
-    setNodes((n as PathwayNode[]) || []);
-    setEdges((e as PathwayEdge[]) || []);
-    setLoading(false);
-  }, [user]);
-
-  useEffect(() => { loadData(); }, [loadData]);
-
-  const handleAddNode = async (data: { title: string; description: string; node_type: string; status: string; color_tag: string }) => {
-    if (!user) return;
-
-    // Calculate position relative to parent or center
-    const parentPos = selectedNode 
-      ? { x: selectedNode.position_x, y: selectedNode.position_y }
-      : { x: 400, y: 300 };
-    
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 120 + Math.random() * 60;
-    const newX = parentPos.x + Math.cos(angle) * dist;
-    const newY = parentPos.y + Math.sin(angle) * dist;
-
-    const isRoot = nodes.length === 0;
-
-    const { data: newNode, error } = await supabase.from('pathway_nodes').insert({
-      user_id: user.id,
-      title: data.title,
-      description: data.description || null,
-      node_type: data.node_type,
-      status: data.status,
-      color_tag: data.color_tag || null,
-      position_x: isRoot ? 400 : newX,
-      position_y: isRoot ? 300 : newY,
-      is_root: isRoot,
-    }).select().single();
-
-    if (error) { toast.error('Failed to create node'); return; }
-
-    // Create edge if there's a selected parent
-    if (selectedNodeId && !isRoot && newNode) {
-      await supabase.from('pathway_edges').insert({
-        user_id: user.id,
-        source_node_id: selectedNodeId,
-        target_node_id: newNode.id,
-      });
-    }
-
-    await loadData();
-    if (newNode) setSelectedNodeId(newNode.id);
-    setModalMode(null);
-    toast.success('Node created');
-  };
-
-  const handleEditNode = async (data: { title: string; description: string; node_type: string; status: string; color_tag: string }) => {
-    if (!selectedNodeId) return;
-    const { error } = await supabase.from('pathway_nodes').update({
-      title: data.title,
-      description: data.description || null,
-      node_type: data.node_type,
-      status: data.status,
-      color_tag: data.color_tag || null,
-    }).eq('id', selectedNodeId);
-
-    if (error) { toast.error('Failed to update'); return; }
-    await loadData();
-    setModalMode(null);
-    toast.success('Node updated');
-  };
-
-  const handleDeleteNode = async () => {
-    if (!selectedNodeId) return;
-    const node = nodes.find(n => n.id === selectedNodeId);
-    if (node?.is_root && nodes.length > 1) {
-      toast.error('Cannot delete root node while other nodes exist');
-      return;
-    }
-    await supabase.from('pathway_edges').delete().or(`source_node_id.eq.${selectedNodeId},target_node_id.eq.${selectedNodeId}`);
-    await supabase.from('pathway_nodes').delete().eq('id', selectedNodeId);
-    setSelectedNodeId(null);
-    await loadData();
-    toast.success('Node deleted');
-  };
-
-  const handleReconnect = async (newParentId: string) => {
-    if (!selectedNodeId || !user) return;
-    // Remove old parent edge
-    await supabase.from('pathway_edges').delete().eq('target_node_id', selectedNodeId);
-    // Create new edge
-    await supabase.from('pathway_edges').insert({
-      user_id: user.id,
-      source_node_id: newParentId,
-      target_node_id: selectedNodeId,
-    });
-    setReconnectMode(false);
-    await loadData();
-    toast.success('Node reconnected');
-  };
-
-  const handleNodeDrag = async (nodeId: string, x: number, y: number) => {
-    setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, position_x: x, position_y: y } : n));
-    await supabase.from('pathway_nodes').update({ position_x: x, position_y: y }).eq('id', nodeId);
-  };
-
   const handleCanvasClick = (nodeId: string | null) => {
-    if (reconnectMode && nodeId && nodeId !== selectedNodeId) {
-      handleReconnect(nodeId);
-    } else {
-      setSelectedNodeId(nodeId);
-      setReconnectMode(false);
-    }
+    setSelectedNodeId(nodeId);
   };
+
+  // No-op for auto-generated map (positions are computed, not persisted)
+  const handleNodeDrag = () => {};
 
   if (loading) {
     return (
@@ -203,17 +258,11 @@ export function FuturisticMap({ onBack }: FuturisticMapProps) {
             </Button>
             <div>
               <h1 className="text-lg font-semibold text-cyan-50 tracking-wide">Neural Pathway</h1>
-              <p className="text-[11px] text-cyan-500/50">{nodes.length} node{nodes.length !== 1 ? 's' : ''} · {edges.length} connection{edges.length !== 1 ? 's' : ''}</p>
+              <p className="text-[11px] text-cyan-500/50">
+                {nodes.length} node{nodes.length !== 1 ? 's' : ''} · {edges.length} connection{edges.length !== 1 ? 's' : ''} · Auto-generated from your sessions
+              </p>
             </div>
           </div>
-          <Button
-            size="sm"
-            onClick={() => setModalMode('add')}
-            className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            {nodes.length === 0 ? 'Create Root' : 'Add Node'}
-          </Button>
         </div>
       </header>
 
@@ -225,26 +274,20 @@ export function FuturisticMap({ onBack }: FuturisticMapProps) {
             nodes={nodes}
             edges={edges}
             selectedNodeId={selectedNodeId}
-            reconnectMode={reconnectMode}
+            reconnectMode={false}
             onNodeClick={handleCanvasClick}
             onNodeDrag={handleNodeDrag}
           />
 
           {/* Empty state */}
-          {nodes.length === 0 && (
+          {sessions.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-center pointer-events-auto">
+              <div className="text-center">
                 <div className="w-24 h-24 mx-auto mb-6 rounded-full border-2 border-cyan-500/20 flex items-center justify-center animate-pulse">
                   <Zap className="h-10 w-10 text-cyan-500/40" />
                 </div>
-                <h2 className="text-xl font-semibold text-cyan-100 mb-2">Start Your Pathway</h2>
-                <p className="text-sm text-cyan-500/50 mb-6 max-w-xs">Create your first node to begin building your neural network</p>
-                <Button
-                  onClick={() => setModalMode('add')}
-                  className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
-                >
-                  <Plus className="h-4 w-4 mr-2" /> Create First Connection
-                </Button>
+                <h2 className="text-xl font-semibold text-cyan-100 mb-2">No Data Yet</h2>
+                <p className="text-sm text-cyan-500/50 max-w-xs">Log training sessions with disciplines, strategies, techniques, and movements to see your neural pathway grow automatically.</p>
               </div>
             </div>
           )}
@@ -255,24 +298,10 @@ export function FuturisticMap({ onBack }: FuturisticMapProps) {
           selectedNode={selectedNode}
           parentNode={parentNode}
           childNodes={childNodes}
-          onEdit={() => setModalMode('edit')}
-          onDelete={handleDeleteNode}
-          onAddChild={() => setModalMode('add')}
-          onReconnect={() => setReconnectMode(true)}
           onSelectNode={setSelectedNodeId}
-          reconnectMode={reconnectMode}
+          reconnectMode={false}
         />
       </div>
-
-      {/* Modal */}
-      {modalMode && (
-        <NodeFormModal
-          mode={modalMode}
-          node={modalMode === 'edit' ? selectedNode : null}
-          onSave={modalMode === 'add' ? handleAddNode : handleEditNode}
-          onClose={() => setModalMode(null)}
-        />
-      )}
     </div>
   );
 }

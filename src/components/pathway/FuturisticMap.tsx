@@ -69,6 +69,8 @@ export function FuturisticMap({ onBack }: FuturisticMapProps) {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [chainsOpen, setChainsOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const loadSessions = useCallback(async () => {
     if (!user) return;

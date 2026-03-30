@@ -1,13 +1,26 @@
+import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PathwayNode } from './FuturisticMap';
 import { Badge } from '@/components/ui/badge';
-import { ChevronRight, Circle, X } from 'lucide-react';
+import { ChevronRight, Circle, X, GitBranch } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { format } from 'date-fns';
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+
+interface PathwayChain {
+  strategy: string;
+  technique: string;
+  firstMovement: string;
+  opponentReaction: string;
+  thirdMovement: string;
+  count: number;
+  sessions: any[];
+}
 
 interface PathwayPanelProps {
   selectedNode: PathwayNode | null;
@@ -16,6 +29,7 @@ interface PathwayPanelProps {
   onSelectNode: (id: string) => void;
   reconnectMode: boolean;
   onClose?: () => void;
+  sessions?: any[];
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -42,27 +56,108 @@ const TYPE_COLORS: Record<string, string> = {
   action: '#10b981',
 };
 
-function PanelContent({
-  selectedNode,
-  parentNode,
-  childNodes,
-  onSelectNode,
-}: Omit<PathwayPanelProps, 'reconnectMode' | 'onClose'>) {
-  if (!selectedNode) {
+function PathwayChainsList({ sessions }: { sessions: any[] }) {
+  const navigate = useNavigate();
+
+  const chains = useMemo(() => {
+    const map = new Map<string, PathwayChain>();
+    for (const s of sessions) {
+      if (!s.first_movement && !s.opponent_action && !s.second_movement) continue;
+      const key = [s.strategy || '', s.technique || '', s.first_movement || '', s.opponent_action || '', s.second_movement || ''].join('|||');
+      if (map.has(key)) {
+        const ex = map.get(key)!;
+        ex.count++;
+        ex.sessions.push(s);
+      } else {
+        map.set(key, {
+          strategy: s.strategy || '',
+          technique: s.technique || '',
+          firstMovement: s.first_movement || '',
+          opponentReaction: s.opponent_action || '',
+          thirdMovement: s.second_movement || '',
+          count: 1,
+          sessions: [s],
+        });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+  }, [sessions]);
+
+  if (chains.length === 0) {
     return (
-      <div className="text-center py-8">
-        <div className="w-12 h-12 mx-auto mb-3 rounded-full border border-cyan-500/20 flex items-center justify-center">
-          <Circle className="h-5 w-5 text-cyan-500/30" />
-        </div>
-        <p className="text-sm text-cyan-500/40">Select a node to view details</p>
-        <p className="text-xs text-cyan-500/25 mt-2">The map is auto-generated from your training sessions</p>
+      <div className="text-center py-6">
+        <GitBranch className="h-8 w-8 text-cyan-500/30 mx-auto mb-2" />
+        <p className="text-xs text-cyan-500/40">No movement chains yet</p>
+        <p className="text-[10px] text-cyan-500/25 mt-1">Log sessions with movements to build chains</p>
       </div>
     );
   }
 
   return (
+    <div className="space-y-2">
+      <p className="text-[11px] text-cyan-500/40 uppercase tracking-wider">
+        Movement Chains ({chains.length})
+      </p>
+      <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+        {chains.map((chain, i) => (
+          <div key={i} className="p-2.5 rounded-lg bg-cyan-500/5 border border-cyan-500/10">
+            <div className="flex justify-between items-start mb-1.5">
+              <div className="flex gap-1 flex-wrap">
+                {chain.strategy && <Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-400/80">{chain.strategy}</Badge>}
+                {chain.technique && <Badge variant="outline" className="text-[9px] border-purple-500/30 text-purple-400/80">{chain.technique}</Badge>}
+              </div>
+              <Badge className="text-[9px] bg-cyan-500/20 text-cyan-300 border-none">{chain.count}×</Badge>
+            </div>
+            <div className="space-y-0.5">
+              {chain.firstMovement && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/15 rounded px-1 py-0.5">1st</span>
+                  <span className="text-[10px] text-cyan-100/70">{chain.firstMovement}</span>
+                </div>
+              )}
+              {chain.opponentReaction && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-bold text-rose-400 bg-rose-500/15 rounded px-1 py-0.5">2nd</span>
+                  <span className="text-[10px] text-cyan-100/70">{chain.opponentReaction}</span>
+                </div>
+              )}
+              {chain.thirdMovement && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-bold text-blue-400 bg-blue-500/15 rounded px-1 py-0.5">3rd</span>
+                  <span className="text-[10px] text-cyan-100/70">{chain.thirdMovement}</span>
+                </div>
+              )}
+            </div>
+            {/* Session date links */}
+            <div className="mt-1.5 pt-1.5 border-t border-cyan-900/20 flex gap-1 flex-wrap">
+              {chain.sessions.slice(0, 3).map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => navigate(`/session/${s.id}`)}
+                  className="text-[9px] text-cyan-500/50 hover:text-cyan-300 transition-colors"
+                >
+                  {format(new Date(s.date), 'MMM d')}
+                </button>
+              ))}
+              {chain.sessions.length > 3 && (
+                <span className="text-[9px] text-cyan-500/30">+{chain.sessions.length - 3}</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NodeDetails({
+  selectedNode,
+  parentNode,
+  childNodes,
+  onSelectNode,
+}: { selectedNode: PathwayNode; parentNode: PathwayNode | null; childNodes: PathwayNode[]; onSelectNode: (id: string) => void }) {
+  return (
     <div className="space-y-4 animate-fade-in">
-      {/* Node title & type */}
       <div>
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-lg font-semibold text-cyan-50 leading-tight">{selectedNode.title}</h3>
@@ -79,7 +174,6 @@ function PanelContent({
         )}
       </div>
 
-      {/* Description / session count */}
       {selectedNode.description && (
         <div>
           <p className="text-[11px] text-cyan-500/40 uppercase tracking-wider mb-1">Sessions</p>
@@ -87,7 +181,6 @@ function PanelContent({
         </div>
       )}
 
-      {/* Parent */}
       {parentNode && (
         <div>
           <p className="text-[11px] text-cyan-500/40 uppercase tracking-wider mb-1.5">Connected From</p>
@@ -95,10 +188,7 @@ function PanelContent({
             onClick={() => onSelectNode(parentNode.id)}
             className="flex items-center gap-2 w-full p-2 rounded-lg bg-cyan-500/5 border border-cyan-500/10 hover:bg-cyan-500/10 transition-colors"
           >
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: TYPE_COLORS[parentNode.node_type] || TYPE_COLORS.root }}
-            />
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: TYPE_COLORS[parentNode.node_type] || TYPE_COLORS.root }} />
             <span className="text-xs text-cyan-200/70 flex-1 text-left truncate">{parentNode.title}</span>
             <span className="text-[10px] text-cyan-500/30">{TYPE_LABELS[parentNode.node_type] || parentNode.node_type}</span>
             <ChevronRight className="h-3 w-3 text-cyan-500/30" />
@@ -106,7 +196,6 @@ function PanelContent({
         </div>
       )}
 
-      {/* Children */}
       {childNodes.length > 0 && (
         <div>
           <p className="text-[11px] text-cyan-500/40 uppercase tracking-wider mb-1.5">
@@ -119,10 +208,7 @@ function PanelContent({
                 onClick={() => onSelectNode(child.id)}
                 className="flex items-center gap-2 w-full p-2 rounded-lg bg-cyan-500/5 border border-cyan-500/10 hover:bg-cyan-500/10 transition-colors"
               >
-                <div
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ backgroundColor: TYPE_COLORS[child.node_type] || TYPE_COLORS.root }}
-                />
+                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: TYPE_COLORS[child.node_type] || TYPE_COLORS.root }} />
                 <span className="text-xs text-cyan-200/70 flex-1 text-left truncate">{child.title}</span>
                 <span className="text-[10px] text-cyan-500/30">{TYPE_LABELS[child.node_type] || child.node_type}</span>
               </button>
@@ -130,7 +216,51 @@ function PanelContent({
           </div>
         </div>
       )}
+    </div>
+  );
+}
 
+function PanelContent({
+  selectedNode,
+  parentNode,
+  childNodes,
+  onSelectNode,
+  sessions,
+}: Omit<PathwayPanelProps, 'reconnectMode' | 'onClose'>) {
+  if (!selectedNode) {
+    return (
+      <div className="space-y-4">
+        {/* Legend */}
+        <div>
+          <p className="text-[10px] text-cyan-500/30 uppercase tracking-wider mb-2">Node Types</p>
+          <div className="grid grid-cols-2 gap-1">
+            {Object.entries(TYPE_LABELS).map(([key, label]) => (
+              <div key={key} className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: TYPE_COLORS[key] }} />
+                <span className="text-[10px] text-cyan-500/40">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Pathway Chains */}
+        <div className="pt-3 border-t border-cyan-900/30">
+          <PathwayChainsList sessions={sessions || []} />
+        </div>
+
+        <p className="text-[10px] text-cyan-500/25 text-center">Tap a node on the map to view details</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <NodeDetails
+        selectedNode={selectedNode}
+        parentNode={parentNode}
+        childNodes={childNodes}
+        onSelectNode={onSelectNode}
+      />
       {/* Legend */}
       <div className="pt-3 border-t border-cyan-900/30">
         <p className="text-[10px] text-cyan-500/30 uppercase tracking-wider mb-2">Node Types</p>
@@ -153,48 +283,56 @@ export function PathwayPanel({
   childNodes,
   onSelectNode,
   onClose,
+  sessions,
 }: PathwayPanelProps) {
   const isMobile = useIsMobile();
 
   if (isMobile) {
-    return (
-      <Drawer
-        open={!!selectedNode}
-        onOpenChange={(open) => {
-          if (!open && onClose) onClose();
-        }}
-      >
-        <DrawerContent className="bg-[#0d0d18] border-cyan-900/30 max-h-[70vh]">
-          <DrawerHeader className="pb-0">
-            <DrawerTitle className="text-cyan-400/80 text-sm uppercase tracking-widest">
-              Node Details
-            </DrawerTitle>
-          </DrawerHeader>
-          <div className="p-4 overflow-y-auto">
-            <PanelContent
-              selectedNode={selectedNode}
-              parentNode={parentNode}
-              childNodes={childNodes}
-              onSelectNode={onSelectNode}
-            />
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
+    // On mobile: show drawer for node details, or a small floating button for chains
+    if (selectedNode) {
+      return (
+        <Drawer
+          open={true}
+          onOpenChange={(open) => {
+            if (!open && onClose) onClose();
+          }}
+        >
+          <DrawerContent className="bg-[#0d0d18] border-cyan-900/30 max-h-[70vh]">
+            <DrawerHeader className="pb-0">
+              <DrawerTitle className="text-cyan-400/80 text-sm uppercase tracking-widest">
+                Node Details
+              </DrawerTitle>
+            </DrawerHeader>
+            <div className="p-4 overflow-y-auto">
+              <NodeDetails
+                selectedNode={selectedNode}
+                parentNode={parentNode}
+                childNodes={childNodes}
+                onSelectNode={onSelectNode}
+              />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      );
+    }
+
+    // No node selected on mobile: show chains in a drawer triggered by a floating button
+    return null;
   }
 
-  // Desktop: sidebar
+  // Desktop: sidebar with both chains and node details
   return (
     <div className="w-80 border-l border-cyan-900/30 bg-[#0d0d18]/95 backdrop-blur-xl overflow-y-auto shrink-0">
       <div className="p-4">
         <h2 className="text-sm font-semibold text-cyan-400/80 uppercase tracking-widest mb-4">
-          Pathway Overview
+          {selectedNode ? 'Node Details' : 'Pathway Overview'}
         </h2>
         <PanelContent
           selectedNode={selectedNode}
           parentNode={parentNode}
           childNodes={childNodes}
           onSelectNode={onSelectNode}
+          sessions={sessions}
         />
       </div>
     </div>

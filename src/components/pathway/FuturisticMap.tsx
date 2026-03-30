@@ -301,6 +301,7 @@ export function FuturisticMap({ onBack }: FuturisticMapProps) {
           onSelectNode={setSelectedNodeId}
           reconnectMode={false}
           onClose={() => setSelectedNodeId(null)}
+          sessions={sessions}
         />
       </div>
     </div>

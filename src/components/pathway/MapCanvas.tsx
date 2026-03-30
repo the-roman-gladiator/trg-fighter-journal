@@ -149,9 +149,21 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy);
+
+      // Skip tiny movements and extreme ratios to prevent jump on initial placement
+      const ratio = dist / lastPinchDist.current;
+      if (dist < 10 || ratio > 1.5 || ratio < 0.67) {
+        lastPinchDist.current = dist;
+        lastPinchCenter.current = {
+          x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+          y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+        };
+        return;
+      }
+
       const rawFactor = lastPinchDist.current / dist;
       // Dampen: lerp toward 1.0 so zoom feels slower and smoother
-      const factor = 1 + (rawFactor - 1) * 0.35;
+      const factor = 1 + (rawFactor - 1) * 0.25;
 
       const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
       const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;

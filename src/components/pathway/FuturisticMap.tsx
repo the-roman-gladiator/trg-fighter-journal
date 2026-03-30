@@ -324,6 +324,7 @@ export function FuturisticMap({ onBack }: FuturisticMapProps) {
                     onSelectNode={setSelectedNodeId}
                     reconnectMode={false}
                     sessions={sessions}
+                    embedded
                   />
                 </div>
               </DrawerContent>

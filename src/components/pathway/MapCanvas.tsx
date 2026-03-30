@@ -251,14 +251,8 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
   // Center view on nodes on load
   useEffect(() => {
     if (nodes.length === 0) return;
-    const xs = nodes.map(n => n.position_x);
-    const ys = nodes.map(n => n.position_y);
-    const minX = Math.min(...xs) - 150;
-    const minY = Math.min(...ys) - 150;
-    const maxX = Math.max(...xs) + 150;
-    const maxY = Math.max(...ys) + 150;
     centerOnNodes();
-  }, [centerOnNodes]);
+  }, [nodes.length === 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
 

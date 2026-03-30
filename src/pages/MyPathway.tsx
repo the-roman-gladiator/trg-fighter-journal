@@ -43,6 +43,7 @@ export default function MyPathway() {
 
   // Pathway filter
   const [pathwayFilter, setPathwayFilter] = useState('all');
+  const [mapFocusSessionId, setMapFocusSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }

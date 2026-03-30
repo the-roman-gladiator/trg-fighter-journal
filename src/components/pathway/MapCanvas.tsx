@@ -75,6 +75,21 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
   const lastPinchDist = useRef<number | null>(null);
   const lastPinchCenter = useRef<{ x: number; y: number } | null>(null);
 
+  // Double-tap detection
+  const lastTapTime = useRef<number>(0);
+  const lastTapPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const centerOnNodes = useCallback(() => {
+    if (nodes.length === 0) return;
+    const xs = nodes.map(n => n.position_x);
+    const ys = nodes.map(n => n.position_y);
+    const minX = Math.min(...xs) - 150;
+    const minY = Math.min(...ys) - 150;
+    const maxX = Math.max(...xs) + 150;
+    const maxY = Math.max(...ys) + 150;
+    setViewBox({ x: minX, y: minY, w: Math.max(maxX - minX, 400), h: Math.max(maxY - minY, 300) });
+  }, [nodes]);
+
   // Full pathway highlighting
   const pathwayNodeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();
@@ -155,10 +170,27 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
     }
   }, [getSvgPoint]);
 
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // Double-tap detection (single finger)
+    if (e.changedTouches.length === 1 && lastPinchDist.current === null) {
+      const now = Date.now();
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - lastTapPos.current.x;
+      const dy = touch.clientY - lastTapPos.current.y;
+      const dist = Math.hypot(dx, dy);
+      if (now - lastTapTime.current < 350 && dist < 30) {
+        // Double tap detected — recenter
+        centerOnNodes();
+        onNodeClick(null);
+        lastTapTime.current = 0;
+      } else {
+        lastTapTime.current = now;
+        lastTapPos.current = { x: touch.clientX, y: touch.clientY };
+      }
+    }
     lastPinchDist.current = null;
     lastPinchCenter.current = null;
-  }, []);
+  }, [centerOnNodes, onNodeClick]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const target = e.target as SVGElement;
@@ -219,14 +251,8 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
   // Center view on nodes on load
   useEffect(() => {
     if (nodes.length === 0) return;
-    const xs = nodes.map(n => n.position_x);
-    const ys = nodes.map(n => n.position_y);
-    const minX = Math.min(...xs) - 150;
-    const minY = Math.min(...ys) - 150;
-    const maxX = Math.max(...xs) + 150;
-    const maxY = Math.max(...ys) + 150;
-    setViewBox({ x: minX, y: minY, w: Math.max(maxX - minX, 400), h: Math.max(maxY - minY, 300) });
-  }, [nodes.length === 0]);
+    centerOnNodes();
+  }, [nodes.length === 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
 

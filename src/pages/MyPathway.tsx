@@ -162,7 +162,13 @@ export default function MyPathway() {
   const SessionCard = ({ session }: { session: any }) => {
     const chain = [session.first_movement, session.opponent_action, session.second_movement].filter(Boolean).join(' → ');
     return (
-      <Card className="cursor-pointer hover:border-primary/20" onClick={() => navigate(`/session/${session.id}`)}>
+      <Card
+        className="cursor-pointer hover:border-primary/20"
+        onClick={() => {
+          setMapFocusSessionId(session.id);
+          setView('interactive-map');
+        }}
+      >
         <CardContent className="py-3">
           <div className="flex justify-between items-start">
             <div className="min-w-0 flex-1">

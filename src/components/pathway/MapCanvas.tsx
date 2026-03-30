@@ -18,12 +18,48 @@ const NODE_COLORS: Record<string, { core: string; glow: string }> = {
   movement:    { core: '#10b981', glow: '#34d399' },
   reaction:    { core: '#f43f5e', glow: '#fb7185' },
   followup:    { core: '#3b82f6', glow: '#60a5fa' },
+  tactic:      { core: '#06b6d4', glow: '#22d3ee' },
+  action:      { core: '#10b981', glow: '#34d399' },
   default:     { core: '#06b6d4', glow: '#22d3ee' },
 };
 
 function getNodeColor(type: string, colorTag: string | null) {
   if (colorTag) return { core: colorTag, glow: colorTag };
   return NODE_COLORS[type] || NODE_COLORS.default;
+}
+
+/** Walk edges to find all ancestors and descendants of a node */
+function getFullPathway(nodeId: string, edges: PathwayEdge[]): Set<string> {
+  const ids = new Set<string>([nodeId]);
+  // Walk ancestors
+  let frontier = [nodeId];
+  while (frontier.length > 0) {
+    const next: string[] = [];
+    for (const id of frontier) {
+      for (const e of edges) {
+        if (e.target_node_id === id && !ids.has(e.source_node_id)) {
+          ids.add(e.source_node_id);
+          next.push(e.source_node_id);
+        }
+      }
+    }
+    frontier = next;
+  }
+  // Walk descendants
+  frontier = [nodeId];
+  while (frontier.length > 0) {
+    const next: string[] = [];
+    for (const id of frontier) {
+      for (const e of edges) {
+        if (e.source_node_id === id && !ids.has(e.target_node_id)) {
+          ids.add(e.target_node_id);
+          next.push(e.target_node_id);
+        }
+      }
+    }
+    frontier = next;
+  }
+  return ids;
 }
 
 export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeClick, onNodeDrag }: MapCanvasProps) {
@@ -34,6 +70,27 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
   const [dragNode, setDragNode] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [time, setTime] = useState(0);
+  
+  // Pinch-to-zoom state
+  const lastPinchDist = useRef<number | null>(null);
+  const lastPinchCenter = useRef<{ x: number; y: number } | null>(null);
+
+  // Full pathway highlighting
+  const pathwayNodeIds = useMemo(() => {
+    if (!selectedNodeId) return new Set<string>();
+    return getFullPathway(selectedNodeId, edges);
+  }, [selectedNodeId, edges]);
+
+  const pathwayEdgeIds = useMemo(() => {
+    if (!selectedNodeId) return new Set<string>();
+    const ids = new Set<string>();
+    for (const e of edges) {
+      if (pathwayNodeIds.has(e.source_node_id) && pathwayNodeIds.has(e.target_node_id)) {
+        ids.add(e.id);
+      }
+    }
+    return ids;
+  }, [selectedNodeId, edges, pathwayNodeIds]);
 
   // Animation loop for pulse effects
   useEffect(() => {
@@ -46,16 +103,6 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  const connectedNodeIds = useMemo(() => {
-    if (!selectedNodeId) return new Set<string>();
-    const ids = new Set<string>();
-    edges.forEach(e => {
-      if (e.source_node_id === selectedNodeId) ids.add(e.target_node_id);
-      if (e.target_node_id === selectedNodeId) ids.add(e.source_node_id);
-    });
-    return ids;
-  }, [selectedNodeId, edges]);
-
   const getSvgPoint = useCallback((clientX: number, clientY: number) => {
     if (!svgRef.current) return { x: 0, y: 0 };
     const rect = svgRef.current.getBoundingClientRect();
@@ -66,6 +113,50 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
       y: viewBox.y + (clientY - rect.top) * scaleY,
     };
   }, [viewBox]);
+
+  // Touch handlers for pinch-to-zoom
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastPinchDist.current = Math.hypot(dx, dy);
+      lastPinchCenter.current = {
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+      };
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2 && lastPinchDist.current !== null && lastPinchCenter.current !== null) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const factor = lastPinchDist.current / dist;
+
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const svgPt = getSvgPoint(cx, cy);
+
+      setViewBox(prev => {
+        const newW = Math.max(200, Math.min(3000, prev.w * factor));
+        const newH = Math.max(150, Math.min(2250, prev.h * factor));
+        const newX = svgPt.x - (svgPt.x - prev.x) * (newW / prev.w);
+        const newY = svgPt.y - (svgPt.y - prev.y) * (newH / prev.h);
+        return { x: newX, y: newY, w: newW, h: newH };
+      });
+
+      lastPinchDist.current = dist;
+      lastPinchCenter.current = { x: cx, y: cy };
+    }
+  }, [getSvgPoint]);
+
+  const handleTouchEnd = useCallback(() => {
+    lastPinchDist.current = null;
+    lastPinchCenter.current = null;
+  }, []);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const target = e.target as SVGElement;
@@ -100,9 +191,8 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
     }
   }, [dragNode, isPanning, panStart, viewBox, dragOffset, getSvgPoint, onNodeDrag]);
 
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+  const handlePointerUp = useCallback(() => {
     if (dragNode) {
-      // If barely moved, treat as click
       onNodeClick(dragNode);
     } else if (!isPanning) {
       onNodeClick(null);
@@ -147,6 +237,9 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       style={{ touchAction: 'none' }}
     >
       <defs>
@@ -195,12 +288,12 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
         const tgt = nodeMap.get(edge.target_node_id);
         if (!src || !tgt) return null;
 
-        const isHighlighted = selectedNodeId === edge.source_node_id || selectedNodeId === edge.target_node_id;
-        const dimmed = selectedNodeId && !isHighlighted;
+        const isInPathway = pathwayEdgeIds.has(edge.id);
+        const dimmed = selectedNodeId && !isInPathway;
         const srcColor = getNodeColor(src.node_type, src.color_tag);
 
         // Pulse position along the edge
-        const pulseT = ((time * 0.5 + parseInt(edge.id.slice(0, 4), 16) * 0.01) % 1);
+        const pulseT = ((time * 0.5 + parseInt(edge.id.slice(0, 8).replace(/\D/g, '0'), 16) * 0.01) % 1);
         const pulseX = src.position_x + (tgt.position_x - src.position_x) * pulseT;
         const pulseY = src.position_y + (tgt.position_y - src.position_y) * pulseT;
 
@@ -219,19 +312,19 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
             <path
               d={`M ${src.position_x} ${src.position_y} Q ${ctrlX} ${ctrlY} ${tgt.position_x} ${tgt.position_y}`}
               fill="none"
-              stroke={isHighlighted ? srcColor.glow : 'rgba(6,182,212,0.15)'}
-              strokeWidth={isHighlighted ? 2 : 1}
-              opacity={dimmed ? 0.08 : isHighlighted ? 0.8 : 0.3}
-              filter={isHighlighted ? 'url(#glow-edge)' : undefined}
+              stroke={isInPathway ? srcColor.glow : 'rgba(6,182,212,0.15)'}
+              strokeWidth={isInPathway ? 2.5 : 1}
+              opacity={dimmed ? 0.06 : isInPathway ? 0.9 : 0.3}
+              filter={isInPathway ? 'url(#glow-edge)' : undefined}
             />
             {/* Pulse dot traveling along edge */}
             {!dimmed && (
               <circle
                 cx={pulseX}
                 cy={pulseY}
-                r={isHighlighted ? 2.5 : 1.5}
+                r={isInPathway ? 2.5 : 1.5}
                 fill={srcColor.glow}
-                opacity={isHighlighted ? 0.8 : 0.3}
+                opacity={isInPathway ? 0.8 : 0.3}
               />
             )}
           </g>
@@ -241,8 +334,8 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
       {/* Nodes */}
       {nodes.map(node => {
         const isSelected = selectedNodeId === node.id;
-        const isConnected = connectedNodeIds.has(node.id);
-        const dimmed = selectedNodeId && !isSelected && !isConnected;
+        const isInPathway = pathwayNodeIds.has(node.id);
+        const dimmed = selectedNodeId && !isInPathway;
         const colors = getNodeColor(node.node_type, node.color_tag);
         const baseRadius = node.is_root ? 18 : 12;
         const floatOffset = Math.sin(time * 0.8 + node.position_x * 0.01) * 2;
@@ -253,10 +346,10 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
             key={node.id}
             data-node-id={node.id}
             className="cursor-pointer"
-            opacity={dimmed ? 0.15 : 1}
+            opacity={dimmed ? 0.1 : 1}
             style={{ transition: 'opacity 0.4s ease' }}
           >
-            {/* Outer glow ring */}
+            {/* Outer glow ring for selected */}
             {isSelected && (
               <>
                 <circle
@@ -281,13 +374,27 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
               </>
             )}
 
+            {/* Pathway highlight ring (non-selected nodes in the path) */}
+            {!isSelected && isInPathway && selectedNodeId && (
+              <circle
+                cx={node.position_x}
+                cy={node.position_y + floatOffset}
+                r={baseRadius + 8}
+                fill="none"
+                stroke={colors.glow}
+                strokeWidth={1}
+                opacity={0.4 + Math.sin(time * 1.5) * 0.1}
+                filter="url(#glow-soft)"
+              />
+            )}
+
             {/* Ambient glow */}
             <circle
               cx={node.position_x}
               cy={node.position_y + floatOffset}
               r={baseRadius + 6}
               fill={colors.core}
-              opacity={isSelected ? 0.15 : 0.06}
+              opacity={isSelected ? 0.15 : isInPathway && selectedNodeId ? 0.12 : 0.06}
               filter="url(#glow-soft)"
             />
 
@@ -298,8 +405,8 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
               cy={node.position_y + floatOffset}
               r={baseRadius * pulse}
               fill={`url(#grad-${node.id})`}
-              stroke={isSelected ? colors.glow : 'rgba(255,255,255,0.1)'}
-              strokeWidth={isSelected ? 2 : 0.5}
+              stroke={isSelected ? colors.glow : isInPathway && selectedNodeId ? colors.glow : 'rgba(255,255,255,0.1)'}
+              strokeWidth={isSelected ? 2 : isInPathway && selectedNodeId ? 1.5 : 0.5}
               filter={isSelected ? 'url(#glow-strong)' : 'url(#glow-soft)'}
             />
 
@@ -326,8 +433,8 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
               y={node.position_y + floatOffset + baseRadius + 16}
               textAnchor="middle"
               fontSize={isSelected ? '11' : '10'}
-              fontWeight={isSelected ? '600' : '400'}
-              fill={isSelected ? colors.glow : 'rgba(255,255,255,0.6)'}
+              fontWeight={isSelected ? '600' : isInPathway && selectedNodeId ? '500' : '400'}
+              fill={isSelected ? colors.glow : isInPathway && selectedNodeId ? colors.glow : 'rgba(255,255,255,0.6)'}
               className="pointer-events-none select-none"
               style={{ textShadow: `0 0 8px ${colors.core}40` }}
             >

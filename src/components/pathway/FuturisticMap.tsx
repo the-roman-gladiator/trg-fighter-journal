@@ -65,7 +65,7 @@ function radialLayout(
   return positions;
 }
 
-export function FuturisticMap({ onBack }: FuturisticMapProps) {
+export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

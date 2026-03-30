@@ -30,6 +30,7 @@ interface PathwayPanelProps {
   reconnectMode: boolean;
   onClose?: () => void;
   sessions?: any[];
+  embedded?: boolean; // skip mobile drawer wrapping when embedded inside another drawer
 }
 
 const TYPE_LABELS: Record<string, string> = {

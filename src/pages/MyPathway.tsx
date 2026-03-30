@@ -43,6 +43,7 @@ export default function MyPathway() {
 
   // Pathway filter
   const [pathwayFilter, setPathwayFilter] = useState('all');
+  const [mapFocusSessionId, setMapFocusSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
@@ -161,7 +162,13 @@ export default function MyPathway() {
   const SessionCard = ({ session }: { session: any }) => {
     const chain = [session.first_movement, session.opponent_action, session.second_movement].filter(Boolean).join(' → ');
     return (
-      <Card className="cursor-pointer hover:border-primary/20" onClick={() => navigate(`/session/${session.id}`)}>
+      <Card
+        className="cursor-pointer hover:border-primary/20"
+        onClick={() => {
+          setMapFocusSessionId(session.id);
+          setView('interactive-map');
+        }}
+      >
         <CardContent className="py-3">
           <div className="flex justify-between items-start">
             <div className="min-w-0 flex-1">
@@ -365,5 +372,5 @@ export default function MyPathway() {
   }
 
   // Interactive Map - Futuristic version
-  return <FuturisticMap onBack={() => setView('home')} />;
+  return <FuturisticMap onBack={() => { setMapFocusSessionId(null); setView('home'); }} initialSessionId={mapFocusSessionId} />;
 }

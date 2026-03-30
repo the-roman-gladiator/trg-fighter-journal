@@ -300,6 +300,7 @@ export function FuturisticMap({ onBack }: FuturisticMapProps) {
           childNodes={childNodes}
           onSelectNode={setSelectedNodeId}
           reconnectMode={false}
+          onClose={() => setSelectedNodeId(null)}
         />
       </div>
     </div>

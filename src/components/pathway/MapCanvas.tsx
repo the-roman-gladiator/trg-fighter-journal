@@ -257,8 +257,8 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
     const minY = Math.min(...ys) - 150;
     const maxX = Math.max(...xs) + 150;
     const maxY = Math.max(...ys) + 150;
-    setViewBox({ x: minX, y: minY, w: Math.max(maxX - minX, 400), h: Math.max(maxY - minY, 300) });
-  }, [nodes.length === 0]);
+    centerOnNodes();
+  }, [centerOnNodes]);
 
   const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
 

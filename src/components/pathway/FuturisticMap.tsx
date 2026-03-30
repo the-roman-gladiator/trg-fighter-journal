@@ -234,6 +234,25 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
     return nodes.find(n => n.id === parentEdge.source_node_id) || null;
   }, [selectedNodeId, edges, nodes]);
 
+  useEffect(() => {
+    if (!initialSessionId || nodes.length === 0) return;
+
+    const session = sessions.find((s) => s.id === initialSessionId);
+    if (!session) return;
+
+    const candidateIds = [
+      session.discipline ? `disc:${session.discipline}` : null,
+      session.strategy ? `strat:${session.strategy}` : null,
+      session.technique ? `tech:${session.technique}` : null,
+      session.first_movement ? `move:${session.first_movement}` : null,
+      session.opponent_action ? `react:${session.opponent_action}` : null,
+      session.second_movement ? `follow:${session.second_movement}` : null,
+    ].filter(Boolean) as string[];
+
+    const bestNodeId = candidateIds.reverse().find((id) => nodes.some((node) => node.id === id)) || null;
+    if (bestNodeId) setSelectedNodeId(bestNodeId);
+  }, [initialSessionId, sessions, nodes]);
+
   const handleCanvasClick = (nodeId: string | null) => {
     setSelectedNodeId(nodeId);
   };

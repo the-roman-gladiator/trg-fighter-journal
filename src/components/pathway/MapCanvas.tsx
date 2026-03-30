@@ -75,6 +75,21 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
   const lastPinchDist = useRef<number | null>(null);
   const lastPinchCenter = useRef<{ x: number; y: number } | null>(null);
 
+  // Double-tap detection
+  const lastTapTime = useRef<number>(0);
+  const lastTapPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const centerOnNodes = useCallback(() => {
+    if (nodes.length === 0) return;
+    const xs = nodes.map(n => n.position_x);
+    const ys = nodes.map(n => n.position_y);
+    const minX = Math.min(...xs) - 150;
+    const minY = Math.min(...ys) - 150;
+    const maxX = Math.max(...xs) + 150;
+    const maxY = Math.max(...ys) + 150;
+    setViewBox({ x: minX, y: minY, w: Math.max(maxX - minX, 400), h: Math.max(maxY - minY, 300) });
+  }, [nodes]);
+
   // Full pathway highlighting
   const pathwayNodeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();

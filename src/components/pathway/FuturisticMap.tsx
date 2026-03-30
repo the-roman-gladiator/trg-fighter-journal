@@ -36,6 +36,7 @@ export interface PathwayEdge {
 
 interface FuturisticMapProps {
   onBack: () => void;
+  initialSessionId?: string | null;
 }
 
 // Layout helpers

@@ -149,29 +149,28 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy);
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
 
-      // Skip tiny movements and extreme ratios to prevent jump on initial placement
-      const ratio = dist / lastPinchDist.current;
-      if (dist < 10 || ratio > 1.5 || ratio < 0.67) {
+      if (dist < 48) {
         lastPinchDist.current = dist;
-        lastPinchCenter.current = {
-          x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
-          y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
-        };
+        lastPinchCenter.current = { x: cx, y: cy };
+        return;
+      }
+
+      const distanceDelta = Math.abs(dist - lastPinchDist.current);
+      if (distanceDelta < 12) {
         return;
       }
 
       const rawFactor = lastPinchDist.current / dist;
-      // Dampen: lerp toward 1.0 so zoom feels slower and smoother
-      const factor = 1 + (rawFactor - 1) * 0.25;
-
-      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const clampedRawFactor = Math.max(0.97, Math.min(1.03, rawFactor));
+      const factor = 1 + (clampedRawFactor - 1) * 0.12;
       const svgPt = getSvgPoint(cx, cy);
 
       setViewBox(prev => {
-        const newW = Math.max(200, Math.min(3000, prev.w * factor));
-        const newH = Math.max(150, Math.min(2250, prev.h * factor));
+        const newW = Math.max(240, Math.min(3000, prev.w * factor));
+        const newH = Math.max(180, Math.min(2250, prev.h * factor));
         const newX = svgPt.x - (svgPt.x - prev.x) * (newW / prev.w);
         const newY = svgPt.y - (svgPt.y - prev.y) * (newH / prev.h);
         return { x: newX, y: newY, w: newW, h: newH };

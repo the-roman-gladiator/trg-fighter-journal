@@ -211,6 +211,7 @@ export default function FighterPathway() {
           childNodes={childNodes}
           onSelectNode={setSelectedNodeId}
           reconnectMode={false}
+          onClose={() => setSelectedNodeId(null)}
         />
       </div>
     </div>

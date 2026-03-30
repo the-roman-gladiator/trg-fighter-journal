@@ -285,8 +285,22 @@ export function PathwayPanel({
   onSelectNode,
   onClose,
   sessions,
+  embedded,
 }: PathwayPanelProps) {
   const isMobile = useIsMobile();
+
+  // When embedded inside another container (e.g. a drawer), render content directly
+  if (embedded) {
+    return (
+      <PanelContent
+        selectedNode={selectedNode}
+        parentNode={parentNode}
+        childNodes={childNodes}
+        onSelectNode={onSelectNode}
+        sessions={sessions}
+      />
+    );
+  }
 
   if (isMobile) {
     // On mobile: show drawer for node details, or a small floating button for chains

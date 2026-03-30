@@ -205,7 +205,7 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
-    const factor = e.deltaY > 0 ? 1.1 : 0.9;
+    const factor = e.deltaY > 0 ? 1.05 : 0.95;
     const svgPt = getSvgPoint(e.clientX, e.clientY);
     setViewBox(prev => {
       const newW = Math.max(200, Math.min(3000, prev.w * factor));

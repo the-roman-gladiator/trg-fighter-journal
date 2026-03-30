@@ -1,8 +1,10 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Zap } from 'lucide-react';
+import { ArrowLeft, Zap, GitBranch } from 'lucide-react';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { MapCanvas } from './MapCanvas';
 import { PathwayPanel } from './PathwayPanel';
 
@@ -67,6 +69,8 @@ export function FuturisticMap({ onBack }: FuturisticMapProps) {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [chainsOpen, setChainsOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const loadSessions = useCallback(async () => {
     if (!user) return;
@@ -291,6 +295,41 @@ export function FuturisticMap({ onBack }: FuturisticMapProps) {
               </div>
             </div>
           )}
+
+          {/* Mobile: floating chains button */}
+          {isMobile && sessions.length > 0 && !selectedNodeId && (
+            <button
+              onClick={() => setChainsOpen(true)}
+              className="absolute bottom-4 right-4 z-10 flex items-center gap-2 px-3 py-2 rounded-full bg-cyan-500/20 border border-cyan-500/30 backdrop-blur-md text-cyan-200 text-xs font-medium shadow-lg"
+            >
+              <GitBranch className="h-4 w-4" />
+              Pathways
+            </button>
+          )}
+
+          {/* Mobile chains drawer */}
+          {isMobile && (
+            <Drawer open={chainsOpen} onOpenChange={setChainsOpen}>
+              <DrawerContent className="bg-[#0d0d18] border-cyan-900/30 max-h-[75vh]">
+                <DrawerHeader className="pb-0">
+                  <DrawerTitle className="text-cyan-400/80 text-sm uppercase tracking-widest">
+                    Movement Chains
+                  </DrawerTitle>
+                </DrawerHeader>
+                <div className="p-4 overflow-y-auto">
+                  <PathwayPanel
+                    selectedNode={null}
+                    parentNode={null}
+                    childNodes={[]}
+                    onSelectNode={setSelectedNodeId}
+                    reconnectMode={false}
+                    sessions={sessions}
+                    embedded
+                  />
+                </div>
+              </DrawerContent>
+            </Drawer>
+          )}
         </div>
 
         {/* Right Panel */}
@@ -301,6 +340,7 @@ export function FuturisticMap({ onBack }: FuturisticMapProps) {
           onSelectNode={setSelectedNodeId}
           reconnectMode={false}
           onClose={() => setSelectedNodeId(null)}
+          sessions={sessions}
         />
       </div>
     </div>

@@ -170,10 +170,27 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
     }
   }, [getSvgPoint]);
 
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // Double-tap detection (single finger)
+    if (e.changedTouches.length === 1 && lastPinchDist.current === null) {
+      const now = Date.now();
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - lastTapPos.current.x;
+      const dy = touch.clientY - lastTapPos.current.y;
+      const dist = Math.hypot(dx, dy);
+      if (now - lastTapTime.current < 350 && dist < 30) {
+        // Double tap detected — recenter
+        centerOnNodes();
+        onNodeClick(null);
+        lastTapTime.current = 0;
+      } else {
+        lastTapTime.current = now;
+        lastTapPos.current = { x: touch.clientX, y: touch.clientY };
+      }
+    }
     lastPinchDist.current = null;
     lastPinchCenter.current = null;
-  }, []);
+  }, [centerOnNodes, onNodeClick]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const target = e.target as SVGElement;

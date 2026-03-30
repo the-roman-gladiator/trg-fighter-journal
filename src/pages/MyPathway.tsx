@@ -372,5 +372,5 @@ export default function MyPathway() {
   }
 
   // Interactive Map - Futuristic version
-  return <FuturisticMap onBack={() => setView('home')} />;
+  return <FuturisticMap onBack={() => { setMapFocusSessionId(null); setView('home'); }} initialSessionId={mapFocusSessionId} />;
 }

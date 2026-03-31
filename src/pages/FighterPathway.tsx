@@ -134,6 +134,25 @@ export default function FighterPathway() {
   }, [sessions, user]);
 
   const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);
+
+  // Full pathway highlighting
+  const pathwayNodeIds = useMemo(() => {
+    if (!selectedNodeId) return new Set<string>();
+    const ids = new Set<string>([selectedNodeId]);
+    let frontier = [selectedNodeId];
+    while (frontier.length > 0) {
+      const next: string[] = [];
+      for (const id of frontier) {
+        for (const e of edges) {
+          if (e.target_node_id === id && !ids.has(e.source_node_id)) { ids.add(e.source_node_id); next.push(e.source_node_id); }
+          if (e.source_node_id === id && !ids.has(e.target_node_id)) { ids.add(e.target_node_id); next.push(e.target_node_id); }
+        }
+      }
+      frontier = next;
+    }
+    return ids;
+  }, [selectedNodeId, edges]);
+
   const childNodes = useMemo(() => {
     if (!selectedNodeId) return [];
     const ids = edges.filter(e => e.source_node_id === selectedNodeId).map(e => e.target_node_id);

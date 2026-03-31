@@ -31,6 +31,10 @@ interface PathwayPanelProps {
   onClose?: () => void;
   sessions?: any[];
   embedded?: boolean; // skip mobile drawer wrapping when embedded inside another drawer
+  /** All node IDs in the highlighted pathway (ancestors + descendants) */
+  pathwayNodeIds?: Set<string>;
+  /** All nodes available to look up by id */
+  allNodes?: PathwayNode[];
 }
 
 const TYPE_LABELS: Record<string, string> = {

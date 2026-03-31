@@ -232,6 +232,8 @@ export default function FighterPathway() {
           reconnectMode={false}
           onClose={() => setSelectedNodeId(null)}
           sessions={sessions}
+          pathwayNodeIds={pathwayNodeIds}
+          allNodes={nodes}
         />
       </div>
     </div>

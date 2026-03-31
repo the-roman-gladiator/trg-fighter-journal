@@ -160,7 +160,15 @@ function NodeDetails({
   parentNode,
   childNodes,
   onSelectNode,
-}: { selectedNode: PathwayNode; parentNode: PathwayNode | null; childNodes: PathwayNode[]; onSelectNode: (id: string) => void }) {
+  pathwayNodeIds,
+  allNodes,
+}: { selectedNode: PathwayNode; parentNode: PathwayNode | null; childNodes: PathwayNode[]; onSelectNode: (id: string) => void; pathwayNodeIds?: Set<string>; allNodes?: PathwayNode[] }) {
+  // Build full pathway list (all highlighted nodes except selected)
+  const fullPathwayNodes = useMemo(() => {
+    if (!pathwayNodeIds || !allNodes) return [];
+    return allNodes.filter(n => n.id !== selectedNode.id && pathwayNodeIds.has(n.id));
+  }, [pathwayNodeIds, allNodes, selectedNode.id]);
+
   return (
     <div className="space-y-4 animate-fade-in">
       <div>
@@ -186,36 +194,23 @@ function NodeDetails({
         </div>
       )}
 
-      {parentNode && (
-        <div>
-          <p className="text-[11px] text-cyan-500/40 uppercase tracking-wider mb-1.5">Connected From</p>
-          <button
-            onClick={() => onSelectNode(parentNode.id)}
-            className="flex items-center gap-2 w-full p-2 rounded-lg bg-cyan-500/5 border border-cyan-500/10 hover:bg-cyan-500/10 transition-colors"
-          >
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: TYPE_COLORS[parentNode.node_type] || TYPE_COLORS.root }} />
-            <span className="text-xs text-cyan-200/70 flex-1 text-left truncate">{parentNode.title}</span>
-            <span className="text-[10px] text-cyan-500/30">{TYPE_LABELS[parentNode.node_type] || parentNode.node_type}</span>
-            <ChevronRight className="h-3 w-3 text-cyan-500/30" />
-          </button>
-        </div>
-      )}
-
-      {childNodes.length > 0 && (
+      {/* Full highlighted pathway */}
+      {fullPathwayNodes.length > 0 && (
         <div>
           <p className="text-[11px] text-cyan-500/40 uppercase tracking-wider mb-1.5">
-            Connects To ({childNodes.length})
+            Full Pathway ({fullPathwayNodes.length})
           </p>
-          <div className="space-y-1 max-h-48 overflow-y-auto">
-            {childNodes.map(child => (
+          <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
+            {fullPathwayNodes.map(node => (
               <button
-                key={child.id}
-                onClick={() => onSelectNode(child.id)}
+                key={node.id}
+                onClick={() => onSelectNode(node.id)}
                 className="flex items-center gap-2 w-full p-2 rounded-lg bg-cyan-500/5 border border-cyan-500/10 hover:bg-cyan-500/10 transition-colors"
               >
-                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: TYPE_COLORS[child.node_type] || TYPE_COLORS.root }} />
-                <span className="text-xs text-cyan-200/70 flex-1 text-left truncate">{child.title}</span>
-                <span className="text-[10px] text-cyan-500/30">{TYPE_LABELS[child.node_type] || child.node_type}</span>
+                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: TYPE_COLORS[node.node_type] || TYPE_COLORS.root }} />
+                <span className="text-xs text-cyan-200/70 flex-1 text-left truncate">{node.title}</span>
+                <span className="text-[10px] text-cyan-500/30">{TYPE_LABELS[node.node_type] || node.node_type}</span>
+                <ChevronRight className="h-3 w-3 text-cyan-500/30" />
               </button>
             ))}
           </div>

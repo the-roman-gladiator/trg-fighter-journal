@@ -152,20 +152,23 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
       const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
       const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
 
-      if (dist < 48) {
+      // Ignore tiny finger distances — fingers just placed
+      if (dist < 60) {
         lastPinchDist.current = dist;
         lastPinchCenter.current = { x: cx, y: cy };
         return;
       }
 
       const distanceDelta = Math.abs(dist - lastPinchDist.current);
-      if (distanceDelta < 12) {
+      // Ignore jitter below 18px
+      if (distanceDelta < 18) {
         return;
       }
 
+      // Ultra-slow zoom: clamp ratio tightly, then dampen further
       const rawFactor = lastPinchDist.current / dist;
-      const clampedRawFactor = Math.max(0.97, Math.min(1.03, rawFactor));
-      const factor = 1 + (clampedRawFactor - 1) * 0.12;
+      const clampedRawFactor = Math.max(0.985, Math.min(1.015, rawFactor));
+      const factor = 1 + (clampedRawFactor - 1) * 0.08;
       const svgPt = getSvgPoint(cx, cy);
 
       setViewBox(prev => {

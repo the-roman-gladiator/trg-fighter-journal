@@ -226,7 +226,9 @@ function PanelContent({
   childNodes,
   onSelectNode,
   sessions,
-}: Omit<PathwayPanelProps, 'reconnectMode' | 'onClose'>) {
+  pathwayNodeIds,
+  allNodes,
+}: Omit<PathwayPanelProps, 'reconnectMode' | 'onClose' | 'embedded'>) {
   if (!selectedNode) {
     return (
       <div className="space-y-4">
@@ -260,6 +262,8 @@ function PanelContent({
         parentNode={parentNode}
         childNodes={childNodes}
         onSelectNode={onSelectNode}
+        pathwayNodeIds={pathwayNodeIds}
+        allNodes={allNodes}
       />
       {/* Legend */}
       <div className="pt-3 border-t border-cyan-900/30">

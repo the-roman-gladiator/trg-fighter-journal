@@ -1,5 +1,12 @@
-import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { PathwayNode, PathwayEdge } from './FuturisticMap';
+
+export interface MapCanvasHandle {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  panBy: (dx: number, dy: number) => void;
+  recenter: () => void;
+}
 
 interface MapCanvasProps {
   nodes: PathwayNode[];

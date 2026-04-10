@@ -59,6 +59,7 @@ const App = () => (
                 <Route path="/coach" element={<CoachDashboard />} />
                 <Route path="/coach/session/new" element={<CoachSessionEdit />} />
                 <Route path="/coach/session/:id/edit" element={<CoachSessionEdit />} />
+                <Route path="/library" element={<TechniqueLibrary />} />
               </Routes>
             </AppModeProvider>
           </UserSettingsProvider>

@@ -1,5 +1,12 @@
-import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { PathwayNode, PathwayEdge } from './FuturisticMap';
+
+export interface MapCanvasHandle {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  panBy: (dx: number, dy: number) => void;
+  recenter: () => void;
+}
 
 interface MapCanvasProps {
   nodes: PathwayNode[];
@@ -62,7 +69,7 @@ function getFullPathway(nodeId: string, edges: PathwayEdge[]): Set<string> {
   return ids;
 }
 
-export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeClick, onNodeDrag }: MapCanvasProps) {
+export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeClick, onNodeDrag }, ref) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: 800, h: 600 });
   const [isPanning, setIsPanning] = useState(false);
@@ -89,6 +96,23 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
     const maxY = Math.max(...ys) + 150;
     setViewBox({ x: minX, y: minY, w: Math.max(maxX - minX, 400), h: Math.max(maxY - minY, 300) });
   }, [nodes]);
+
+  useImperativeHandle(ref, () => ({
+    zoomIn: () => setViewBox(v => {
+      const cx = v.x + v.w / 2, cy = v.y + v.h / 2;
+      const nw = v.w * 0.8, nh = v.h * 0.8;
+      return { x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh };
+    }),
+    zoomOut: () => setViewBox(v => {
+      const cx = v.x + v.w / 2, cy = v.y + v.h / 2;
+      const nw = v.w * 1.25, nh = v.h * 1.25;
+      return { x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh };
+    }),
+    panBy: (dx: number, dy: number) => setViewBox(v => ({
+      ...v, x: v.x + dx * (v.w / 800), y: v.y + dy * (v.h / 600)
+    })),
+    recenter: () => centerOnNodes(),
+  }), [centerOnNodes]);
 
   // Full pathway highlighting
   const pathwayNodeIds = useMemo(() => {
@@ -518,4 +542,4 @@ export function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeC
       })}
     </svg>
   );
-}
+});

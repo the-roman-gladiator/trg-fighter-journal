@@ -161,13 +161,17 @@ export default function Dashboard() {
 
       <main className="container mx-auto px-4 py-5 max-w-lg space-y-5">
         {/* Primary Action Buttons */}
-        <div className="grid grid-cols-2 gap-3">
-          <Button onClick={() => navigate('/session/new')} className="h-14 text-base font-bold tracking-wide">
-            <Plus className="mr-2 h-5 w-5" /> Session
+        <div className="grid grid-cols-3 gap-2">
+          <Button onClick={() => navigate('/session/new')} className="h-14 text-sm font-bold tracking-wide">
+            <Plus className="mr-1.5 h-4 w-4" /> Session
           </Button>
           <Button onClick={() => navigate('/pathway')} variant="outline"
-            className="h-14 text-base font-semibold tracking-wide border-border hover:border-primary/40 hover:bg-primary/5">
-            <Map className="mr-2 h-5 w-5" /> My Pathway
+            className="h-14 text-sm font-semibold tracking-wide border-border hover:border-primary/40 hover:bg-primary/5">
+            <Map className="mr-1.5 h-4 w-4" /> Pathway
+          </Button>
+          <Button onClick={() => navigate('/library')} variant="outline"
+            className="h-14 text-sm font-semibold tracking-wide border-border hover:border-primary/40 hover:bg-primary/5">
+            <BookOpen className="mr-1.5 h-4 w-4" /> Library
           </Button>
         </div>
 

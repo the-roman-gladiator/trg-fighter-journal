@@ -23,6 +23,7 @@ import FighterSessionDetail from "./pages/FighterSessionDetail";
 import FighterPathway from "./pages/FighterPathway";
 import CoachDashboard from "./pages/CoachDashboard";
 import CoachSessionEdit from "./pages/CoachSessionEdit";
+import TechniqueLibrary from "./pages/TechniqueLibrary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
                 <Route path="/coach" element={<CoachDashboard />} />
                 <Route path="/coach/session/new" element={<CoachSessionEdit />} />
                 <Route path="/coach/session/:id/edit" element={<CoachSessionEdit />} />
+                <Route path="/library" element={<TechniqueLibrary />} />
               </Routes>
             </AppModeProvider>
           </UserSettingsProvider>

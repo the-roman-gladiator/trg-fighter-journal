@@ -1,0 +1,234 @@
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Search, ExternalLink, BookOpen, Image as ImageIcon } from 'lucide-react';
+
+interface TechniqueItem {
+  id: string;
+  discipline: string;
+  category: string;
+  name_en: string;
+  name_original: string | null;
+  image_url: string | null;
+  youtube_search_query: string | null;
+  sort_order: number;
+}
+
+const DISCIPLINE_COLORS: Record<string, string> = {
+  'MMA': 'bg-red-900/30 text-red-400 border-red-800/40',
+  'Muay Thai': 'bg-orange-900/30 text-orange-400 border-orange-800/40',
+  'K1': 'bg-yellow-900/30 text-yellow-400 border-yellow-800/40',
+  'BJJ': 'bg-purple-900/30 text-purple-400 border-purple-800/40',
+  'Wrestling': 'bg-blue-900/30 text-blue-400 border-blue-800/40',
+  'Grappling': 'bg-teal-900/30 text-teal-400 border-teal-800/40',
+};
+
+export default function TechniqueLibrary() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+  const [disciplineFilter, setDisciplineFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+  const { data: techniques = [], isLoading } = useQuery({
+    queryKey: ['technique-library'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('technique_library')
+        .select('*')
+        .order('discipline')
+        .order('sort_order');
+      if (error) throw error;
+      return data as TechniqueItem[];
+    },
+    enabled: !!user,
+  });
+
+  const disciplines = useMemo(() => 
+    [...new Set(techniques.map(t => t.discipline))].sort(),
+    [techniques]
+  );
+
+  const categories = useMemo(() => {
+    const filtered = disciplineFilter === 'all' 
+      ? techniques 
+      : techniques.filter(t => t.discipline === disciplineFilter);
+    return [...new Set(filtered.map(t => t.category))].sort();
+  }, [techniques, disciplineFilter]);
+
+  const filtered = useMemo(() => {
+    let result = techniques;
+    if (disciplineFilter !== 'all') {
+      result = result.filter(t => t.discipline === disciplineFilter);
+    }
+    if (categoryFilter !== 'all') {
+      result = result.filter(t => t.category === categoryFilter);
+    }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(t => 
+        t.name_en.toLowerCase().includes(q) || 
+        (t.name_original && t.name_original.toLowerCase().includes(q)) ||
+        t.category.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [techniques, disciplineFilter, categoryFilter, search]);
+
+  // Group by discipline then category
+  const grouped = useMemo(() => {
+    const map = new Map<string, Map<string, TechniqueItem[]>>();
+    filtered.forEach(t => {
+      if (!map.has(t.discipline)) map.set(t.discipline, new Map());
+      const catMap = map.get(t.discipline)!;
+      if (!catMap.has(t.category)) catMap.set(t.category, []);
+      catMap.get(t.category)!.push(t);
+    });
+    return map;
+  }, [filtered]);
+
+  const youtubeUrl = (query: string) =>
+    `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+
+  let rowNumber = 0;
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-border bg-card sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3 max-w-lg flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-primary" />
+            <h1 className="text-lg font-bold tracking-wide font-cinzel">Technique Library</h1>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search techniques..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {/* Filters */}
+        <div className="grid grid-cols-2 gap-2">
+          <Select value={disciplineFilter} onValueChange={v => { setDisciplineFilter(v); setCategoryFilter('all'); }}>
+            <SelectTrigger className="text-sm h-9">
+              <SelectValue placeholder="Discipline" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Disciplines</SelectItem>
+              {disciplines.map(d => (
+                <SelectItem key={d} value={d}>{d}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="text-sm h-9">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map(c => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Stats */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+          <span>{filtered.length} techniques</span>
+          <span>{disciplines.length} disciplines</span>
+        </div>
+
+        {isLoading ? (
+          <div className="text-center text-muted-foreground py-12">Loading library...</div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center text-muted-foreground py-12">No techniques found</div>
+        ) : (
+          <div className="space-y-6">
+            {Array.from(grouped.entries()).map(([discipline, catMap]) => (
+              <div key={discipline} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className={`text-xs font-semibold ${DISCIPLINE_COLORS[discipline] || ''}`}>
+                    {discipline}
+                  </Badge>
+                </div>
+
+                {Array.from(catMap.entries()).map(([category, items]) => (
+                  <div key={`${discipline}-${category}`} className="space-y-1.5">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest pl-1">
+                      {category}
+                    </h3>
+                    {items.map(tech => {
+                      rowNumber++;
+                      return (
+                        <Card key={tech.id} className="border-border/50 bg-card/50 hover:border-primary/20 transition-colors">
+                          <CardContent className="p-3">
+                            <div className="flex items-start gap-3">
+                              {/* Row number */}
+                              <div className="flex-shrink-0 w-7 h-7 rounded-md bg-secondary flex items-center justify-center">
+                                <span className="text-[11px] font-bold text-muted-foreground">{rowNumber}</span>
+                              </div>
+
+                              {/* Image */}
+                              <div className="flex-shrink-0 w-10 h-10 rounded-md bg-secondary/60 border border-border/30 flex items-center justify-center overflow-hidden">
+                                {tech.image_url ? (
+                                  <img src={tech.image_url} alt={tech.name_en} className="w-full h-full object-cover" />
+                                ) : (
+                                  <ImageIcon className="h-4 w-4 text-muted-foreground/40" />
+                                )}
+                              </div>
+
+                              {/* Names */}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-foreground leading-tight">{tech.name_en}</p>
+                                {tech.name_original && (
+                                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{tech.name_original}</p>
+                                )}
+                              </div>
+
+                              {/* YouTube link */}
+                              {tech.youtube_search_query && (
+                                <a
+                                  href={youtubeUrl(tech.youtube_search_query)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex-shrink-0 p-1.5 rounded-md bg-red-900/20 hover:bg-red-900/40 transition-colors"
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5 text-red-400" />
+                                </a>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

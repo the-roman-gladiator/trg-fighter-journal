@@ -23,6 +23,7 @@ import FighterSessionDetail from "./pages/FighterSessionDetail";
 import FighterPathway from "./pages/FighterPathway";
 import CoachDashboard from "./pages/CoachDashboard";
 import CoachSessionEdit from "./pages/CoachSessionEdit";
+import TechniqueLibrary from "./pages/TechniqueLibrary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

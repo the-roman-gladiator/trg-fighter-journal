@@ -849,6 +849,45 @@ export type Database = {
           },
         ]
       }
+      technique_library: {
+        Row: {
+          category: string
+          created_at: string
+          discipline: string
+          id: string
+          image_url: string | null
+          name_en: string
+          name_original: string | null
+          sort_order: number
+          updated_at: string
+          youtube_search_query: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          discipline: string
+          id?: string
+          image_url?: string | null
+          name_en: string
+          name_original?: string | null
+          sort_order?: number
+          updated_at?: string
+          youtube_search_query?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          discipline?: string
+          id?: string
+          image_url?: string | null
+          name_en?: string
+          name_original?: string | null
+          sort_order?: number
+          updated_at?: string
+          youtube_search_query?: string | null
+        }
+        Relationships: []
+      }
       training_sessions: {
         Row: {
           avg_heart_rate: number | null

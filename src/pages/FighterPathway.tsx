@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useFighterProfile } from '@/hooks/useFighterProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Shield, Zap } from 'lucide-react';
-import { MapCanvas } from '@/components/pathway/MapCanvas';
+import { ArrowLeft, Shield, Zap, ZoomIn, ZoomOut, Crosshair, Move } from 'lucide-react';
+import { MapCanvas, MapCanvasHandle } from '@/components/pathway/MapCanvas';
 import { PathwayPanel } from '@/components/pathway/PathwayPanel';
 import { PathwayNode, PathwayEdge } from '@/components/pathway/FuturisticMap';
 

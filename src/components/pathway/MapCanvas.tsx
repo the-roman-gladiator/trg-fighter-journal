@@ -97,6 +97,23 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
     setViewBox({ x: minX, y: minY, w: Math.max(maxX - minX, 400), h: Math.max(maxY - minY, 300) });
   }, [nodes]);
 
+  useImperativeHandle(ref, () => ({
+    zoomIn: () => setViewBox(v => {
+      const cx = v.x + v.w / 2, cy = v.y + v.h / 2;
+      const nw = v.w * 0.8, nh = v.h * 0.8;
+      return { x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh };
+    }),
+    zoomOut: () => setViewBox(v => {
+      const cx = v.x + v.w / 2, cy = v.y + v.h / 2;
+      const nw = v.w * 1.25, nh = v.h * 1.25;
+      return { x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh };
+    }),
+    panBy: (dx: number, dy: number) => setViewBox(v => ({
+      ...v, x: v.x + dx * (v.w / 800), y: v.y + dy * (v.h / 600)
+    })),
+    recenter: () => centerOnNodes(),
+  }), [centerOnNodes]);
+
   // Full pathway highlighting
   const pathwayNodeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();
@@ -525,4 +542,4 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
       })}
     </svg>
   );
-}
+});

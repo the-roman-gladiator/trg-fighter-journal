@@ -331,6 +331,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
         {/* Map Canvas */}
         <div className="flex-1 relative">
           <MapCanvas
+            ref={mapRef}
             nodes={nodes}
             edges={edges}
             selectedNodeId={selectedNodeId}
@@ -338,6 +339,68 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
             onNodeClick={handleCanvasClick}
             onNodeDrag={handleNodeDrag}
           />
+
+          {/* Map Controls */}
+          <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
+            <button
+              onClick={() => mapRef.current?.zoomIn()}
+              className="w-9 h-9 rounded-lg bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow-lg"
+              aria-label="Zoom in"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => mapRef.current?.zoomOut()}
+              className="w-9 h-9 rounded-lg bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow-lg"
+              aria-label="Zoom out"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => mapRef.current?.recenter()}
+              className="w-9 h-9 rounded-lg bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow-lg"
+              aria-label="Recenter"
+            >
+              <Crosshair className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Pan Controls */}
+          <div className="absolute bottom-4 left-3 z-10 grid grid-cols-3 gap-0.5 w-[4.5rem]">
+            <div />
+            <button
+              onClick={() => mapRef.current?.panBy(0, -120)}
+              className="w-6 h-6 rounded bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow"
+              aria-label="Pan up"
+            >
+              <Move className="h-3 w-3 rotate-0" style={{ transform: 'rotate(-90deg)' }} />
+            </button>
+            <div />
+            <button
+              onClick={() => mapRef.current?.panBy(-120, 0)}
+              className="w-6 h-6 rounded bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow"
+              aria-label="Pan left"
+            >
+              <Move className="h-3 w-3" style={{ transform: 'rotate(180deg)' }} />
+            </button>
+            <div className="w-6 h-6" />
+            <button
+              onClick={() => mapRef.current?.panBy(120, 0)}
+              className="w-6 h-6 rounded bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow"
+              aria-label="Pan right"
+            >
+              <Move className="h-3 w-3" />
+            </button>
+            <div />
+            <button
+              onClick={() => mapRef.current?.panBy(0, 120)}
+              className="w-6 h-6 rounded bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow"
+              aria-label="Pan down"
+            >
+              <Move className="h-3 w-3" style={{ transform: 'rotate(90deg)' }} />
+            </button>
+            <div />
+          </div>
 
           {/* Empty state */}
           {sessions.length === 0 && (

@@ -153,8 +153,16 @@ export default function Profile() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">First Name</Label>
                 <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
+              </div>
+              <div>
+                <Label htmlFor="middleName">Middle Name</Label>
+                <Input id="middleName" value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder="Optional" />
+              </div>
+              <div>
+                <Label htmlFor="surname">Surname</Label>
+                <Input id="surname" value={surname} onChange={e => setSurname(e.target.value)} placeholder="Required for fighter/coach requests" />
               </div>
               <div>
                 <Label htmlFor="nickname">Nickname (App Name)</Label>

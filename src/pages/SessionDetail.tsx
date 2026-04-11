@@ -110,6 +110,16 @@ export default function SessionDetail() {
                 {format(new Date(session.date), 'MMMM d, yyyy')}
                 {session.time && ` – ${session.time}`}
               </p>
+              {session.coach_session_id && (
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="text-[10px] border-primary/40 bg-primary/10 text-primary">
+                    🎓 Coach Class
+                  </Badge>
+                  {coachName && (
+                    <span className="text-xs text-muted-foreground">Coach: {coachName}</span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => navigate(`/session/${id}/edit`)}>

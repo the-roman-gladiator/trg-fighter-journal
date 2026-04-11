@@ -352,6 +352,9 @@ export default function Dashboard() {
                           <p className="text-[11px] text-muted-foreground mt-0.5">
                             {format(new Date(session.date), 'EEE, MMM d')}
                             {session.time && ` · ${session.time}`}
+                            {session.coach_session_id && coachNameMap[session.coach_session_id] && (
+                              <span className="ml-1">· Coach: {coachNameMap[session.coach_session_id]}</span>
+                            )}
                           </p>
                           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0 border" style={{

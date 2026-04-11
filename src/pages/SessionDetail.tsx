@@ -20,6 +20,7 @@ export default function SessionDetail() {
   const { toast } = useToast();
   const [session, setSession] = useState<any>(null);
   const [tags, setTags] = useState<string[]>([]);
+  const [coachName, setCoachName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

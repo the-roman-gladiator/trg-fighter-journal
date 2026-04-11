@@ -39,6 +39,8 @@ export default function Profile() {
   const { toast } = useToast();
 
   const [name, setName] = useState('');
+  const [middleName, setMiddleName] = useState('');
+  const [surname, setSurname] = useState('');
   const [nickname, setNickname] = useState('');
   const [accountType, setAccountType] = useState<AccountType>('free');
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
@@ -57,6 +59,8 @@ export default function Profile() {
     if (!user) { navigate('/auth'); return; }
     if (profile) {
       setName(profile.name);
+      setMiddleName(profile.middle_name || '');
+      setSurname(profile.surname || '');
       setNickname(profile.nickname || '');
       setAccountType((profile.account_type as AccountType) || 'free');
       setSelectedDisciplines(profile.discipline ? profile.discipline.split(',').map(d => d.trim()).filter(Boolean) : []);
@@ -110,7 +114,8 @@ export default function Profile() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          name, nickname, account_type: accountType,
+          name, middle_name: middleName || null, surname: surname || null,
+          nickname, account_type: accountType,
           discipline: selectedDisciplines.join(', '),
           level: dbLevel as any, fitness_level: fitnessLevel,
         })
@@ -148,8 +153,16 @@ export default function Profile() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">First Name</Label>
                 <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
+              </div>
+              <div>
+                <Label htmlFor="middleName">Middle Name</Label>
+                <Input id="middleName" value={middleName} onChange={e => setMiddleName(e.target.value)} placeholder="Optional" />
+              </div>
+              <div>
+                <Label htmlFor="surname">Surname</Label>
+                <Input id="surname" value={surname} onChange={e => setSurname(e.target.value)} placeholder="Required for fighter/coach requests" />
               </div>
               <div>
                 <Label htmlFor="nickname">Nickname (App Name)</Label>
@@ -331,16 +344,33 @@ export default function Profile() {
             <CardContent className="space-y-4">
               {fighterProfile?.fighter_status === 'approved' ? (
                 <div>
-                  <Badge className="bg-emerald-500/20 text-emerald-400">Approved Fighter</Badge>
+                  <Badge className="bg-emerald-500/20 text-emerald-400">✅ Approved Fighter</Badge>
+                  <p className="text-xs text-muted-foreground mt-2">Your fighter access has been approved by the Head Coach.</p>
                   <div className="flex gap-1 flex-wrap mt-2">
                     {(fighterProfile.approved_fight_disciplines || []).map(d => (
                       <Badge key={d} variant="default" className="text-xs">{d}</Badge>
                     ))}
                   </div>
                 </div>
+              ) : fighterProfile?.fighter_status === 'rejected' ? (
+                <div>
+                  <Badge variant="destructive">❌ Request Rejected</Badge>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Your fighter access request has been rejected by the Head Coach. You can update your details and re-submit.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Previously requested: {(fighterProfile.requested_fight_disciplines || []).join(', ')}
+                  </p>
+                  <div className="mt-3">
+                    <FighterRequestForm onSubmit={requestFighterAccess} />
+                  </div>
+                </div>
               ) : fighterProfile?.fighter_status === 'pending' ? (
                 <div>
-                  <Badge variant="outline" className="text-amber-500 border-amber-500/30">Request Pending</Badge>
+                  <Badge variant="outline" className="text-amber-500 border-amber-500/30">⏳ Request Pending</Badge>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Your request is awaiting Head Coach approval.
+                  </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     Requested: {(fighterProfile.requested_fight_disciplines || []).join(', ')}
                   </p>

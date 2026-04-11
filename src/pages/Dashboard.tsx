@@ -36,6 +36,7 @@ export default function Dashboard() {
   const [coachSessions, setCoachSessions] = useState<any[]>([]);
   const [completedCoachSessions, setCompletedCoachSessions] = useState<any[]>([]);
   const [loggedCoachSessionIds, setLoggedCoachSessionIds] = useState<Set<string>>(new Set());
+  const [coachNameMap, setCoachNameMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [maStats, setMaStats] = useState({ total: 0, discipline: '' });
 
@@ -78,6 +79,26 @@ export default function Dashboard() {
       .order('scheduled_date', { ascending: false })
       .limit(20);
     setCompletedCoachSessions(completedData || []);
+
+    // Build coach name map from coach sessions
+    const allCoachData = [...(coachData || []), ...(completedData || [])];
+    const coachUserIds = [...new Set(allCoachData.map(cs => cs.user_id))];
+    if (coachUserIds.length > 0) {
+      const { data: coachProfiles } = await supabase
+        .from('profiles')
+        .select('id, name, middle_name, surname')
+        .in('id', coachUserIds);
+      const nameMap: Record<string, string> = {};
+      (coachProfiles || []).forEach(p => {
+        nameMap[p.id] = [p.name, p.middle_name, p.surname].filter(Boolean).join(' ');
+      });
+      // Map coach_session_id -> coach name
+      const csNameMap: Record<string, string> = {};
+      allCoachData.forEach(cs => {
+        csNameMap[cs.id] = nameMap[cs.user_id] || 'Coach';
+      });
+      setCoachNameMap(csNameMap);
+    }
 
     // Check which coach sessions user already logged
     if (completedData && completedData.length > 0) {
@@ -331,6 +352,9 @@ export default function Dashboard() {
                           <p className="text-[11px] text-muted-foreground mt-0.5">
                             {format(new Date(session.date), 'EEE, MMM d')}
                             {session.time && ` · ${session.time}`}
+                            {session.coach_session_id && coachNameMap[session.coach_session_id] && (
+                              <span className="ml-1">· Coach: {coachNameMap[session.coach_session_id]}</span>
+                            )}
                           </p>
                           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0 border" style={{
@@ -338,6 +362,11 @@ export default function Dashboard() {
                               color: getDisciplineColor(session.discipline),
                               borderColor: getDisciplineColor(session.discipline) + '44'
                             }}>{session.discipline}</Badge>
+                            {session.coach_session_id && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/40 bg-primary/10 text-primary">
+                                🎓 Coach Class
+                              </Badge>
+                            )}
                             {session.strategy && (
                               <Badge variant="outline" className={`text-[10px] px-1.5 py-0 border ${strategyClass}`}>
                                 {session.strategy}

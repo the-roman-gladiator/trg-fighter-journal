@@ -603,10 +603,12 @@ export type Database = {
           fitness_level: string | null
           id: string
           level: Database["public"]["Enums"]["user_level"]
+          middle_name: string | null
           name: string
           nickname: string | null
           strength_level: string | null
           strength_program_start_date: string | null
+          surname: string | null
           updated_at: string
         }
         Insert: {
@@ -625,10 +627,12 @@ export type Database = {
           fitness_level?: string | null
           id: string
           level?: Database["public"]["Enums"]["user_level"]
+          middle_name?: string | null
           name: string
           nickname?: string | null
           strength_level?: string | null
           strength_program_start_date?: string | null
+          surname?: string | null
           updated_at?: string
         }
         Update: {
@@ -647,10 +651,12 @@ export type Database = {
           fitness_level?: string | null
           id?: string
           level?: Database["public"]["Enums"]["user_level"]
+          middle_name?: string | null
           name?: string
           nickname?: string | null
           strength_level?: string | null
           strength_program_start_date?: string | null
+          surname?: string | null
           updated_at?: string
         }
         Relationships: []

@@ -20,6 +20,7 @@ export default function SessionDetail() {
   const { toast } = useToast();
   const [session, setSession] = useState<any>(null);
   const [tags, setTags] = useState<string[]>([]);
+  const [coachName, setCoachName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,6 +45,25 @@ export default function SessionDetail() {
     }
 
     setSession(data);
+
+    // Fetch coach name if this is a coach class
+    if (data.coach_session_id) {
+      const { data: cs } = await supabase
+        .from('coach_sessions')
+        .select('user_id')
+        .eq('id', data.coach_session_id)
+        .maybeSingle();
+      if (cs?.user_id) {
+        const { data: coachProfile } = await supabase
+          .from('profiles')
+          .select('name, middle_name, surname')
+          .eq('id', cs.user_id)
+          .maybeSingle();
+        if (coachProfile) {
+          setCoachName([coachProfile.name, coachProfile.middle_name, coachProfile.surname].filter(Boolean).join(' '));
+        }
+      }
+    }
 
     const { data: sessionTagsData } = await supabase
       .from('session_tags')
@@ -90,6 +110,16 @@ export default function SessionDetail() {
                 {format(new Date(session.date), 'MMMM d, yyyy')}
                 {session.time && ` – ${session.time}`}
               </p>
+              {session.coach_session_id && (
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="text-[10px] border-primary/40 bg-primary/10 text-primary">
+                    🎓 Coach Class
+                  </Badge>
+                  {coachName && (
+                    <span className="text-xs text-muted-foreground">Coach: {coachName}</span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => navigate(`/session/${id}/edit`)}>

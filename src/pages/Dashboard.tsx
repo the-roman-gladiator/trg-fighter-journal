@@ -359,6 +359,11 @@ export default function Dashboard() {
                               color: getDisciplineColor(session.discipline),
                               borderColor: getDisciplineColor(session.discipline) + '44'
                             }}>{session.discipline}</Badge>
+                            {session.coach_session_id && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/40 bg-primary/10 text-primary">
+                                🎓 Coach Class
+                              </Badge>
+                            )}
                             {session.strategy && (
                               <Badge variant="outline" className={`text-[10px] px-1.5 py-0 border ${strategyClass}`}>
                                 {session.strategy}

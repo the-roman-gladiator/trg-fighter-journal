@@ -46,6 +46,25 @@ export default function SessionDetail() {
 
     setSession(data);
 
+    // Fetch coach name if this is a coach class
+    if (data.coach_session_id) {
+      const { data: cs } = await supabase
+        .from('coach_sessions')
+        .select('user_id')
+        .eq('id', data.coach_session_id)
+        .maybeSingle();
+      if (cs?.user_id) {
+        const { data: coachProfile } = await supabase
+          .from('profiles')
+          .select('name, middle_name, surname')
+          .eq('id', cs.user_id)
+          .maybeSingle();
+        if (coachProfile) {
+          setCoachName([coachProfile.name, coachProfile.middle_name, coachProfile.surname].filter(Boolean).join(' '));
+        }
+      }
+    }
+
     const { data: sessionTagsData } = await supabase
       .from('session_tags')
       .select('tag_id, tags(name)')

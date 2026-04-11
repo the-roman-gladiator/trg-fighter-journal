@@ -36,6 +36,7 @@ export default function Dashboard() {
   const [coachSessions, setCoachSessions] = useState<any[]>([]);
   const [completedCoachSessions, setCompletedCoachSessions] = useState<any[]>([]);
   const [loggedCoachSessionIds, setLoggedCoachSessionIds] = useState<Set<string>>(new Set());
+  const [coachNameMap, setCoachNameMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [maStats, setMaStats] = useState({ total: 0, discipline: '' });
 
@@ -78,6 +79,26 @@ export default function Dashboard() {
       .order('scheduled_date', { ascending: false })
       .limit(20);
     setCompletedCoachSessions(completedData || []);
+
+    // Build coach name map from coach sessions
+    const allCoachData = [...(coachData || []), ...(completedData || [])];
+    const coachUserIds = [...new Set(allCoachData.map(cs => cs.user_id))];
+    if (coachUserIds.length > 0) {
+      const { data: coachProfiles } = await supabase
+        .from('profiles')
+        .select('id, name, middle_name, surname')
+        .in('id', coachUserIds);
+      const nameMap: Record<string, string> = {};
+      (coachProfiles || []).forEach(p => {
+        nameMap[p.id] = [p.name, p.middle_name, p.surname].filter(Boolean).join(' ');
+      });
+      // Map coach_session_id -> coach name
+      const csNameMap: Record<string, string> = {};
+      allCoachData.forEach(cs => {
+        csNameMap[cs.id] = nameMap[cs.user_id] || 'Coach';
+      });
+      setCoachNameMap(csNameMap);
+    }
 
     // Check which coach sessions user already logged
     if (completedData && completedData.length > 0) {

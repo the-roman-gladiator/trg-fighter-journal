@@ -23,6 +23,8 @@ export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 export interface Profile {
   id: string;
   name: string;
+  middle_name?: string;
+  surname?: string;
   nickname?: string;
   email: string;
   level: UserLevel;

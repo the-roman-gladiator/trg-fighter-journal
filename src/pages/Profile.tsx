@@ -39,6 +39,8 @@ export default function Profile() {
   const { toast } = useToast();
 
   const [name, setName] = useState('');
+  const [middleName, setMiddleName] = useState('');
+  const [surname, setSurname] = useState('');
   const [nickname, setNickname] = useState('');
   const [accountType, setAccountType] = useState<AccountType>('free');
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);

@@ -344,16 +344,33 @@ export default function Profile() {
             <CardContent className="space-y-4">
               {fighterProfile?.fighter_status === 'approved' ? (
                 <div>
-                  <Badge className="bg-emerald-500/20 text-emerald-400">Approved Fighter</Badge>
+                  <Badge className="bg-emerald-500/20 text-emerald-400">✅ Approved Fighter</Badge>
+                  <p className="text-xs text-muted-foreground mt-2">Your fighter access has been approved by the Head Coach.</p>
                   <div className="flex gap-1 flex-wrap mt-2">
                     {(fighterProfile.approved_fight_disciplines || []).map(d => (
                       <Badge key={d} variant="default" className="text-xs">{d}</Badge>
                     ))}
                   </div>
                 </div>
+              ) : fighterProfile?.fighter_status === 'rejected' ? (
+                <div>
+                  <Badge variant="destructive">❌ Request Rejected</Badge>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Your fighter access request has been rejected by the Head Coach. You can update your details and re-submit.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Previously requested: {(fighterProfile.requested_fight_disciplines || []).join(', ')}
+                  </p>
+                  <div className="mt-3">
+                    <FighterRequestForm onSubmit={requestFighterAccess} />
+                  </div>
+                </div>
               ) : fighterProfile?.fighter_status === 'pending' ? (
                 <div>
-                  <Badge variant="outline" className="text-amber-500 border-amber-500/30">Request Pending</Badge>
+                  <Badge variant="outline" className="text-amber-500 border-amber-500/30">⏳ Request Pending</Badge>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Your request is awaiting Head Coach approval.
+                  </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     Requested: {(fighterProfile.requested_fight_disciplines || []).join(', ')}
                   </p>

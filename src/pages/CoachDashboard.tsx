@@ -68,15 +68,19 @@ export default function CoachDashboard() {
       const userIds = fighters.map((f: any) => f.user_id);
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, name, email')
+        .select('id, name, middle_name, surname, email')
         .in('id', userIds);
 
       const profileMap = new Map((profiles || []).map(p => [p.id, p]));
-      const enriched = fighters.map((f: any) => ({
-        ...f,
-        profile_name: profileMap.get(f.user_id)?.name || 'Unknown',
-        profile_email: profileMap.get(f.user_id)?.email || '',
-      }));
+      const enriched = fighters.map((f: any) => {
+        const prof = profileMap.get(f.user_id);
+        const fullName = [prof?.name, prof?.middle_name, prof?.surname].filter(Boolean).join(' ');
+        return {
+          ...f,
+          profile_name: fullName || 'Unknown',
+          profile_email: prof?.email || '',
+        };
+      });
       setRequests(enriched);
 
       // Initialize approval disciplines

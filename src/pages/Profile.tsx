@@ -59,6 +59,8 @@ export default function Profile() {
     if (!user) { navigate('/auth'); return; }
     if (profile) {
       setName(profile.name);
+      setMiddleName(profile.middle_name || '');
+      setSurname(profile.surname || '');
       setNickname(profile.nickname || '');
       setAccountType((profile.account_type as AccountType) || 'free');
       setSelectedDisciplines(profile.discipline ? profile.discipline.split(',').map(d => d.trim()).filter(Boolean) : []);
@@ -112,7 +114,8 @@ export default function Profile() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          name, nickname, account_type: accountType,
+          name, middle_name: middleName || null, surname: surname || null,
+          nickname, account_type: accountType,
           discipline: selectedDisciplines.join(', '),
           level: dbLevel as any, fitness_level: fitnessLevel,
         })

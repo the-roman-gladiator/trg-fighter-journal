@@ -7,15 +7,17 @@ import { useUserSettings, DEFAULT_DISCIPLINE_COLORS, INPUT_COLOR_PRESETS, DEFAUL
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords } from 'lucide-react';
+import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote } from 'lucide-react';
 import { AccountType, FitnessLevel } from '@/types/training';
 import { disciplines } from '@/config/dropdownOptions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const accountTypes: AccountType[] = ['free', 'basic', 'pro'];
 const martialLevels = ['Beginner', 'Intermediate', 'Advanced', 'Fighter'] as const;
@@ -50,6 +52,14 @@ export default function Profile() {
   const [customOpen, setCustomOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // My Statement & Motivation
+  const [myStatement, setMyStatement] = useState('');
+  const [motivationMode, setMotivationMode] = useState<'random' | 'fixed_library' | 'custom'>('random');
+  const [fixedMotivationId, setFixedMotivationId] = useState<string | null>(null);
+  const [customMotivation, setCustomMotivation] = useState('');
+  const [motivationsLibrary, setMotivationsLibrary] = useState<{ id: string; day_number: number; motivation_text: string }[]>([]);
+  const [motivationOpen, setMotivationOpen] = useState(false);
+
   // Local customization state
   const [themeMode, setThemeMode] = useState(settings.theme_mode);
   const [inputColor, setInputColor] = useState(settings.input_text_color);
@@ -69,6 +79,32 @@ export default function Profile() {
       setFitnessLevel((profile.fitness_level as FitnessLevel) || 'Beginner');
     }
   }, [user, profile, navigate]);
+
+  // Load motivation fields from profile
+  useEffect(() => {
+    if (!user) return;
+    const loadMotivationData = async () => {
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('my_statement, daily_motivation_mode, fixed_motivation_id, custom_motivation_text')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (prof) {
+        setMyStatement(prof.my_statement || '');
+        setMotivationMode((prof.daily_motivation_mode as any) || 'random');
+        setFixedMotivationId(prof.fixed_motivation_id || null);
+        setCustomMotivation(prof.custom_motivation_text || '');
+      }
+      // Load motivations library
+      const { data: motLib } = await supabase
+        .from('motivations_library')
+        .select('id, day_number, motivation_text')
+        .eq('is_active', true)
+        .order('day_number', { ascending: true });
+      setMotivationsLibrary(motLib || []);
+    };
+    loadMotivationData();
+  }, [user]);
 
   useEffect(() => {
     setThemeMode(settings.theme_mode);
@@ -118,6 +154,10 @@ export default function Profile() {
           nickname, account_type: accountType,
           discipline: selectedDisciplines.join(', '),
           level: dbLevel as any, fitness_level: fitnessLevel,
+          my_statement: myStatement || null,
+          daily_motivation_mode: motivationMode,
+          fixed_motivation_id: motivationMode === 'fixed_library' ? fixedMotivationId : null,
+          custom_motivation_text: motivationMode === 'custom' ? customMotivation : null,
         })
         .eq('id', user.id);
       if (error) throw error;
@@ -186,6 +226,90 @@ export default function Profile() {
                   ))}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* My Statement & Motivation */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Quote className="h-4 w-4 text-primary" /> My Statement & Motivation
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* My Statement */}
+              <div>
+                <Label htmlFor="myStatement">Who I Want To Be</Label>
+                <Textarea
+                  id="myStatement"
+                  value={myStatement}
+                  onChange={e => setMyStatement(e.target.value)}
+                  placeholder="Write your personal statement..."
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
+
+              {/* Daily Motivation Mode */}
+              <div>
+                <Label className="mb-2 block">Daily Motivation Mode</Label>
+                <RadioGroup value={motivationMode} onValueChange={(v: any) => setMotivationMode(v)} className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <RadioGroupItem value="random" id="mot-random" className="mt-0.5" />
+                    <div>
+                      <Label htmlFor="mot-random" className="font-medium cursor-pointer">Random Daily</Label>
+                      <p className="text-[11px] text-muted-foreground">A new motivation every day from the library of 365</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <RadioGroupItem value="fixed_library" id="mot-fixed" className="mt-0.5" />
+                    <div>
+                      <Label htmlFor="mot-fixed" className="font-medium cursor-pointer">Fixed from Library</Label>
+                      <p className="text-[11px] text-muted-foreground">Choose one motivation to keep every day</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <RadioGroupItem value="custom" id="mot-custom" className="mt-0.5" />
+                    <div>
+                      <Label htmlFor="mot-custom" className="font-medium cursor-pointer">Custom Motivation</Label>
+                      <p className="text-[11px] text-muted-foreground">Write your own personal motivation</p>
+                    </div>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Fixed from library picker */}
+              {motivationMode === 'fixed_library' && (
+                <div>
+                  <Label className="mb-1 block">Select Motivation</Label>
+                  <Select value={fixedMotivationId || ''} onValueChange={v => setFixedMotivationId(v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a motivation..." />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {motivationsLibrary.map(m => (
+                        <SelectItem key={m.id} value={m.id}>
+                          <span className="text-xs">#{m.day_number} — {m.motivation_text}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Custom motivation */}
+              {motivationMode === 'custom' && (
+                <div>
+                  <Label htmlFor="customMotivation">Your Custom Motivation</Label>
+                  <Input
+                    id="customMotivation"
+                    value={customMotivation}
+                    onChange={e => setCustomMotivation(e.target.value)}
+                    placeholder="Write your personal motivation..."
+                    className="mt-1"
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
 

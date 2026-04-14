@@ -495,6 +495,30 @@ export type Database = {
         }
         Relationships: []
       }
+      motivations_library: {
+        Row: {
+          created_at: string
+          day_number: number
+          id: string
+          is_active: boolean
+          motivation_text: string
+        }
+        Insert: {
+          created_at?: string
+          day_number: number
+          id?: string
+          is_active?: boolean
+          motivation_text: string
+        }
+        Update: {
+          created_at?: string
+          day_number?: number
+          id?: string
+          is_active?: boolean
+          motivation_text?: string
+        }
+        Relationships: []
+      }
       pathway_edges: {
         Row: {
           connection_type: string
@@ -598,12 +622,16 @@ export type Database = {
           coach_level: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled: boolean | null
           created_at: string
+          custom_motivation_text: string | null
+          daily_motivation_mode: string
           discipline: string | null
           email: string
           fitness_level: string | null
+          fixed_motivation_id: string | null
           id: string
           level: Database["public"]["Enums"]["user_level"]
           middle_name: string | null
+          my_statement: string | null
           name: string
           nickname: string | null
           strength_level: string | null
@@ -622,12 +650,16 @@ export type Database = {
           coach_level?: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled?: boolean | null
           created_at?: string
+          custom_motivation_text?: string | null
+          daily_motivation_mode?: string
           discipline?: string | null
           email: string
           fitness_level?: string | null
+          fixed_motivation_id?: string | null
           id: string
           level?: Database["public"]["Enums"]["user_level"]
           middle_name?: string | null
+          my_statement?: string | null
           name: string
           nickname?: string | null
           strength_level?: string | null
@@ -646,12 +678,16 @@ export type Database = {
           coach_level?: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled?: boolean | null
           created_at?: string
+          custom_motivation_text?: string | null
+          daily_motivation_mode?: string
           discipline?: string | null
           email?: string
           fitness_level?: string | null
+          fixed_motivation_id?: string | null
           id?: string
           level?: Database["public"]["Enums"]["user_level"]
           middle_name?: string | null
+          my_statement?: string | null
           name?: string
           nickname?: string | null
           strength_level?: string | null

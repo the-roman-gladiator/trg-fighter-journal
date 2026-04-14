@@ -8,8 +8,8 @@ import { ModeSwitcher } from '@/components/ModeSwitcher';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, User, Map, Trash2, Swords, ChevronRight, Shield, Network, GraduationCap, CalendarDays, Clock, BookOpen, CheckCircle2, Flame, Zap, Target } from 'lucide-react';
-import { format, startOfWeek, startOfYear } from 'date-fns';
+import { Plus, User, Map, Trash2, Swords, ChevronRight, Shield, Network, GraduationCap, CalendarDays, Clock, BookOpen, CheckCircle2, Flame, Zap, Target, Quote } from 'lucide-react';
+import { format, startOfWeek, startOfYear, subDays } from 'date-fns';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/sonner';
 import { getStrategyClass } from '@/lib/strategyColors';
@@ -37,12 +37,16 @@ export default function Dashboard() {
   const [loggedCoachSessionIds, setLoggedCoachSessionIds] = useState<Set<string>>(new Set());
   const [coachNameMap, setCoachNameMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [maStats, setMaStats] = useState({ total: 0, discipline: '' });
 
   // New stats
   const [yearlyStreak, setYearlyStreak] = useState(0);
   const [avgEffort, setAvgEffort] = useState(0);
   const [weeklySessions, setWeeklySessions] = useState(0);
+
+  // Journal box state
+  const [myStatement, setMyStatement] = useState('');
+  const [myDisciplines, setMyDisciplines] = useState<string[]>([]);
+  const [dailyMotivation, setDailyMotivation] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -54,22 +58,24 @@ export default function Dashboard() {
     setLoading(true);
     const mondayOfThisWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
     const yearStart = format(startOfYear(new Date()), 'yyyy-MM-dd');
+    const sevenDaysAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd');
 
-    // Fetch this week's sessions
+    // Fetch last 7 days sessions (not just this week)
     const { data: recent } = await supabase
       .from('training_sessions')
       .select('*')
       .eq('user_id', user.id)
       .eq('session_type', 'Completed')
-      .gte('date', mondayOfThisWeek)
+      .gte('date', sevenDaysAgo)
       .order('date', { ascending: false })
-      .limit(20);
+      .limit(50);
     setRecentSessions(recent || []);
-    setWeeklySessions((recent || []).length);
-    const maSessions = (recent || []).filter(s => MARTIAL_ARTS.includes(s.discipline));
-    setMaStats({ total: maSessions.length, discipline: profile?.discipline || 'MMA' });
 
-    // Calculate avg effort from this week
+    // Weekly sessions count (Monday-Sunday)
+    const weekSessions = (recent || []).filter(s => s.date >= mondayOfThisWeek);
+    setWeeklySessions(weekSessions.length);
+
+    // Calculate avg effort from recent
     const effortScores = (recent || []).map((s: any) => s.effort_score).filter((s: any) => s != null && s > 0);
     setAvgEffort(effortScores.length > 0 ? Math.round((effortScores.reduce((a: number, b: number) => a + b, 0) / effortScores.length) * 10) / 10 : 0);
 
@@ -82,6 +88,44 @@ export default function Dashboard() {
       .gte('date', yearStart);
     const uniqueDays = new Set((yearSessions || []).map((s: any) => s.date));
     setYearlyStreak(uniqueDays.size);
+
+    // Fetch profile for journal box
+    const { data: prof } = await supabase
+      .from('profiles')
+      .select('my_statement, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (prof) {
+      setMyStatement(prof.my_statement || '');
+      setMyDisciplines(prof.discipline ? prof.discipline.split(',').map((d: string) => d.trim()).filter(Boolean) : []);
+
+      // Determine daily motivation
+      const motivationMode = prof.daily_motivation_mode || 'random';
+      if (motivationMode === 'custom' && prof.custom_motivation_text) {
+        setDailyMotivation(prof.custom_motivation_text);
+      } else if (motivationMode === 'fixed_library' && prof.fixed_motivation_id) {
+        const { data: fixedMot } = await supabase
+          .from('motivations_library')
+          .select('motivation_text')
+          .eq('id', prof.fixed_motivation_id)
+          .maybeSingle();
+        setDailyMotivation(fixedMot?.motivation_text || '');
+      } else {
+        // Random daily: use day of year
+        const now = new Date();
+        const startOfYearDate = new Date(now.getFullYear(), 0, 0);
+        const diff = now.getTime() - startOfYearDate.getTime();
+        const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const dayNum = ((dayOfYear - 1) % 365) + 1;
+        const { data: randomMot } = await supabase
+          .from('motivations_library')
+          .select('motivation_text')
+          .eq('day_number', dayNum)
+          .maybeSingle();
+        setDailyMotivation(randomMot?.motivation_text || '');
+      }
+    }
 
     // Fetch scheduled coach sessions
     const { data: coachData } = await supabase
@@ -258,20 +302,51 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        {/* Martial Arts Journal Card */}
+        {/* Martial Arts Journal Card — My Statement, Disciplines, Daily Motivation */}
         <Card className="border-primary/20 bg-card">
-          <CardContent className="pt-4 pb-4">
+          <CardContent className="pt-4 pb-4 space-y-3">
             <div className="flex items-center gap-2 mb-1">
               <Swords className="h-4 w-4 text-primary" />
               <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">Martial Arts Journal</p>
             </div>
-            <p className="text-lg font-bold text-foreground">{maStats.discipline}</p>
-            <div className="flex items-center gap-4 mt-2">
+
+            {/* My Statement */}
+            {myStatement && (
               <div>
-                <p className="text-3xl font-black text-primary">{maStats.total}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">This Week</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">Who I Want To Be</p>
+                <p className="text-sm font-medium text-foreground italic">"{myStatement}"</p>
               </div>
-            </div>
+            )}
+
+            {/* My Disciplines */}
+            {myDisciplines.length > 0 && (
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">My Disciplines</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  {myDisciplines.map(d => (
+                    <Badge key={d} variant="outline" className="text-[10px] px-2 py-0.5 border"
+                      style={{
+                        backgroundColor: getDisciplineColor(d) + '22',
+                        color: getDisciplineColor(d),
+                        borderColor: getDisciplineColor(d) + '44'
+                      }}>
+                      {d}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* My Daily Motivation */}
+            {dailyMotivation && (
+              <div className="border-t border-border pt-3">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Daily Motivation</p>
+                <div className="flex items-start gap-2">
+                  <Quote className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                  <p className="text-sm text-foreground font-medium">{dailyMotivation}</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

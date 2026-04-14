@@ -8,8 +8,8 @@ import { ModeSwitcher } from '@/components/ModeSwitcher';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, User, Map, Trash2, Swords, ChevronRight, Shield, Network, GraduationCap, CalendarDays, Clock, BookOpen, CheckCircle2 } from 'lucide-react';
-import { format, startOfWeek } from 'date-fns';
+import { Plus, User, Map, Trash2, Swords, ChevronRight, Shield, Network, GraduationCap, CalendarDays, Clock, BookOpen, CheckCircle2, Flame, Zap, Target } from 'lucide-react';
+import { format, startOfWeek, startOfYear } from 'date-fns';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/sonner';
 import { getStrategyClass } from '@/lib/strategyColors';
@@ -26,7 +26,6 @@ export default function Dashboard() {
     if (!user) { navigate('/auth'); return; }
   }, [user, navigate]);
 
-  // Redirect based on mode
   useEffect(() => {
     if (mode === 'fighter') navigate('/fighter');
     else if (mode === 'coach') navigate('/coach');
@@ -40,6 +39,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [maStats, setMaStats] = useState({ total: 0, discipline: '' });
 
+  // New stats
+  const [yearlyStreak, setYearlyStreak] = useState(0);
+  const [avgEffort, setAvgEffort] = useState(0);
+  const [weeklySessions, setWeeklySessions] = useState(0);
+
   useEffect(() => {
     if (!user) return;
     fetchData();
@@ -49,6 +53,9 @@ export default function Dashboard() {
     if (!user) return;
     setLoading(true);
     const mondayOfThisWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+    const yearStart = format(startOfYear(new Date()), 'yyyy-MM-dd');
+
+    // Fetch this week's sessions
     const { data: recent } = await supabase
       .from('training_sessions')
       .select('*')
@@ -58,10 +65,25 @@ export default function Dashboard() {
       .order('date', { ascending: false })
       .limit(20);
     setRecentSessions(recent || []);
+    setWeeklySessions((recent || []).length);
     const maSessions = (recent || []).filter(s => MARTIAL_ARTS.includes(s.discipline));
     setMaStats({ total: maSessions.length, discipline: profile?.discipline || 'MMA' });
 
-    // Fetch scheduled coach sessions (upcoming)
+    // Calculate avg effort from this week
+    const effortScores = (recent || []).map((s: any) => s.effort_score).filter((s: any) => s != null && s > 0);
+    setAvgEffort(effortScores.length > 0 ? Math.round((effortScores.reduce((a: number, b: number) => a + b, 0) / effortScores.length) * 10) / 10 : 0);
+
+    // Yearly streak: count unique training days this year
+    const { data: yearSessions } = await supabase
+      .from('training_sessions')
+      .select('date')
+      .eq('user_id', user.id)
+      .eq('session_type', 'Completed')
+      .gte('date', yearStart);
+    const uniqueDays = new Set((yearSessions || []).map((s: any) => s.date));
+    setYearlyStreak(uniqueDays.size);
+
+    // Fetch scheduled coach sessions
     const { data: coachData } = await supabase
       .from('coach_sessions')
       .select('*')
@@ -71,7 +93,7 @@ export default function Dashboard() {
       .limit(10);
     setCoachSessions(coachData || []);
 
-    // Fetch completed coach sessions (available to record)
+    // Fetch completed coach sessions
     const { data: completedData } = await supabase
       .from('coach_sessions')
       .select('*')
@@ -80,7 +102,7 @@ export default function Dashboard() {
       .limit(20);
     setCompletedCoachSessions(completedData || []);
 
-    // Build coach name map from coach sessions
+    // Build coach name map
     const allCoachData = [...(coachData || []), ...(completedData || [])];
     const coachUserIds = [...new Set(allCoachData.map(cs => cs.user_id))];
     if (coachUserIds.length > 0) {
@@ -92,7 +114,6 @@ export default function Dashboard() {
       (coachProfiles || []).forEach(p => {
         nameMap[p.id] = [p.name, p.middle_name, p.surname].filter(Boolean).join(' ');
       });
-      // Map coach_session_id -> coach name
       const csNameMap: Record<string, string> = {};
       allCoachData.forEach(cs => {
         csNameMap[cs.id] = nameMap[cs.user_id] || 'Coach';
@@ -139,7 +160,7 @@ export default function Dashboard() {
     e.stopPropagation();
     const { error } = await supabase.from('training_sessions').delete().eq('id', sessionId);
     if (error) { toast.error('Failed to delete session'); }
-    else { toast.success('Session deleted'); setRecentSessions(prev => prev.filter(s => s.id !== sessionId)); }
+    else { toast.success('Session deleted'); fetchData(); }
   };
 
   if (loading) {
@@ -158,6 +179,9 @@ export default function Dashboard() {
     if (parts.length === 0) return null;
     return parts.join(' → ');
   };
+
+  const today = new Date();
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   return (
     <div className="min-h-screen bg-background">
@@ -181,22 +205,60 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-5 max-w-lg space-y-5">
-        {/* Primary Action Buttons */}
+        {/* Dynamic Date + Title */}
+        <div>
+          <p className="text-xs text-muted-foreground tracking-wide">
+            {dayNames[today.getDay()]}, {format(today, 'd MMMM yyyy')}
+          </p>
+          <h2 className="text-2xl font-bold text-foreground mt-0.5">Dashboard</h2>
+        </div>
+
+        {/* Quick Log Button */}
+        <Button onClick={() => navigate('/session/new')} className="w-full h-14 text-base font-bold tracking-wide">
+          <Plus className="mr-2 h-5 w-5" /> Quick Log Session
+        </Button>
+
+        {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-2">
-          <Button onClick={() => navigate('/session/new')} className="h-14 text-sm font-bold tracking-wide">
-            <Plus className="mr-1.5 h-4 w-4" /> Session
-          </Button>
+          <Card className="bg-card border-border">
+            <CardContent className="py-3 px-3 text-center">
+              <Flame className="h-4 w-4 text-orange-500 mx-auto mb-1" />
+              <p className="text-2xl font-black text-foreground">{yearlyStreak}</p>
+              <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-semibold">Day Streak</p>
+              <p className="text-[8px] text-muted-foreground">This Year</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="py-3 px-3 text-center">
+              <Zap className="h-4 w-4 text-yellow-500 mx-auto mb-1" />
+              <p className="text-2xl font-black text-foreground">{avgEffort || '—'}</p>
+              <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-semibold">Avg Effort</p>
+              <p className="text-[8px] text-muted-foreground">Based on logs</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="py-3 px-3 text-center">
+              <Target className="h-4 w-4 text-primary mx-auto mb-1" />
+              <p className="text-2xl font-black text-foreground">{weeklySessions}</p>
+              <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-semibold">Sessions</p>
+              <p className="text-[8px] text-muted-foreground">Last 7 days</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Action Buttons Row */}
+        <div className="grid grid-cols-2 gap-2">
           <Button onClick={() => navigate('/pathway')} variant="outline"
-            className="h-14 text-sm font-semibold tracking-wide border-border hover:border-primary/40 hover:bg-primary/5">
+            className="h-12 text-sm font-semibold tracking-wide border-border hover:border-primary/40 hover:bg-primary/5">
             <Map className="mr-1.5 h-4 w-4" /> Pathway
           </Button>
           <Button onClick={() => navigate('/library')} variant="outline"
-            className="h-14 text-sm font-semibold tracking-wide border-border hover:border-primary/40 hover:bg-primary/5">
+            className="h-12 text-sm font-semibold tracking-wide border-border hover:border-primary/40 hover:bg-primary/5">
             <BookOpen className="mr-1.5 h-4 w-4" /> Library
           </Button>
         </div>
 
-        {/* Current Phase Card */}
+        {/* Martial Arts Journal Card */}
         <Card className="border-primary/20 bg-card">
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-2 mb-1">
@@ -260,7 +322,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Completed Coach Sessions — Record in Journal */}
+        {/* Completed Coach Sessions */}
         {completedCoachSessions.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -319,7 +381,7 @@ export default function Dashboard() {
           </div>
         )}
 
-
+        {/* Recent Sessions */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">Recent Sessions</h2>
@@ -339,6 +401,7 @@ export default function Dashboard() {
                 const chain = buildChainPreview(session);
                 const technique = (session as any).technique || '';
                 const strategyClass = session.strategy ? getStrategyClass(session.strategy) : '';
+                const effortLabel = session.effort_score ? `⚡ ${session.effort_score}` : '';
                 return (
                   <Card key={session.id}
                     className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer group"
@@ -355,6 +418,7 @@ export default function Dashboard() {
                             {session.coach_session_id && coachNameMap[session.coach_session_id] && (
                               <span className="ml-1">· Coach: {coachNameMap[session.coach_session_id]}</span>
                             )}
+                            {effortLabel && <span className="ml-1">· {effortLabel}</span>}
                           </p>
                           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0 border" style={{

@@ -896,8 +896,12 @@ export type Database = {
       }
       training_sessions: {
         Row: {
+          after_emotion: string | null
+          after_mindset: string | null
           avg_heart_rate: number | null
           avg_pace_seconds_per_km: number | null
+          before_emotion: string | null
+          before_mindset: string | null
           calories: number | null
           cardio_activity_name: string | null
           cardio_type: Database["public"]["Enums"]["cardio_type"] | null
@@ -907,13 +911,16 @@ export type Database = {
           discipline: Database["public"]["Enums"]["discipline"]
           distance_meters: number | null
           duration_seconds: number | null
+          effort_score: number | null
           feeling: Database["public"]["Enums"]["feeling"] | null
           first_movement: string | null
           id: string
           intensity: number | null
           max_heart_rate: number | null
+          mental_effort_level: string | null
           notes: string | null
           opponent_action: string | null
+          physical_effort_level: string | null
           second_movement: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           strategy: Database["public"]["Enums"]["strategy"] | null
@@ -932,8 +939,12 @@ export type Database = {
           workout_type: string | null
         }
         Insert: {
+          after_emotion?: string | null
+          after_mindset?: string | null
           avg_heart_rate?: number | null
           avg_pace_seconds_per_km?: number | null
+          before_emotion?: string | null
+          before_mindset?: string | null
           calories?: number | null
           cardio_activity_name?: string | null
           cardio_type?: Database["public"]["Enums"]["cardio_type"] | null
@@ -943,13 +954,16 @@ export type Database = {
           discipline: Database["public"]["Enums"]["discipline"]
           distance_meters?: number | null
           duration_seconds?: number | null
+          effort_score?: number | null
           feeling?: Database["public"]["Enums"]["feeling"] | null
           first_movement?: string | null
           id?: string
           intensity?: number | null
           max_heart_rate?: number | null
+          mental_effort_level?: string | null
           notes?: string | null
           opponent_action?: string | null
+          physical_effort_level?: string | null
           second_movement?: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           strategy?: Database["public"]["Enums"]["strategy"] | null
@@ -968,8 +982,12 @@ export type Database = {
           workout_type?: string | null
         }
         Update: {
+          after_emotion?: string | null
+          after_mindset?: string | null
           avg_heart_rate?: number | null
           avg_pace_seconds_per_km?: number | null
+          before_emotion?: string | null
+          before_mindset?: string | null
           calories?: number | null
           cardio_activity_name?: string | null
           cardio_type?: Database["public"]["Enums"]["cardio_type"] | null
@@ -979,13 +997,16 @@ export type Database = {
           discipline?: Database["public"]["Enums"]["discipline"]
           distance_meters?: number | null
           duration_seconds?: number | null
+          effort_score?: number | null
           feeling?: Database["public"]["Enums"]["feeling"] | null
           first_movement?: string | null
           id?: string
           intensity?: number | null
           max_heart_rate?: number | null
+          mental_effort_level?: string | null
           notes?: string | null
           opponent_action?: string | null
+          physical_effort_level?: string | null
           second_movement?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]
           strategy?: Database["public"]["Enums"]["strategy"] | null

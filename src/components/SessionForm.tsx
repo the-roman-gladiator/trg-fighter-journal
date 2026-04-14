@@ -11,22 +11,42 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { MartialArtsDiscipline, Strategy } from '@/types/training';
 import { Badge } from '@/components/ui/badge';
-import { disciplines, strategies, getTechniques, feelings } from '@/config/dropdownOptions';
+import { disciplines, strategies, getTechniques } from '@/config/dropdownOptions';
 import { TagSelector } from './TagSelector';
+import { Brain, Heart, Zap } from 'lucide-react';
 
 interface SessionFormProps {
   sessionId?: string;
 }
 
-const intensityOptions = ['Low', 'Moderate', 'High', 'Very High'] as const;
-const feelingOptions = ['Fresh', 'Normal', 'Tired', 'Injured', 'On Fire'] as const;
+const emotionOptions = [
+  'Excited', 'Motivated', 'Confidence', 'Resilient', 'Determined',
+  'Relief', 'Frustration', 'Anxiety', 'Fear', 'Self-doubt'
+];
+
+const mindsetOptions = [
+  'Focus', 'Positive Thinking', 'Mind–Body Link',
+  'Stressed', 'Unfocused', 'Mentally Tired', 'Mind–Body Disconnected'
+];
+
+const effortLevels = ['Easy', 'Light', 'Moderate', 'Hard', 'Max'] as const;
+
+const effortToScore = (level: string): number => {
+  switch (level) {
+    case 'Easy': return 1;
+    case 'Light': return 2;
+    case 'Moderate': return 3;
+    case 'Hard': return 4;
+    case 'Max': return 5;
+    default: return 0;
+  }
+};
 
 export function SessionForm({ sessionId }: SessionFormProps) {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Parse user's profile disciplines
   const profileDisciplines: MartialArtsDiscipline[] = profile?.discipline
     ? (profile.discipline.split(',').map(d => d.trim()).filter(d => disciplines.includes(d as MartialArtsDiscipline)) as MartialArtsDiscipline[])
     : [];
@@ -45,9 +65,15 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [opponentReaction, setOpponentReaction] = useState('');
   const [thirdMovement, setThirdMovement] = useState('');
   const [notes, setNotes] = useState('');
-  const [intensity, setIntensity] = useState<string>('');
-  const [feeling, setFeeling] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Performance fields
+  const [beforeEmotion, setBeforeEmotion] = useState('');
+  const [beforeMindset, setBeforeMindset] = useState('');
+  const [afterEmotion, setAfterEmotion] = useState('');
+  const [afterMindset, setAfterMindset] = useState('');
+  const [physicalEffort, setPhysicalEffort] = useState('');
+  const [mentalEffort, setMentalEffort] = useState('');
 
   useEffect(() => {
     if (sessionId && sessionId !== 'new') {
@@ -80,14 +106,12 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setOpponentReaction(session.opponent_action || '');
       setThirdMovement(session.second_movement || '');
       setNotes(session.notes || '');
-      // Map old intensity numbers to new labels
-      if (session.intensity) {
-        if (session.intensity <= 3) setIntensity('Low');
-        else if (session.intensity <= 5) setIntensity('Moderate');
-        else if (session.intensity <= 7) setIntensity('High');
-        else setIntensity('Very High');
-      }
-      setFeeling(session.feeling || '');
+      setBeforeEmotion((session as any).before_emotion || '');
+      setBeforeMindset((session as any).before_mindset || '');
+      setAfterEmotion((session as any).after_emotion || '');
+      setAfterMindset((session as any).after_mindset || '');
+      setPhysicalEffort((session as any).physical_effort_level || '');
+      setMentalEffort((session as any).mental_effort_level || '');
 
       const { data: sessionTagsData } = await supabase
         .from('session_tags')
@@ -96,16 +120,6 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       if (sessionTagsData) {
         setSelectedTags(sessionTagsData.map((st: any) => st.tags?.name).filter(Boolean));
       }
-    }
-  };
-
-  const intensityToNumber = (label: string): number => {
-    switch (label) {
-      case 'Low': return 3;
-      case 'Moderate': return 5;
-      case 'High': return 7;
-      case 'Very High': return 9;
-      default: return 5;
     }
   };
 
@@ -120,6 +134,15 @@ export function SessionForm({ sessionId }: SessionFormProps) {
 
     setLoading(true);
 
+    // Calculate effort score
+    let effortScore: number | null = null;
+    if (physicalEffort || mentalEffort) {
+      const pScore = effortToScore(physicalEffort);
+      const mScore = effortToScore(mentalEffort);
+      const count = (pScore > 0 ? 1 : 0) + (mScore > 0 ? 1 : 0);
+      effortScore = count > 0 ? (pScore + mScore) / count : null;
+    }
+
     try {
       const sessionData: any = {
         user_id: user.id,
@@ -128,14 +151,19 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         session_type: 'Completed',
         discipline,
         title: title || null,
-        intensity: intensity ? intensityToNumber(intensity) : null,
-        feeling: feeling || null,
         notes: notes || null,
         strategy: strategy || null,
         technique: technique || null,
         first_movement: firstMovement || null,
         opponent_action: opponentReaction || null,
         second_movement: thirdMovement || null,
+        before_emotion: beforeEmotion || null,
+        before_mindset: beforeMindset || null,
+        after_emotion: afterEmotion || null,
+        after_mindset: afterMindset || null,
+        physical_effort_level: physicalEffort || null,
+        mental_effort_level: mentalEffort || null,
+        effort_score: effortScore,
       };
 
       let savedSessionId = sessionId;
@@ -194,7 +222,6 @@ export function SessionForm({ sessionId }: SessionFormProps) {
 
   const techniqueOptions = getTechniques(discipline);
 
-  // Duration calculation
   const getDuration = () => {
     if (!startTime || !endTime) return null;
     const [sh, sm] = startTime.split(':').map(Number);
@@ -206,21 +233,51 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   };
 
+  const EffortButton = ({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) => (
+    <Button
+      type="button"
+      size="sm"
+      variant={selected ? 'default' : 'outline'}
+      className={`flex-1 text-xs h-9 ${selected ? '' : 'border-border'}`}
+      onClick={onClick}
+    >
+      {label}
+    </Button>
+  );
+
+  const ChipSelect = ({ options, value, onChange }: { options: string[]; value: string; onChange: (v: string) => void }) => (
+    <div className="flex flex-wrap gap-1.5">
+      {options.map((opt) => (
+        <Badge
+          key={opt}
+          variant={value === opt ? 'default' : 'outline'}
+          className={`cursor-pointer text-xs px-2.5 py-1 transition-colors ${
+            value === opt 
+              ? 'bg-primary text-primary-foreground' 
+              : 'border-border hover:border-primary/40 hover:bg-primary/5'
+          }`}
+          onClick={() => onChange(value === opt ? '' : opt)}
+        >
+          {opt}
+        </Badge>
+      ))}
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Session Details */}
         <Card>
           <CardHeader>
             <CardTitle>Session Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* 1. Title */}
             <div>
               <Label htmlFor="title">Session Title</Label>
               <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Jab timing study" />
             </div>
 
-            {/* 2. Date & Time */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="date">Date</Label>
@@ -242,7 +299,6 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </div>
             </div>
 
-            {/* 3. Discipline */}
             {singleDiscipline ? (
               <div>
                 <Label>Discipline</Label>
@@ -257,22 +313,14 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                 {availableDisciplines.length <= 3 ? (
                   <div className="flex gap-2 mt-1.5">
                     {availableDisciplines.map((d) => (
-                      <Button
-                        key={d}
-                        type="button"
-                        size="sm"
-                        variant={discipline === d ? 'default' : 'outline'}
-                        onClick={() => { setDiscipline(d); setTechnique(''); }}
-                      >
+                      <Button key={d} type="button" size="sm" variant={discipline === d ? 'default' : 'outline'}
+                        onClick={() => { setDiscipline(d); setTechnique(''); }}>
                         {d}
                       </Button>
                     ))}
                   </div>
                 ) : (
-                  <Select value={discipline} onValueChange={(value: MartialArtsDiscipline) => {
-                    setDiscipline(value);
-                    setTechnique('');
-                  }}>
+                  <Select value={discipline} onValueChange={(value: MartialArtsDiscipline) => { setDiscipline(value); setTechnique(''); }}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {availableDisciplines.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
@@ -282,7 +330,6 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </div>
             )}
 
-            {/* 4. Strategy */}
             <div>
               <Label>Strategy</Label>
               <Select value={strategy} onValueChange={(v: Strategy) => setStrategy(v)}>
@@ -293,7 +340,6 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </Select>
             </div>
 
-            {/* 5. Technique */}
             <div>
               <Label>Technique</Label>
               <Select value={technique} onValueChange={setTechnique}>
@@ -312,19 +358,14 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             <CardTitle>Movement Chain</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* 6. 1st Movement */}
             <div>
               <Label htmlFor="firstMovement">1st Movement <span className="text-muted-foreground text-xs">(How did you start?)</span></Label>
               <Input id="firstMovement" value={firstMovement} onChange={(e) => setFirstMovement(e.target.value)} placeholder="e.g., Jab entry, Level change, Feint low kick" />
             </div>
-
-            {/* 7. 2nd Movement */}
             <div>
               <Label htmlFor="opponentReaction">2nd Movement <span className="text-muted-foreground text-xs">(Opponent reaction)</span></Label>
               <Input id="opponentReaction" value={opponentReaction} onChange={(e) => setOpponentReaction(e.target.value)} placeholder="e.g., Stepped back, Parried, Sprawled" />
             </div>
-
-            {/* 8. 3rd Movement */}
             <div>
               <Label htmlFor="thirdMovement">3rd Movement <span className="text-muted-foreground text-xs">(What did I capitalize with?)</span></Label>
               <Input id="thirdMovement" value={thirdMovement} onChange={(e) => setThirdMovement(e.target.value)} placeholder="e.g., Low kick, Double leg finish, Back take" />
@@ -332,41 +373,95 @@ export function SessionForm({ sessionId }: SessionFormProps) {
           </CardContent>
         </Card>
 
-        {/* Notes & State */}
+        {/* My Performance */}
         <Card>
           <CardHeader>
-            <CardTitle>Notes & State</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Heart className="h-4 w-4 text-primary" />
+              My Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Before Training */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-blue-500" />
+                <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Before Training</p>
+              </div>
+              <div>
+                <Label className="text-xs">Emotion</Label>
+                <ChipSelect options={emotionOptions} value={beforeEmotion} onChange={setBeforeEmotion} />
+              </div>
+              <div>
+                <Label className="text-xs">Mindset</Label>
+                <ChipSelect options={mindsetOptions} value={beforeMindset} onChange={setBeforeMindset} />
+              </div>
+            </div>
+
+            <div className="border-t border-border" />
+
+            {/* After Training */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-red-500" />
+                <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">After Training</p>
+              </div>
+              <div>
+                <Label className="text-xs">Emotion</Label>
+                <ChipSelect options={emotionOptions} value={afterEmotion} onChange={setAfterEmotion} />
+              </div>
+              <div>
+                <Label className="text-xs">Mindset</Label>
+                <ChipSelect options={mindsetOptions} value={afterMindset} onChange={setAfterMindset} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Effort */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-primary" />
+              Effort
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* 9. Notes */}
+            <div>
+              <Label className="text-xs mb-2 block">Physical Effort Level</Label>
+              <div className="flex gap-1.5">
+                {effortLevels.map((level) => (
+                  <EffortButton key={level} label={level} selected={physicalEffort === level}
+                    onClick={() => setPhysicalEffort(physicalEffort === level ? '' : level)} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs mb-2 block">Mental Effort Level</Label>
+              <div className="flex gap-1.5">
+                {effortLevels.map((level) => (
+                  <EffortButton key={level} label={level} selected={mentalEffort === level}
+                    onClick={() => setMentalEffort(mentalEffort === level ? '' : level)} />
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Notes & Tags */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-4 w-4 text-primary" />
+              Notes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div>
               <Label>Notes</Label>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={5} placeholder="What happened? What worked? What needs improvement?" />
             </div>
 
-            {/* 10. Intensity */}
-            <div>
-              <Label>Intensity</Label>
-              <Select value={intensity} onValueChange={setIntensity}>
-                <SelectTrigger><SelectValue placeholder="Select intensity" /></SelectTrigger>
-                <SelectContent>
-                  {intensityOptions.map((i) => (<SelectItem key={i} value={i}>{i}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* 11. Feeling */}
-            <div>
-              <Label>Feeling</Label>
-              <Select value={feeling} onValueChange={setFeeling}>
-                <SelectTrigger><SelectValue placeholder="Select feeling" /></SelectTrigger>
-                <SelectContent>
-                  {feelingOptions.map((f) => (<SelectItem key={f} value={f}>{f}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Custom Tags */}
             <TagSelector
               sessionId={sessionId}
               selectedTags={selectedTags}

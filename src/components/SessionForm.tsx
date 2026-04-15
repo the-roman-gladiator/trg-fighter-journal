@@ -355,6 +355,31 @@ export function SessionForm({ sessionId }: SessionFormProps) {
           </CardContent>
         </Card>
 
+        {/* Type Classes */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Type Classes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-1.5">
+              {['Cardio/Endurance', 'Strength/Conditioning', 'Technical Skills', 'Sparring', '1o1 PT'].map((ct) => (
+                <Badge
+                  key={ct}
+                  variant={classType === ct ? 'default' : 'outline'}
+                  className={`cursor-pointer text-xs px-2.5 py-1.5 transition-colors ${
+                    classType === ct
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border-border hover:border-primary/40 hover:bg-primary/5'
+                  }`}
+                  onClick={() => setClassType(classType === ct ? '' : ct)}
+                >
+                  {ct}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Movement Chain */}
         <Card>
           <CardHeader>

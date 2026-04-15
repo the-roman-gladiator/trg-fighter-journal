@@ -166,6 +166,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         physical_effort_level: physicalEffort || null,
         mental_effort_level: mentalEffort || null,
         effort_score: effortScore,
+        class_type: classType || null,
       };
 
       let savedSessionId = sessionId;

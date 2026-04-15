@@ -74,6 +74,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [afterMindset, setAfterMindset] = useState('');
   const [physicalEffort, setPhysicalEffort] = useState('');
   const [mentalEffort, setMentalEffort] = useState('');
+  const [classType, setClassType] = useState('');
 
   useEffect(() => {
     if (sessionId && sessionId !== 'new') {
@@ -112,6 +113,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setAfterMindset((session as any).after_mindset || '');
       setPhysicalEffort((session as any).physical_effort_level || '');
       setMentalEffort((session as any).mental_effort_level || '');
+      setClassType((session as any).class_type || '');
 
       const { data: sessionTagsData } = await supabase
         .from('session_tags')
@@ -164,6 +166,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         physical_effort_level: physicalEffort || null,
         mental_effort_level: mentalEffort || null,
         effort_score: effortScore,
+        class_type: classType || null,
       };
 
       let savedSessionId = sessionId;
@@ -348,6 +351,31 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   {techniqueOptions.map((t) => (<SelectItem key={t} value={t}>{t}</SelectItem>))}
                 </SelectContent>
               </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Type Classes */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Type Classes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-1.5">
+              {['Cardio/Endurance', 'Strength/Conditioning', 'Technical Skills', 'Sparring', '1o1 PT'].map((ct) => (
+                <Badge
+                  key={ct}
+                  variant={classType === ct ? 'default' : 'outline'}
+                  className={`cursor-pointer text-xs px-2.5 py-1.5 transition-colors ${
+                    classType === ct
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border-border hover:border-primary/40 hover:bg-primary/5'
+                  }`}
+                  onClick={() => setClassType(classType === ct ? '' : ct)}
+                >
+                  {ct}
+                </Badge>
+              ))}
             </div>
           </CardContent>
         </Card>

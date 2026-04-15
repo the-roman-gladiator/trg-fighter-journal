@@ -941,6 +941,7 @@ export type Database = {
           calories: number | null
           cardio_activity_name: string | null
           cardio_type: Database["public"]["Enums"]["cardio_type"] | null
+          class_type: string | null
           coach_session_id: string | null
           created_at: string
           date: string
@@ -984,6 +985,7 @@ export type Database = {
           calories?: number | null
           cardio_activity_name?: string | null
           cardio_type?: Database["public"]["Enums"]["cardio_type"] | null
+          class_type?: string | null
           coach_session_id?: string | null
           created_at?: string
           date?: string
@@ -1027,6 +1029,7 @@ export type Database = {
           calories?: number | null
           cardio_activity_name?: string | null
           cardio_type?: Database["public"]["Enums"]["cardio_type"] | null
+          class_type?: string | null
           coach_session_id?: string | null
           created_at?: string
           date?: string

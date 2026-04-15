@@ -113,6 +113,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setAfterMindset((session as any).after_mindset || '');
       setPhysicalEffort((session as any).physical_effort_level || '');
       setMentalEffort((session as any).mental_effort_level || '');
+      setClassType((session as any).class_type || '');
 
       const { data: sessionTagsData } = await supabase
         .from('session_tags')

@@ -74,6 +74,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [afterMindset, setAfterMindset] = useState('');
   const [physicalEffort, setPhysicalEffort] = useState('');
   const [mentalEffort, setMentalEffort] = useState('');
+  const [classType, setClassType] = useState('');
 
   useEffect(() => {
     if (sessionId && sessionId !== 'new') {

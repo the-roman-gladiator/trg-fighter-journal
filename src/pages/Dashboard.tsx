@@ -8,13 +8,20 @@ import { ModeSwitcher } from '@/components/ModeSwitcher';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, User, Map, Trash2, Swords, ChevronRight, Shield, Network, GraduationCap, CalendarDays, Clock, BookOpen, CheckCircle2, Flame, Zap, Target, Quote } from 'lucide-react';
+import { Plus, User, Map, Swords, Shield, Network, GraduationCap, CalendarDays, Clock, BookOpen, CheckCircle2, Flame, Zap, Target, Quote } from 'lucide-react';
 import { format, startOfWeek, startOfYear, subDays } from 'date-fns';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/sonner';
-import { getStrategyClass } from '@/lib/strategyColors';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 const MARTIAL_ARTS = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
+
+const CLASS_TYPE_COLORS: Record<string, string> = {
+  'Cardio/Endurance': '#FF6B6B',
+  'Strength/Conditioning': '#4ECDC4',
+  'Technical Skills': '#45B7D1',
+  'Sparring': '#F9C74F',
+  '1o1 PT': '#A78BFA',
+};
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
@@ -31,14 +38,11 @@ export default function Dashboard() {
     else if (mode === 'coach') navigate('/coach');
   }, [mode]);
 
-  const [recentSessions, setRecentSessions] = useState<any[]>([]);
   const [coachSessions, setCoachSessions] = useState<any[]>([]);
-  const [completedCoachSessions, setCompletedCoachSessions] = useState<any[]>([]);
-  const [loggedCoachSessionIds, setLoggedCoachSessionIds] = useState<Set<string>>(new Set());
   const [coachNameMap, setCoachNameMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
-  // New stats
+  // Stats
   const [yearlyStreak, setYearlyStreak] = useState(0);
   const [avgEffort, setAvgEffort] = useState(0);
   const [weeklySessions, setWeeklySessions] = useState(0);
@@ -47,6 +51,9 @@ export default function Dashboard() {
   const [myStatement, setMyStatement] = useState('');
   const [myDisciplines, setMyDisciplines] = useState<string[]>([]);
   const [dailyMotivation, setDailyMotivation] = useState('');
+
+  // Pie chart data
+  const [classTypeData, setClassTypeData] = useState<{ name: string; value: number }[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -60,7 +67,7 @@ export default function Dashboard() {
     const yearStart = format(startOfYear(new Date()), 'yyyy-MM-dd');
     const sevenDaysAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd');
 
-    // Fetch last 7 days sessions (not just this week)
+    // Fetch last 7 days sessions for stats only
     const { data: recent } = await supabase
       .from('training_sessions')
       .select('*')
@@ -69,17 +76,16 @@ export default function Dashboard() {
       .gte('date', sevenDaysAgo)
       .order('date', { ascending: false })
       .limit(50);
-    setRecentSessions(recent || []);
 
     // Weekly sessions count (Monday-Sunday)
     const weekSessions = (recent || []).filter(s => s.date >= mondayOfThisWeek);
     setWeeklySessions(weekSessions.length);
 
-    // Calculate avg effort from recent
+    // Calculate avg effort
     const effortScores = (recent || []).map((s: any) => s.effort_score).filter((s: any) => s != null && s > 0);
     setAvgEffort(effortScores.length > 0 ? Math.round((effortScores.reduce((a: number, b: number) => a + b, 0) / effortScores.length) * 10) / 10 : 0);
 
-    // Yearly streak: count unique training days this year
+    // Yearly streak
     const { data: yearSessions } = await supabase
       .from('training_sessions')
       .select('date')
@@ -88,6 +94,23 @@ export default function Dashboard() {
       .gte('date', yearStart);
     const uniqueDays = new Set((yearSessions || []).map((s: any) => s.date));
     setYearlyStreak(uniqueDays.size);
+
+    // Fetch ALL sessions for pie chart (class_type distribution)
+    const { data: allSessions } = await supabase
+      .from('training_sessions')
+      .select('class_type')
+      .eq('user_id', user.id)
+      .eq('session_type', 'Completed')
+      .not('class_type', 'is', null);
+
+    const typeCounts: Record<string, number> = {};
+    (allSessions || []).forEach((s: any) => {
+      if (s.class_type) {
+        typeCounts[s.class_type] = (typeCounts[s.class_type] || 0) + 1;
+      }
+    });
+    const pieData = Object.entries(typeCounts).map(([name, value]) => ({ name, value }));
+    setClassTypeData(pieData);
 
     // Fetch profile for journal box
     const { data: prof } = await supabase
@@ -100,7 +123,6 @@ export default function Dashboard() {
       setMyStatement(prof.my_statement || '');
       setMyDisciplines(prof.discipline ? prof.discipline.split(',').map((d: string) => d.trim()).filter(Boolean) : []);
 
-      // Determine daily motivation
       const motivationMode = prof.daily_motivation_mode || 'random';
       if (motivationMode === 'custom' && prof.custom_motivation_text) {
         setDailyMotivation(prof.custom_motivation_text);
@@ -112,7 +134,6 @@ export default function Dashboard() {
           .maybeSingle();
         setDailyMotivation(fixedMot?.motivation_text || '');
       } else {
-        // Random daily: use day of year
         const now = new Date();
         const startOfYearDate = new Date(now.getFullYear(), 0, 0);
         const diff = now.getTime() - startOfYearDate.getTime();
@@ -137,18 +158,8 @@ export default function Dashboard() {
       .limit(10);
     setCoachSessions(coachData || []);
 
-    // Fetch completed coach sessions
-    const { data: completedData } = await supabase
-      .from('coach_sessions')
-      .select('*')
-      .eq('status', 'completed')
-      .order('scheduled_date', { ascending: false })
-      .limit(20);
-    setCompletedCoachSessions(completedData || []);
-
     // Build coach name map
-    const allCoachData = [...(coachData || []), ...(completedData || [])];
-    const coachUserIds = [...new Set(allCoachData.map(cs => cs.user_id))];
+    const coachUserIds = [...new Set((coachData || []).map(cs => cs.user_id))];
     if (coachUserIds.length > 0) {
       const { data: coachProfiles } = await supabase
         .from('profiles')
@@ -159,52 +170,13 @@ export default function Dashboard() {
         nameMap[p.id] = [p.name, p.middle_name, p.surname].filter(Boolean).join(' ');
       });
       const csNameMap: Record<string, string> = {};
-      allCoachData.forEach(cs => {
+      (coachData || []).forEach(cs => {
         csNameMap[cs.id] = nameMap[cs.user_id] || 'Coach';
       });
       setCoachNameMap(csNameMap);
     }
 
-    // Check which coach sessions user already logged
-    if (completedData && completedData.length > 0) {
-      const { data: logged } = await supabase
-        .from('training_sessions')
-        .select('coach_session_id')
-        .eq('user_id', user.id)
-        .not('coach_session_id', 'is', null);
-      const ids = new Set((logged || []).map((l: any) => l.coach_session_id));
-      setLoggedCoachSessionIds(ids);
-    }
-
     setLoading(false);
-  };
-
-  const recordCoachSession = async (cs: any) => {
-    if (!user) return;
-    const discipline = MARTIAL_ARTS.includes(cs.discipline) ? cs.discipline : 'MMA';
-    const { error } = await supabase.from('training_sessions').insert({
-      user_id: user.id,
-      title: cs.title,
-      discipline: discipline as any,
-      session_type: 'Completed',
-      date: cs.scheduled_date || format(new Date(), 'yyyy-MM-dd'),
-      notes: `Coach class: ${cs.session_plan || ''}\nDrills: ${cs.drills || ''}`.trim(),
-      coach_session_id: cs.id,
-    });
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success('Session recorded in your journal!');
-    setLoggedCoachSessionIds(prev => new Set(prev).add(cs.id));
-    fetchData();
-  };
-
-  const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const { error } = await supabase.from('training_sessions').delete().eq('id', sessionId);
-    if (error) { toast.error('Failed to delete session'); }
-    else { toast.success('Session deleted'); fetchData(); }
   };
 
   if (loading) {
@@ -218,14 +190,9 @@ export default function Dashboard() {
     );
   }
 
-  const buildChainPreview = (session: any) => {
-    const parts = [session.first_movement, session.opponent_action, session.second_movement].filter(Boolean);
-    if (parts.length === 0) return null;
-    return parts.join(' → ');
-  };
-
   const today = new Date();
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const nickname = profile?.nickname || '';
 
   return (
     <div className="min-h-screen bg-background">
@@ -249,17 +216,19 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-5 max-w-lg space-y-5">
-        {/* Dynamic Date + Title */}
+        {/* Dynamic Date + Title with Nickname */}
         <div>
           <p className="text-xs text-muted-foreground tracking-wide">
             {dayNames[today.getDay()]}, {format(today, 'd MMMM yyyy')}
           </p>
-          <h2 className="text-2xl font-bold text-foreground mt-0.5">Dashboard</h2>
+          <h2 className="text-2xl font-bold text-foreground mt-0.5">
+            Dashboard{nickname ? ` – ${nickname}` : ''}
+          </h2>
         </div>
 
-        {/* Quick Log Button */}
+        {/* Quick Log Button with Boxing Gloves */}
         <Button onClick={() => navigate('/session/new')} className="w-full h-14 text-base font-bold tracking-wide">
-          <Plus className="mr-2 h-5 w-5" /> Quick Log Session
+          <span className="mr-2 text-lg">🥊</span> Quick Log Session
         </Button>
 
         {/* Stats Cards */}
@@ -350,6 +319,46 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
+        {/* Pie Chart — Type Classes Distribution */}
+        <Card className="border-border bg-card">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Target className="h-4 w-4 text-primary" />
+              <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">Training Distribution</p>
+            </div>
+            {classTypeData.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No class type data recorded yet. Start logging sessions with a Type Class to see your distribution.</p>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={classTypeData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={80}
+                      paddingAngle={3}
+                      dataKey="value"
+                      nameKey="name"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                    >
+                      {classTypeData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={CLASS_TYPE_COLORS[entry.name] || '#888'} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
+                      formatter={(value: number, name: string) => [`${value} sessions`, name]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Upcoming Coach Sessions */}
         {coachSessions.length > 0 && (
           <div>
@@ -396,159 +405,6 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-
-        {/* Completed Coach Sessions */}
-        {completedCoachSessions.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">Completed Classes</h2>
-              <span className="text-[10px] text-muted-foreground">Record to your journal</span>
-            </div>
-            <div className="space-y-2">
-              {completedCoachSessions.map((cs) => {
-                const alreadyLogged = loggedCoachSessionIds.has(cs.id);
-                return (
-                  <Card key={cs.id} className={`bg-card border-border border-l-4 ${alreadyLogged ? 'border-l-muted-foreground/30' : 'border-l-accent'}`}>
-                    <CardContent className="py-3 px-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold truncate text-foreground">{cs.title}</p>
-                          <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
-                            <CalendarDays className="h-3 w-3" />
-                            <span>{cs.scheduled_date ? format(new Date(cs.scheduled_date), 'EEE, MMM d') : 'No date'}</span>
-                            {cs.duration_minutes && (
-                              <>
-                                <Clock className="h-3 w-3 ml-1" />
-                                <span>{cs.duration_minutes} min</span>
-                              </>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border border-primary/30 text-primary">
-                              {cs.discipline}
-                            </Badge>
-                            {cs.target_level && (
-                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                {cs.target_level}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="shrink-0 mt-1">
-                          {alreadyLogged ? (
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <CheckCircle2 className="h-4 w-4" />
-                              <span className="text-[10px]">Logged</span>
-                            </div>
-                          ) : (
-                            <Button size="sm" variant="outline" className="h-7 text-[11px] px-2.5"
-                              onClick={() => recordCoachSession(cs)}>
-                              <BookOpen className="h-3 w-3 mr-1" /> Record
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Recent Sessions */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">Recent Sessions</h2>
-            <span className="text-[10px] text-muted-foreground">Last 7 days</span>
-          </div>
-
-          {recentSessions.length === 0 ? (
-            <Card className="bg-card">
-              <CardContent className="py-8 text-center">
-                <p className="text-muted-foreground text-sm">No sessions in the last 7 days.</p>
-                <Button size="sm" className="mt-3" onClick={() => navigate('/session/new')}>Record Session</Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-2">
-              {recentSessions.map((session) => {
-                const chain = buildChainPreview(session);
-                const technique = (session as any).technique || '';
-                const strategyClass = session.strategy ? getStrategyClass(session.strategy) : '';
-                const effortLabel = session.effort_score ? `⚡ ${session.effort_score}` : '';
-                return (
-                  <Card key={session.id}
-                    className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer group"
-                    onClick={() => navigate(`/session/${session.id}`)}>
-                    <CardContent className="py-3 px-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold truncate" style={{ color: settings.input_text_color }}>
-                            {session.title || technique || `${session.discipline} Training`}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">
-                            {format(new Date(session.date), 'EEE, MMM d')}
-                            {session.time && ` · ${session.time}`}
-                            {session.coach_session_id && coachNameMap[session.coach_session_id] && (
-                              <span className="ml-1">· Coach: {coachNameMap[session.coach_session_id]}</span>
-                            )}
-                            {effortLabel && <span className="ml-1">· {effortLabel}</span>}
-                          </p>
-                          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border" style={{
-                              backgroundColor: getDisciplineColor(session.discipline) + '22',
-                              color: getDisciplineColor(session.discipline),
-                              borderColor: getDisciplineColor(session.discipline) + '44'
-                            }}>{session.discipline}</Badge>
-                            {session.coach_session_id && (
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/40 bg-primary/10 text-primary">
-                                🎓 Coach Class
-                              </Badge>
-                            )}
-                            {session.strategy && (
-                              <Badge variant="outline" className={`text-[10px] px-1.5 py-0 border ${strategyClass}`}>
-                                {session.strategy}
-                              </Badge>
-                            )}
-                            {technique && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{technique}</Badge>}
-                          </div>
-                          {chain && (
-                            <p className="text-[11px] mt-1.5 font-mono tracking-tight" style={{ color: settings.input_text_color + '99' }}>
-                              {chain}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={(e) => e.stopPropagation()}>
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete session?</AlertDialogTitle>
-                                <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={(e) => deleteSession(session.id, e)}>Delete</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
         <p className="text-center text-[10px] text-muted-foreground/50 font-display tracking-widest pt-4 pb-8">
           STRENGTH & HONOUR

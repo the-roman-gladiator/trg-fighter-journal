@@ -183,7 +183,7 @@ export default function Profile() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-lg">
+      <main className="container mx-auto px-4 py-6 max-w-lg pb-28">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Profile Card */}
           <Card>

@@ -35,6 +35,7 @@ const effortToScore = (level: string): number => {
 
 export function SessionForm({ sessionId }: SessionFormProps) {
   const { user, profile } = useAuth();
+  const { getActive } = useUserLists();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -214,7 +215,15 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     }
   };
 
-  const techniqueOptions = getTechniques(discipline);
+  // Pull user-specific options (with fallback to defaults until seeded)
+  const userTechniqueOptions = getActive('technique', discipline).map(i => i.item_name);
+  const techniqueOptions = userTechniqueOptions.length > 0 ? userTechniqueOptions : [];
+  const userClassTypes = getActive('class_type').map(i => i.item_name);
+  const classTypeOptions = userClassTypes.length > 0 ? userClassTypes : DEFAULT_CLASS_TYPES;
+  const userEmotions = getActive('emotion').map(i => i.item_name);
+  const emotionOptions = userEmotions.length > 0 ? userEmotions : DEFAULT_EMOTIONS;
+  const userMindsets = getActive('mindset').map(i => i.item_name);
+  const mindsetOptions = userMindsets.length > 0 ? userMindsets : DEFAULT_MINDSETS;
 
   const getDuration = () => {
     if (!startTime || !endTime) return null;

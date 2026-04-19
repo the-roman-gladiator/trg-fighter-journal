@@ -11,23 +11,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { MartialArtsDiscipline, Strategy } from '@/types/training';
 import { Badge } from '@/components/ui/badge';
-import { disciplines, strategies, getTechniques } from '@/config/dropdownOptions';
+import { disciplines, strategies } from '@/config/dropdownOptions';
 import { TagSelector } from './TagSelector';
 import { Brain, Heart, Zap } from 'lucide-react';
+import { useUserLists, DEFAULT_CLASS_TYPES, DEFAULT_EMOTIONS, DEFAULT_MINDSETS } from '@/hooks/useUserLists';
 
 interface SessionFormProps {
   sessionId?: string;
 }
-
-const emotionOptions = [
-  'Excited', 'Motivated', 'Confidence', 'Resilient', 'Determined',
-  'Relief', 'Frustration', 'Anxiety', 'Fear', 'Self-doubt'
-];
-
-const mindsetOptions = [
-  'Focus', 'Positive Thinking', 'Mind–Body Link',
-  'Stressed', 'Unfocused', 'Mentally Tired', 'Mind–Body Disconnected'
-];
 
 const effortLevels = ['Easy', 'Light', 'Moderate', 'Hard', 'Max'] as const;
 

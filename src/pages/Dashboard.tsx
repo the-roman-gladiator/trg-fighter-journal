@@ -215,7 +215,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-5 max-w-lg space-y-5">
+      <main className="container mx-auto px-4 py-5 max-w-lg space-y-5 pb-28">
         {/* Dynamic Date + Title with Nickname */}
         <div>
           <p className="text-xs text-muted-foreground tracking-wide">

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { UserSettingsProvider } from "./hooks/useUserSettings";
 import { AppModeProvider } from "./hooks/useAppMode";
+import { BottomNav } from "./components/BottomNav";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import SessionEdit from "./pages/SessionEdit";
@@ -24,6 +25,10 @@ import FighterPathway from "./pages/FighterPathway";
 import CoachDashboard from "./pages/CoachDashboard";
 import CoachSessionEdit from "./pages/CoachSessionEdit";
 import TechniqueLibrary from "./pages/TechniqueLibrary";
+import Records from "./pages/Records";
+import Trends from "./pages/Trends";
+import Reflection from "./pages/Reflection";
+import Award from "./pages/Award";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,7 +65,12 @@ const App = () => (
                 <Route path="/coach/session/new" element={<CoachSessionEdit />} />
                 <Route path="/coach/session/:id/edit" element={<CoachSessionEdit />} />
                 <Route path="/library" element={<TechniqueLibrary />} />
+                <Route path="/records" element={<Records />} />
+                <Route path="/trends" element={<Trends />} />
+                <Route path="/reflection" element={<Reflection />} />
+                <Route path="/award" element={<Award />} />
               </Routes>
+              <BottomNav />
             </AppModeProvider>
           </UserSettingsProvider>
         </AuthProvider>

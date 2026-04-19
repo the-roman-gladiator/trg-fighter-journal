@@ -11,23 +11,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { MartialArtsDiscipline, Strategy } from '@/types/training';
 import { Badge } from '@/components/ui/badge';
-import { disciplines, strategies, getTechniques } from '@/config/dropdownOptions';
+import { disciplines, strategies } from '@/config/dropdownOptions';
 import { TagSelector } from './TagSelector';
 import { Brain, Heart, Zap } from 'lucide-react';
+import { useUserLists, DEFAULT_CLASS_TYPES, DEFAULT_EMOTIONS, DEFAULT_MINDSETS } from '@/hooks/useUserLists';
 
 interface SessionFormProps {
   sessionId?: string;
 }
-
-const emotionOptions = [
-  'Excited', 'Motivated', 'Confidence', 'Resilient', 'Determined',
-  'Relief', 'Frustration', 'Anxiety', 'Fear', 'Self-doubt'
-];
-
-const mindsetOptions = [
-  'Focus', 'Positive Thinking', 'Mind–Body Link',
-  'Stressed', 'Unfocused', 'Mentally Tired', 'Mind–Body Disconnected'
-];
 
 const effortLevels = ['Easy', 'Light', 'Moderate', 'Hard', 'Max'] as const;
 
@@ -44,6 +35,7 @@ const effortToScore = (level: string): number => {
 
 export function SessionForm({ sessionId }: SessionFormProps) {
   const { user, profile } = useAuth();
+  const { getActive } = useUserLists();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -223,7 +215,15 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     }
   };
 
-  const techniqueOptions = getTechniques(discipline);
+  // Pull user-specific options (with fallback to defaults until seeded)
+  const userTechniqueOptions = getActive('technique', discipline).map(i => i.item_name);
+  const techniqueOptions = userTechniqueOptions.length > 0 ? userTechniqueOptions : [];
+  const userClassTypes = getActive('class_type').map(i => i.item_name);
+  const classTypeOptions = userClassTypes.length > 0 ? userClassTypes : DEFAULT_CLASS_TYPES;
+  const userEmotions = getActive('emotion').map(i => i.item_name);
+  const emotionOptions = userEmotions.length > 0 ? userEmotions : DEFAULT_EMOTIONS;
+  const userMindsets = getActive('mindset').map(i => i.item_name);
+  const mindsetOptions = userMindsets.length > 0 ? userMindsets : DEFAULT_MINDSETS;
 
   const getDuration = () => {
     if (!startTime || !endTime) return null;
@@ -362,7 +362,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-1.5">
-              {['Cardio/Endurance', 'Strength/Conditioning', 'Technical Skills', 'Sparring', '1o1 PT'].map((ct) => (
+              {classTypeOptions.map((ct) => (
                 <Badge
                   key={ct}
                   variant={classType === ct ? 'default' : 'outline'}

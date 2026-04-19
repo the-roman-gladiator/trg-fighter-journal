@@ -1143,6 +1143,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_custom_lists: {
+        Row: {
+          created_at: string
+          discipline_key: string | null
+          id: string
+          is_active: boolean
+          item_name: string
+          list_type: string
+          sort_order: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discipline_key?: string | null
+          id?: string
+          is_active?: boolean
+          item_name: string
+          list_type: string
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discipline_key?: string | null
+          id?: string
+          is_active?: boolean
+          item_name?: string
+          list_type?: string
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

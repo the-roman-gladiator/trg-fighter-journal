@@ -12,12 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote } from 'lucide-react';
+import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote, Library } from 'lucide-react';
 import { AccountType, FitnessLevel } from '@/types/training';
 import { disciplines } from '@/config/dropdownOptions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { CustomListManager } from '@/components/profile/CustomListManager';
 
 const accountTypes: AccountType[] = ['free', 'basic', 'pro'];
 const martialLevels = ['Beginner', 'Intermediate', 'Advanced', 'Fighter'] as const;
@@ -49,6 +50,7 @@ export default function Profile() {
   const [martialLevel, setMartialLevel] = useState('Beginner');
   const [fitnessLevel, setFitnessLevel] = useState<FitnessLevel>('Beginner');
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [librariesOpen, setLibrariesOpen] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -181,7 +183,7 @@ export default function Profile() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-lg">
+      <main className="container mx-auto px-4 py-6 max-w-lg pb-28">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Profile Card */}
           <Card>
@@ -360,6 +362,29 @@ export default function Profile() {
                   </div>
                 </CardContent>
               </Card>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Advanced Setting — User Libraries */}
+          <Collapsible open={librariesOpen} onOpenChange={setLibrariesOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full justify-between" type="button">
+                <span className="flex items-center gap-2">
+                  <Library className="h-4 w-4" /> Advanced Setting
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${librariesOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-3 space-y-3">
+                <p className="text-xs text-muted-foreground px-1">
+                  Manage the items that appear in your training session selectors. Changes only affect your account.
+                </p>
+                <CustomListManager type="technique" title="Techniques" scoped />
+                <CustomListManager type="class_type" title="Class Type" />
+                <CustomListManager type="emotion" title="Emotions" />
+                <CustomListManager type="mindset" title="Mindset" />
+              </div>
             </CollapsibleContent>
           </Collapsible>
 

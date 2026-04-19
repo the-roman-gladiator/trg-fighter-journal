@@ -12,12 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote } from 'lucide-react';
+import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote, Library } from 'lucide-react';
 import { AccountType, FitnessLevel } from '@/types/training';
 import { disciplines } from '@/config/dropdownOptions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { CustomListManager } from '@/components/profile/CustomListManager';
 
 const accountTypes: AccountType[] = ['free', 'basic', 'pro'];
 const martialLevels = ['Beginner', 'Intermediate', 'Advanced', 'Fighter'] as const;
@@ -49,6 +50,7 @@ export default function Profile() {
   const [martialLevel, setMartialLevel] = useState('Beginner');
   const [fitnessLevel, setFitnessLevel] = useState<FitnessLevel>('Beginner');
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [librariesOpen, setLibrariesOpen] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 

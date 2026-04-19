@@ -362,7 +362,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-1.5">
-              {['Cardio/Endurance', 'Strength/Conditioning', 'Technical Skills', 'Sparring', '1o1 PT'].map((ct) => (
+              {classTypeOptions.map((ct) => (
                 <Badge
                   key={ct}
                   variant={classType === ct ? 'default' : 'outline'}

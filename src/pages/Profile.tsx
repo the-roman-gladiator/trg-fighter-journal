@@ -365,6 +365,29 @@ export default function Profile() {
             </CollapsibleContent>
           </Collapsible>
 
+          {/* Advanced Setting — User Libraries */}
+          <Collapsible open={librariesOpen} onOpenChange={setLibrariesOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full justify-between" type="button">
+                <span className="flex items-center gap-2">
+                  <Library className="h-4 w-4" /> Advanced Setting
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${librariesOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-3 space-y-3">
+                <p className="text-xs text-muted-foreground px-1">
+                  Manage the items that appear in your training session selectors. Changes only affect your account.
+                </p>
+                <CustomListManager type="technique" title="Techniques" scoped />
+                <CustomListManager type="class_type" title="Class Type" />
+                <CustomListManager type="emotion" title="Emotions" />
+                <CustomListManager type="mindset" title="Mindset" />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
           {/* Customization */}
           <Collapsible open={customOpen} onOpenChange={setCustomOpen}>
             <CollapsibleTrigger asChild>

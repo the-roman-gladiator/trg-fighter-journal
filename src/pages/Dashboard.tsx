@@ -226,6 +226,21 @@ export default function Dashboard() {
           </h2>
         </div>
 
+        {/* Daily Motivation — priority block, above Quick Log */}
+        {dailyMotivation && (
+          <Card className="border-primary/40 bg-gradient-to-br from-primary/10 via-card to-card shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.35)]">
+            <CardContent className="pt-5 pb-5">
+              <div className="flex items-center gap-2 mb-2">
+                <Quote className="h-4 w-4 text-primary" />
+                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">Daily Motivation</p>
+              </div>
+              <p className="text-base sm:text-lg font-semibold text-foreground leading-snug">
+                {dailyMotivation}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Quick Log Button with Boxing Gloves */}
         <Button onClick={() => navigate('/session/new')} className="w-full h-14 text-base font-bold tracking-wide">
           <span className="mr-2 text-lg">🥊</span> Quick Log Session
@@ -306,16 +321,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* My Daily Motivation */}
-            {dailyMotivation && (
-              <div className="border-t border-border pt-3">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Daily Motivation</p>
-                <div className="flex items-start gap-2">
-                  <Quote className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
-                  <p className="text-sm text-foreground font-medium">{dailyMotivation}</p>
-                </div>
-              </div>
-            )}
+            {/* My Daily Motivation — moved to top of dashboard; kept here only if no statement section above */}
           </CardContent>
         </Card>
 

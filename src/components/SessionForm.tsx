@@ -12,7 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { MartialArtsDiscipline, Strategy } from '@/types/training';
 import { Badge } from '@/components/ui/badge';
 import { disciplines, strategies } from '@/config/dropdownOptions';
-import { TagSelector } from './TagSelector';
+import { PredictiveTagInput } from './PredictiveTagInput';
+import { MultiDisciplineSelect } from './MultiDisciplineSelect';
 import { Brain, Heart, Zap } from 'lucide-react';
 import { useUserLists, DEFAULT_CLASS_TYPES, DEFAULT_EMOTIONS, DEFAULT_MINDSETS } from '@/hooks/useUserLists';
 
@@ -43,13 +44,16 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     ? (profile.discipline.split(',').map(d => d.trim()).filter(d => disciplines.includes(d as MartialArtsDiscipline)) as MartialArtsDiscipline[])
     : [];
   const availableDisciplines = profileDisciplines.length > 0 ? profileDisciplines : disciplines;
-  const singleDiscipline = profileDisciplines.length === 1;
-  
+
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [discipline, setDiscipline] = useState<MartialArtsDiscipline>(availableDisciplines[0] || 'MMA');
+  // Multi-select disciplines. First selected stays as the primary `discipline` for backward compat.
+  const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>(
+    profileDisciplines.length === 1 ? [profileDisciplines[0]] : []
+  );
+  const discipline: MartialArtsDiscipline = (selectedDisciplines[0] as MartialArtsDiscipline) || (availableDisciplines[0] || 'MMA');
   const [strategy, setStrategy] = useState<Strategy | ''>('');
   const [technique, setTechnique] = useState<string>('');
   const [title, setTitle] = useState('');
@@ -91,7 +95,11 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     if (session) {
       setDate(session.date);
       setStartTime(session.time || '');
-      setDiscipline(session.discipline as MartialArtsDiscipline);
+      const sessAny = session as any;
+      const ds: string[] = Array.isArray(sessAny.disciplines) && sessAny.disciplines.length > 0
+        ? sessAny.disciplines
+        : (session.discipline ? [session.discipline] : []);
+      setSelectedDisciplines(ds);
       setStrategy((session.strategy as Strategy) || '');
       setTechnique((session as any).technique || session.first_movement || '');
       setTitle(session.title || '');
@@ -121,6 +129,11 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     e.preventDefault();
     if (!user) return;
 
+    if (selectedDisciplines.length === 0) {
+      toast({ title: 'Validation', description: 'Please select at least one discipline', variant: 'destructive' });
+      return;
+    }
+
     if (!technique) {
       toast({ title: 'Validation', description: 'Please select a technique', variant: 'destructive' });
       return;
@@ -143,7 +156,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         date,
         time: startTime || null,
         session_type: 'Completed',
-        discipline,
+        discipline, // primary (first selected) — kept for backward compat
+        disciplines: selectedDisciplines, // full multi-discipline list
         title: title || null,
         notes: notes || null,
         strategy: strategy || null,
@@ -172,8 +186,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         savedSessionId = data.id;
       }
 
-      // Build auto-tags from all fields
-      const autoTags: string[] = [discipline];
+      // Build auto-tags from all fields (one tag per selected discipline)
+      const autoTags: string[] = [...selectedDisciplines];
       if (strategy) autoTags.push(strategy);
       if (technique) autoTags.push(technique);
       if (firstMovement) autoTags.push(firstMovement);
@@ -302,36 +316,16 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </div>
             </div>
 
-            {singleDiscipline ? (
-              <div>
-                <Label>Discipline</Label>
-                <div className="flex items-center gap-2 mt-1.5">
-                  <Badge variant="secondary" className="text-sm py-1.5 px-3">{discipline}</Badge>
-                  <span className="text-xs text-muted-foreground">From your profile</span>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <Label>Discipline</Label>
-                {availableDisciplines.length <= 3 ? (
-                  <div className="flex gap-2 mt-1.5">
-                    {availableDisciplines.map((d) => (
-                      <Button key={d} type="button" size="sm" variant={discipline === d ? 'default' : 'outline'}
-                        onClick={() => { setDiscipline(d); setTechnique(''); }}>
-                        {d}
-                      </Button>
-                    ))}
-                  </div>
-                ) : (
-                  <Select value={discipline} onValueChange={(value: MartialArtsDiscipline) => { setDiscipline(value); setTechnique(''); }}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {availableDisciplines.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-            )}
+            <MultiDisciplineSelect
+              options={availableDisciplines}
+              value={selectedDisciplines}
+              onChange={(next) => {
+                setSelectedDisciplines(next);
+                // Clear technique if its discipline is no longer selected
+                setTechnique('');
+              }}
+              helper={profileDisciplines.length > 0 ? 'From your profile — pick one or more for this session.' : undefined}
+            />
 
             <div>
               <Label>Strategy</Label>
@@ -490,10 +484,10 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={5} placeholder="What happened? What worked? What needs improvement?" />
             </div>
 
-            <TagSelector
-              sessionId={sessionId}
+            <PredictiveTagInput
               selectedTags={selectedTags}
               onTagsChange={setSelectedTags}
+              disciplines={selectedDisciplines}
             />
           </CardContent>
         </Card>

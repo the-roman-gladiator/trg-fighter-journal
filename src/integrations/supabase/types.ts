@@ -946,6 +946,7 @@ export type Database = {
           created_at: string
           date: string
           discipline: Database["public"]["Enums"]["discipline"]
+          disciplines: string[]
           distance_meters: number | null
           duration_seconds: number | null
           effort_score: number | null
@@ -990,6 +991,7 @@ export type Database = {
           created_at?: string
           date?: string
           discipline: Database["public"]["Enums"]["discipline"]
+          disciplines?: string[]
           distance_meters?: number | null
           duration_seconds?: number | null
           effort_score?: number | null
@@ -1034,6 +1036,7 @@ export type Database = {
           created_at?: string
           date?: string
           discipline?: Database["public"]["Enums"]["discipline"]
+          disciplines?: string[]
           distance_meters?: number | null
           duration_seconds?: number | null
           effort_score?: number | null

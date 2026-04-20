@@ -316,36 +316,16 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </div>
             </div>
 
-            {singleDiscipline ? (
-              <div>
-                <Label>Discipline</Label>
-                <div className="flex items-center gap-2 mt-1.5">
-                  <Badge variant="secondary" className="text-sm py-1.5 px-3">{discipline}</Badge>
-                  <span className="text-xs text-muted-foreground">From your profile</span>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <Label>Discipline</Label>
-                {availableDisciplines.length <= 3 ? (
-                  <div className="flex gap-2 mt-1.5">
-                    {availableDisciplines.map((d) => (
-                      <Button key={d} type="button" size="sm" variant={discipline === d ? 'default' : 'outline'}
-                        onClick={() => { setDiscipline(d); setTechnique(''); }}>
-                        {d}
-                      </Button>
-                    ))}
-                  </div>
-                ) : (
-                  <Select value={discipline} onValueChange={(value: MartialArtsDiscipline) => { setDiscipline(value); setTechnique(''); }}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {availableDisciplines.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-            )}
+            <MultiDisciplineSelect
+              options={availableDisciplines}
+              value={selectedDisciplines}
+              onChange={(next) => {
+                setSelectedDisciplines(next);
+                // Clear technique if its discipline is no longer selected
+                setTechnique('');
+              }}
+              helper={profileDisciplines.length > 0 ? 'From your profile — pick one or more for this session.' : undefined}
+            />
 
             <div>
               <Label>Strategy</Label>
@@ -504,10 +484,10 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={5} placeholder="What happened? What worked? What needs improvement?" />
             </div>
 
-            <TagSelector
-              sessionId={sessionId}
+            <PredictiveTagInput
               selectedTags={selectedTags}
               onTagsChange={setSelectedTags}
+              disciplines={selectedDisciplines}
             />
           </CardContent>
         </Card>

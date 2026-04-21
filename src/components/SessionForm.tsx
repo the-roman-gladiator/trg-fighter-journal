@@ -75,6 +75,18 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [mentalEffort, setMentalEffort] = useState('');
   const [classType, setClassType] = useState('');
 
+  // Fighter Note fields (optional)
+  const [makeFighterNote, setMakeFighterNote] = useState(false);
+  const [attemptsCount, setAttemptsCount] = useState<string>('');
+  const [executedCount, setExecutedCount] = useState<string>('');
+  const [physicalEffortExecution, setPhysicalEffortExecution] = useState('');
+  const [mindsetEffortExecution, setMindsetEffortExecution] = useState('');
+
+  const attemptsNum = parseInt(attemptsCount) || 0;
+  const executedNum = parseInt(executedCount) || 0;
+  const executionRate = attemptsNum > 0 ? Math.round((executedNum / attemptsNum) * 100) : 0;
+  const rateColor = executionRate >= 86 ? 'bg-emerald-500' : executionRate >= 66 ? 'bg-amber-500' : 'bg-destructive';
+
   useEffect(() => {
     if (sessionId && sessionId !== 'new') {
       fetchSession();

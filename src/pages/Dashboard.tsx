@@ -217,33 +217,63 @@ export default function Dashboard() {
         className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-background/60 via-background/40 to-background"
       />
 
-      {/* Header */}
-      <header className="border-b border-border bg-card/70 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-display font-bold tracking-wide text-primary">TRG</h1>
-            <p className="text-[10px] text-muted-foreground tracking-widest uppercase">Fighter Journal</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <ModeSwitcher />
-            <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/profile')}>
+      {/* Premium hero header — bold sports-headline */}
+      <header className="relative z-10 border-b border-border/60 bg-gradient-to-b from-[hsl(0_0%_4%)] via-[hsl(0_0%_5%)] to-[hsl(0_0%_3.5%)]">
+        <div className="container mx-auto px-4 pt-4 pb-4 max-w-lg">
+          {/* Top row: profile + sign out */}
+          <div className="flex justify-end items-center gap-1 mb-1">
+            <Button variant="ghost" size="sm" className="text-xs h-8 px-2" onClick={() => navigate('/profile')}>
               <User className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={signOut}>
+            <Button variant="ghost" size="sm" className="text-[10px] h-8 px-2 text-muted-foreground" onClick={signOut}>
               Sign Out
             </Button>
+          </div>
+
+          {/* Hero block: title left, fighter image right */}
+          <div className="relative flex items-center justify-between gap-3 min-h-[120px]">
+            <div className="relative z-10 flex-1 min-w-0">
+              <h1 className="font-headline leading-[0.85] tracking-[0.01em] text-[48px] sm:text-[58px]">
+                <span className="block text-foreground">FIGHTER</span>
+                <span className="block text-primary drop-shadow-[0_2px_8px_hsl(var(--primary)/0.4)]">JOURNAL</span>
+              </h1>
+              <p className="mt-2 text-[11px] tracking-[0.18em] uppercase text-muted-foreground font-medium">
+                Track. Improve. Win.
+              </p>
+            </div>
+            {/* Fighter silhouette accent (right side) */}
+            <div
+              aria-hidden="true"
+              className="relative w-[130px] h-[130px] sm:w-[150px] sm:h-[150px] shrink-0 rounded-lg overflow-hidden"
+              style={{
+                backgroundImage: `url(${fighterBg})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center 20%',
+                maskImage: 'linear-gradient(to left, black 35%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to left, black 35%, transparent 100%)',
+              }}
+            />
+            <div
+              aria-hidden="true"
+              className="absolute right-0 top-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-primary/20 blur-3xl pointer-events-none"
+            />
+          </div>
+
+          {/* Mode switcher row — under hero, above the date */}
+          <div className="mt-4 flex justify-center">
+            <ModeSwitcher />
           </div>
         </div>
       </header>
 
-      {/* Floating Library access — visible on all sizes, positioned for mobile + desktop */}
+      {/* Floating Library access — circular */}
       <button
         onClick={() => navigate('/library')}
         aria-label="Open Library"
-        className="fixed z-40 right-4 bottom-[calc(env(safe-area-inset-bottom)+76px)] md:bottom-8 md:right-8 flex items-center gap-2 px-4 h-12 rounded-full bg-card/90 backdrop-blur-md border border-primary/40 text-foreground hover:text-primary hover:border-primary transition-all shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.45),0_0_0_1px_hsl(0_0%_100%/0.05)_inset] hover:shadow-[0_10px_28px_-6px_hsl(var(--primary)/0.6)]"
+        className="fixed z-40 right-4 bottom-[calc(env(safe-area-inset-bottom)+76px)] md:bottom-8 md:right-8 flex items-center justify-center w-14 h-14 rounded-full bg-card/90 backdrop-blur-md border border-primary/50 text-primary hover:text-primary-foreground hover:bg-primary transition-all shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.5),0_0_0_1px_hsl(0_0%_100%/0.06)_inset] hover:shadow-[0_10px_32px_-4px_hsl(var(--primary)/0.7)] hover:scale-105"
       >
-        <BookOpen className="h-5 w-5 text-primary" />
-        <span className="text-xs font-semibold tracking-wide uppercase">Library</span>
+        <BookOpen className="h-6 w-6" />
+        <span className="sr-only">Library</span>
       </button>
 
       <main className="container mx-auto px-4 py-5 max-w-lg space-y-5 pb-28 relative z-10">

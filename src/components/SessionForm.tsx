@@ -39,6 +39,7 @@ const effortToScore = (level: string): number => {
 export function SessionForm({ sessionId }: SessionFormProps) {
   const { user, profile } = useAuth();
   const { getActive } = useUserLists();
+  const { fighterProfile, isFighterApproved } = useFighterProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
 

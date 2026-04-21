@@ -372,6 +372,39 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_reflections: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          mood_tag: string | null
+          reflection_date: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          mood_tag?: string | null
+          reflection_date?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          mood_tag?: string | null
+          reflection_date?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       exercise_library: {
         Row: {
           category: string | null

@@ -129,6 +129,11 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setPhysicalEffort((session as any).physical_effort_level || '');
       setMentalEffort((session as any).mental_effort_level || '');
       setClassType((session as any).class_type || '');
+      setMakeFighterNote(!!(session as any).make_fighter_note);
+      setAttemptsCount((session as any).attempts_count != null ? String((session as any).attempts_count) : '');
+      setExecutedCount((session as any).executed_count != null ? String((session as any).executed_count) : '');
+      setPhysicalEffortExecution((session as any).physical_effort_execution || '');
+      setMindsetEffortExecution((session as any).mindset_effort_execution || '');
 
       const { data: sessionTagsData } = await supabase
         .from('session_tags')

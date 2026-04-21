@@ -285,55 +285,13 @@ export default function Dashboard() {
         </div>
 
         {/* Action Buttons Row */}
-        <div className="grid grid-cols-2 gap-2">
-          <Button onClick={() => navigate('/pathway')} variant="outline"
-            className="h-12 text-sm font-semibold tracking-wide border-border hover:border-primary/40 hover:bg-primary/5">
-            <Map className="mr-1.5 h-4 w-4" /> Pathway
-          </Button>
+        <div className="grid grid-cols-1 gap-2">
           <Button onClick={() => navigate('/library')} variant="outline"
             className="h-12 text-sm font-semibold tracking-wide border-border hover:border-primary/40 hover:bg-primary/5">
             <BookOpen className="mr-1.5 h-4 w-4" /> Library
           </Button>
         </div>
 
-        {/* Martial Arts Journal Card — My Statement, Disciplines, Daily Motivation */}
-        <Card className="border-primary/20 bg-card">
-          <CardContent className="pt-4 pb-4 space-y-3">
-            <div className="flex items-center gap-2 mb-1">
-              <Swords className="h-4 w-4 text-primary" />
-              <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">Martial Arts Journal</p>
-            </div>
-
-            {/* My Statement */}
-            {myStatement && (
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">Who I Want To Be</p>
-                <p className="text-sm font-medium text-foreground italic">"{myStatement}"</p>
-              </div>
-            )}
-
-            {/* My Disciplines */}
-            {myDisciplines.length > 0 && (
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">My Disciplines</p>
-                <div className="flex gap-1.5 flex-wrap">
-                  {myDisciplines.map(d => (
-                    <Badge key={d} variant="outline" className="text-[10px] px-2 py-0.5 border"
-                      style={{
-                        backgroundColor: getDisciplineColor(d) + '22',
-                        color: getDisciplineColor(d),
-                        borderColor: getDisciplineColor(d) + '44'
-                      }}>
-                      {d}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* My Daily Motivation — moved to top of dashboard; kept here only if no statement section above */}
-          </CardContent>
-        </Card>
 
         {/* Pie Chart — Type Classes Distribution */}
         <Card className="border-border bg-card">

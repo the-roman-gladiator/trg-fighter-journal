@@ -14,8 +14,10 @@ import { Badge } from '@/components/ui/badge';
 import { disciplines, strategies } from '@/config/dropdownOptions';
 import { PredictiveTagInput } from './PredictiveTagInput';
 import { MultiDisciplineSelect } from './MultiDisciplineSelect';
-import { Brain, Heart, Zap } from 'lucide-react';
+import { Brain, Heart, Zap, Swords } from 'lucide-react';
 import { useUserLists, DEFAULT_CLASS_TYPES, DEFAULT_EMOTIONS, DEFAULT_MINDSETS } from '@/hooks/useUserLists';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useFighterProfile } from '@/hooks/useFighterProfile';
 
 interface SessionFormProps {
   sessionId?: string;
@@ -37,6 +39,7 @@ const effortToScore = (level: string): number => {
 export function SessionForm({ sessionId }: SessionFormProps) {
   const { user, profile } = useAuth();
   const { getActive } = useUserLists();
+  const { fighterProfile, isFighterApproved } = useFighterProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -71,6 +74,18 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [physicalEffort, setPhysicalEffort] = useState('');
   const [mentalEffort, setMentalEffort] = useState('');
   const [classType, setClassType] = useState('');
+
+  // Fighter Note fields (optional)
+  const [makeFighterNote, setMakeFighterNote] = useState(false);
+  const [attemptsCount, setAttemptsCount] = useState<string>('');
+  const [executedCount, setExecutedCount] = useState<string>('');
+  const [physicalEffortExecution, setPhysicalEffortExecution] = useState('');
+  const [mindsetEffortExecution, setMindsetEffortExecution] = useState('');
+
+  const attemptsNum = parseInt(attemptsCount) || 0;
+  const executedNum = parseInt(executedCount) || 0;
+  const executionRate = attemptsNum > 0 ? Math.round((executedNum / attemptsNum) * 100) : 0;
+  const rateColor = executionRate >= 86 ? 'bg-emerald-500' : executionRate >= 66 ? 'bg-amber-500' : 'bg-destructive';
 
   useEffect(() => {
     if (sessionId && sessionId !== 'new') {
@@ -114,6 +129,11 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setPhysicalEffort((session as any).physical_effort_level || '');
       setMentalEffort((session as any).mental_effort_level || '');
       setClassType((session as any).class_type || '');
+      setMakeFighterNote(!!(session as any).make_fighter_note);
+      setAttemptsCount((session as any).attempts_count != null ? String((session as any).attempts_count) : '');
+      setExecutedCount((session as any).executed_count != null ? String((session as any).executed_count) : '');
+      setPhysicalEffortExecution((session as any).physical_effort_execution || '');
+      setMindsetEffortExecution((session as any).mindset_effort_execution || '');
 
       const { data: sessionTagsData } = await supabase
         .from('session_tags')
@@ -137,6 +157,22 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     if (!technique) {
       toast({ title: 'Validation', description: 'Please select a technique', variant: 'destructive' });
       return;
+    }
+
+    // Fighter Note validation
+    if (makeFighterNote) {
+      if (attemptsCount === '' || executedCount === '') {
+        toast({ title: 'Validation', description: 'Attempts and Executed are required for a Fighter Note', variant: 'destructive' });
+        return;
+      }
+      if (!Number.isInteger(attemptsNum) || !Number.isInteger(executedNum) || attemptsNum < 0 || executedNum < 0) {
+        toast({ title: 'Validation', description: 'Attempts and Executed must be whole numbers ≥ 0', variant: 'destructive' });
+        return;
+      }
+      if (executedNum > attemptsNum) {
+        toast({ title: 'Validation', description: 'Executed cannot exceed Attempts', variant: 'destructive' });
+        return;
+      }
     }
 
     setLoading(true);
@@ -173,6 +209,13 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         mental_effort_level: mentalEffort || null,
         effort_score: effortScore,
         class_type: classType || null,
+        // Fighter Note fields
+        make_fighter_note: makeFighterNote,
+        fighter_profile_id: makeFighterNote ? (fighterProfile?.id || null) : null,
+        attempts_count: makeFighterNote ? attemptsNum : null,
+        executed_count: makeFighterNote ? executedNum : null,
+        physical_effort_execution: makeFighterNote ? (physicalEffortExecution || null) : null,
+        mindset_effort_execution: makeFighterNote ? (mindsetEffortExecution || null) : null,
       };
 
       let savedSessionId = sessionId;
@@ -469,6 +512,106 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Fighter Note (optional) */}
+        {isFighterApproved && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Swords className="h-4 w-4 text-primary" />
+                Fighter Note
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <Checkbox
+                  checked={makeFighterNote}
+                  onCheckedChange={(v) => setMakeFighterNote(v === true)}
+                  className="mt-0.5"
+                />
+                <div>
+                  <p className="text-sm font-medium">Make this a Fighter Note</p>
+                  <p className="text-xs text-muted-foreground">
+                    Also link to your Fighter Profile and feed Fighter Statistics.
+                  </p>
+                </div>
+              </label>
+
+              {makeFighterNote && (
+                <div className="space-y-4 pt-2 border-t border-border">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="attempts" className="text-xs">Attempts</Label>
+                      <Input
+                        id="attempts"
+                        type="number"
+                        min={0}
+                        step={1}
+                        inputMode="numeric"
+                        value={attemptsCount}
+                        onChange={(e) => setAttemptsCount(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="executed" className="text-xs">Executed</Label>
+                      <Input
+                        id="executed"
+                        type="number"
+                        min={0}
+                        step={1}
+                        inputMode="numeric"
+                        value={executedCount}
+                        onChange={(e) => setExecutedCount(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs mb-2 block">Execution Rate</Label>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-3 rounded-full bg-secondary overflow-hidden">
+                        <div
+                          className={`h-full ${rateColor} transition-all`}
+                          style={{ width: `${attemptsNum > 0 ? executionRate : 0}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold tabular-nums w-16 text-right">
+                        {attemptsNum > 0 ? `${executionRate}%` : 'No data'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs mb-2 block">Physical Effort of Execution</Label>
+                    <div className="flex gap-1.5">
+                      {effortLevels.map((level) => (
+                        <EffortButton
+                          key={level}
+                          label={level}
+                          selected={physicalEffortExecution === level}
+                          onClick={() =>
+                            setPhysicalEffortExecution(physicalEffortExecution === level ? '' : level)
+                          }
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs mb-2 block">Mindset Effort of Execution</Label>
+                    <ChipSelect
+                      options={mindsetOptions}
+                      value={mindsetEffortExecution}
+                      onChange={setMindsetEffortExecution}
+                    />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Notes & Tags */}
         <Card>

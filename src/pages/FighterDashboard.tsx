@@ -10,6 +10,7 @@ import { ArrowLeft, Plus, Swords, Network, Shield, Clock, User } from 'lucide-re
 import { format } from 'date-fns';
 import { useAppMode } from '@/hooks/useAppMode';
 import { ModeSwitcher } from '@/components/ModeSwitcher';
+import { FighterStatistics } from '@/components/fighter/FighterStatistics';
 
 export default function FighterDashboard() {
   const { user, profile, signOut } = useAuth();
@@ -145,6 +146,9 @@ export default function FighterDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Fighter Statistics (from Fighter Notes in main session log) */}
+        {user && <FighterStatistics userId={user.id} onSessionClick={(id) => navigate(`/session/${id}`)} />}
 
         {/* Approved disciplines */}
         <Card>

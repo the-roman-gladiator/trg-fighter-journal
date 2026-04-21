@@ -1096,6 +1096,7 @@ export type Database = {
         Row: {
           after_emotion: string | null
           after_mindset: string | null
+          attempts_count: number | null
           avg_heart_rate: number | null
           avg_pace_seconds_per_km: number | null
           before_emotion: string | null
@@ -1112,14 +1113,21 @@ export type Database = {
           distance_meters: number | null
           duration_seconds: number | null
           effort_score: number | null
+          executed_count: number | null
+          execution_rate: number | null
           feeling: Database["public"]["Enums"]["feeling"] | null
+          fighter_profile_id: string | null
           first_movement: string | null
           id: string
           intensity: number | null
+          is_fighter_stat_eligible: boolean
+          make_fighter_note: boolean
           max_heart_rate: number | null
           mental_effort_level: string | null
+          mindset_effort_execution: string | null
           notes: string | null
           opponent_action: string | null
+          physical_effort_execution: string | null
           physical_effort_level: string | null
           second_movement: string | null
           session_type: Database["public"]["Enums"]["session_type"]
@@ -1141,6 +1149,7 @@ export type Database = {
         Insert: {
           after_emotion?: string | null
           after_mindset?: string | null
+          attempts_count?: number | null
           avg_heart_rate?: number | null
           avg_pace_seconds_per_km?: number | null
           before_emotion?: string | null
@@ -1157,14 +1166,21 @@ export type Database = {
           distance_meters?: number | null
           duration_seconds?: number | null
           effort_score?: number | null
+          executed_count?: number | null
+          execution_rate?: number | null
           feeling?: Database["public"]["Enums"]["feeling"] | null
+          fighter_profile_id?: string | null
           first_movement?: string | null
           id?: string
           intensity?: number | null
+          is_fighter_stat_eligible?: boolean
+          make_fighter_note?: boolean
           max_heart_rate?: number | null
           mental_effort_level?: string | null
+          mindset_effort_execution?: string | null
           notes?: string | null
           opponent_action?: string | null
+          physical_effort_execution?: string | null
           physical_effort_level?: string | null
           second_movement?: string | null
           session_type: Database["public"]["Enums"]["session_type"]
@@ -1186,6 +1202,7 @@ export type Database = {
         Update: {
           after_emotion?: string | null
           after_mindset?: string | null
+          attempts_count?: number | null
           avg_heart_rate?: number | null
           avg_pace_seconds_per_km?: number | null
           before_emotion?: string | null
@@ -1202,14 +1219,21 @@ export type Database = {
           distance_meters?: number | null
           duration_seconds?: number | null
           effort_score?: number | null
+          executed_count?: number | null
+          execution_rate?: number | null
           feeling?: Database["public"]["Enums"]["feeling"] | null
+          fighter_profile_id?: string | null
           first_movement?: string | null
           id?: string
           intensity?: number | null
+          is_fighter_stat_eligible?: boolean
+          make_fighter_note?: boolean
           max_heart_rate?: number | null
           mental_effort_level?: string | null
+          mindset_effort_execution?: string | null
           notes?: string | null
           opponent_action?: string | null
+          physical_effort_execution?: string | null
           physical_effort_level?: string | null
           second_movement?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]

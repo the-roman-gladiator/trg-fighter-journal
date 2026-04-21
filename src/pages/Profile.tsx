@@ -51,9 +51,12 @@ export default function Profile() {
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const [martialLevel, setMartialLevel] = useState('Beginner');
   const [fitnessLevel, setFitnessLevel] = useState<FitnessLevel>('Beginner');
+  const [profileOpen, setProfileOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [librariesOpen, setLibrariesOpen] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // My Statement & Motivation

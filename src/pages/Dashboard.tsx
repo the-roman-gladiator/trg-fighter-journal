@@ -226,25 +226,35 @@ export default function Dashboard() {
           </h2>
         </div>
 
-        {/* Daily Motivation — priority block, above Quick Log */}
-        {dailyMotivation && (
+        {/* Combined Daily Motivation + My Statement — outstanding top block */}
+        {(dailyMotivation || myStatement) && (
           <Card className="border-primary/40 bg-gradient-to-br from-primary/10 via-card to-card shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.35)]">
-            <CardContent className="pt-5 pb-5">
-              <div className="flex items-center gap-2 mb-2">
-                <Quote className="h-4 w-4 text-primary" />
-                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">Daily Motivation</p>
-              </div>
-              <p className="text-base sm:text-lg font-semibold text-foreground leading-snug">
-                {dailyMotivation}
-              </p>
+            <CardContent className="pt-5 pb-5 space-y-4">
+              {dailyMotivation && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Quote className="h-4 w-4 text-primary" />
+                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">Daily Motivation</p>
+                  </div>
+                  <p className="text-base sm:text-lg font-semibold text-foreground leading-snug">
+                    {dailyMotivation}
+                  </p>
+                </div>
+              )}
+              {myStatement && (
+                <div className={dailyMotivation ? 'pt-3 border-t border-primary/20' : ''}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Swords className="h-4 w-4 text-primary" />
+                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">My Statement</p>
+                  </div>
+                  <p className="text-sm sm:text-base font-medium text-foreground italic leading-snug">
+                    "{myStatement}"
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
-
-        {/* Quick Log Button with Boxing Gloves */}
-        <Button onClick={() => navigate('/session/new')} className="w-full h-14 text-base font-bold tracking-wide">
-          <span className="mr-2 text-lg">🥊</span> Quick Log Session
-        </Button>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-2">

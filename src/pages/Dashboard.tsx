@@ -196,9 +196,29 @@ export default function Dashboard() {
   const nickname = profile?.nickname || '';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Dashboard-only fighter background graphic */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          backgroundImage: `url(${fighterBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.18,
+          filter: 'blur(0.5px) saturate(1.1)',
+          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 80%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 80%)',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-background/60 via-background/40 to-background"
+      />
+
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-border bg-card/70 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div>
             <h1 className="text-xl font-display font-bold tracking-wide text-primary">TRG</h1>
@@ -216,7 +236,17 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-5 max-w-lg space-y-5 pb-28">
+      {/* Floating Library access — visible on all sizes, positioned for mobile + desktop */}
+      <button
+        onClick={() => navigate('/library')}
+        aria-label="Open Library"
+        className="fixed z-40 right-4 bottom-[calc(env(safe-area-inset-bottom)+76px)] md:bottom-8 md:right-8 flex items-center gap-2 px-4 h-12 rounded-full bg-card/90 backdrop-blur-md border border-primary/40 text-foreground hover:text-primary hover:border-primary transition-all shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.45),0_0_0_1px_hsl(0_0%_100%/0.05)_inset] hover:shadow-[0_10px_28px_-6px_hsl(var(--primary)/0.6)]"
+      >
+        <BookOpen className="h-5 w-5 text-primary" />
+        <span className="text-xs font-semibold tracking-wide uppercase">Library</span>
+      </button>
+
+      <main className="container mx-auto px-4 py-5 max-w-lg space-y-5 pb-28 relative z-10">
         {/* Dynamic Date + Title with Nickname */}
         <div>
           <p className="text-xs text-muted-foreground tracking-wide">
@@ -285,13 +315,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Action Buttons Row */}
-        <div className="grid grid-cols-1 gap-2">
-          <Button onClick={() => navigate('/library')} variant="outline"
-            className="h-12 text-sm font-semibold tracking-wide border-border hover:border-primary/40 hover:bg-primary/5">
-            <BookOpen className="mr-1.5 h-4 w-4" /> Library
-          </Button>
-        </div>
+        {/* Library moved to floating button (top-right on desktop, lower-right on mobile) */}
 
 
         {/* Pie Chart — Type Classes Distribution */}

@@ -29,9 +29,49 @@ import Records from "./pages/Records";
 import Trends from "./pages/Trends";
 import Reflection from "./pages/Reflection";
 import Award from "./pages/Award";
+import TechniqueArchive from "./pages/TechniqueArchive";
 import NotFound from "./pages/NotFound";
+import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
 
 const queryClient = new QueryClient();
+
+function AppShell() {
+  useBrowserNotifications();
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/session/new" element={<SessionEdit />} />
+        <Route path="/session/:id" element={<SessionDetail />} />
+        <Route path="/session/:id/edit" element={<SessionEdit />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/strength" element={<StrengthTraining />} />
+        <Route path="/strength/workout/:templateId" element={<WorkoutSessionPage />} />
+        <Route path="/strength/workout/:logId/resume" element={<WorkoutSessionPage />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/beginner" element={<BeginnerDashboard />} />
+        <Route path="/guided-session/:workoutId" element={<GuidedSession />} />
+        <Route path="/pathway" element={<MyPathway />} />
+        <Route path="/fighter" element={<FighterDashboard />} />
+        <Route path="/fighter/session/new" element={<FighterSessionEdit />} />
+        <Route path="/fighter/session/:id" element={<FighterSessionDetail />} />
+        <Route path="/fighter/session/:id/edit" element={<FighterSessionEdit />} />
+        <Route path="/fighter/pathway" element={<FighterPathway />} />
+        <Route path="/coach" element={<CoachDashboard />} />
+        <Route path="/coach/session/new" element={<CoachSessionEdit />} />
+        <Route path="/coach/session/:id/edit" element={<CoachSessionEdit />} />
+        <Route path="/library" element={<TechniqueLibrary />} />
+        <Route path="/archive" element={<TechniqueArchive />} />
+        <Route path="/records" element={<Records />} />
+        <Route path="/trends" element={<Trends />} />
+        <Route path="/reflection" element={<Reflection />} />
+        <Route path="/award" element={<Award />} />
+      </Routes>
+      <BottomNav />
+    </>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -42,35 +82,7 @@ const App = () => (
         <AuthProvider>
           <UserSettingsProvider>
             <AppModeProvider>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/session/new" element={<SessionEdit />} />
-                <Route path="/session/:id" element={<SessionDetail />} />
-                <Route path="/session/:id/edit" element={<SessionEdit />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/strength" element={<StrengthTraining />} />
-                <Route path="/strength/workout/:templateId" element={<WorkoutSessionPage />} />
-                <Route path="/strength/workout/:logId/resume" element={<WorkoutSessionPage />} />
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/beginner" element={<BeginnerDashboard />} />
-                <Route path="/guided-session/:workoutId" element={<GuidedSession />} />
-                <Route path="/pathway" element={<MyPathway />} />
-                <Route path="/fighter" element={<FighterDashboard />} />
-                <Route path="/fighter/session/new" element={<FighterSessionEdit />} />
-                <Route path="/fighter/session/:id" element={<FighterSessionDetail />} />
-                <Route path="/fighter/session/:id/edit" element={<FighterSessionEdit />} />
-                <Route path="/fighter/pathway" element={<FighterPathway />} />
-                <Route path="/coach" element={<CoachDashboard />} />
-                <Route path="/coach/session/new" element={<CoachSessionEdit />} />
-                <Route path="/coach/session/:id/edit" element={<CoachSessionEdit />} />
-                <Route path="/library" element={<TechniqueLibrary />} />
-                <Route path="/records" element={<Records />} />
-                <Route path="/trends" element={<Trends />} />
-                <Route path="/reflection" element={<Reflection />} />
-                <Route path="/award" element={<Award />} />
-              </Routes>
-              <BottomNav />
+              <AppShell />
             </AppModeProvider>
           </UserSettingsProvider>
         </AuthProvider>

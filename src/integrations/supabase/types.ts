@@ -519,6 +519,57 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_settings: {
+        Row: {
+          created_at: string
+          daily_motivation_days: string[]
+          daily_motivation_enabled: boolean
+          daily_motivation_time: string
+          enter_session_days: string[]
+          enter_session_enabled: boolean
+          enter_session_time: string
+          id: string
+          my_statement_days: string[]
+          my_statement_enabled: boolean
+          my_statement_time: string
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_motivation_days?: string[]
+          daily_motivation_enabled?: boolean
+          daily_motivation_time?: string
+          enter_session_days?: string[]
+          enter_session_enabled?: boolean
+          enter_session_time?: string
+          id?: string
+          my_statement_days?: string[]
+          my_statement_enabled?: boolean
+          my_statement_time?: string
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_motivation_days?: string[]
+          daily_motivation_enabled?: boolean
+          daily_motivation_time?: string
+          enter_session_days?: string[]
+          enter_session_enabled?: boolean
+          enter_session_time?: string
+          id?: string
+          my_statement_days?: string[]
+          my_statement_enabled?: boolean
+          my_statement_time?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pathway_edges: {
         Row: {
           connection_type: string
@@ -823,6 +874,39 @@ export type Database = {
           },
         ]
       }
+      support_tickets: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          message: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          message: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tags: {
         Row: {
           created_at: string
@@ -838,6 +922,51 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      technique_archive: {
+        Row: {
+          class_type: string | null
+          created_at: string
+          disciplines: string[]
+          id: string
+          neural_pathway_data: Json | null
+          notes: string | null
+          owner_user_id: string
+          source_session_id: string | null
+          strategy: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          class_type?: string | null
+          created_at?: string
+          disciplines?: string[]
+          id?: string
+          neural_pathway_data?: Json | null
+          notes?: string | null
+          owner_user_id: string
+          source_session_id?: string | null
+          strategy?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          class_type?: string | null
+          created_at?: string
+          disciplines?: string[]
+          id?: string
+          neural_pathway_data?: Json | null
+          notes?: string | null
+          owner_user_id?: string
+          source_session_id?: string | null
+          strategy?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

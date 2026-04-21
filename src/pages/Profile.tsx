@@ -577,6 +577,23 @@ export default function Profile() {
             </CardContent>
           </Card>
 
+          {/* Support (collapsible) — must be the last section */}
+          <Collapsible open={supportOpen} onOpenChange={setSupportOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full justify-between" type="button">
+                <span className="flex items-center gap-2">
+                  <LifeBuoy className="h-4 w-4" /> Support
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${supportOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-3">
+                <SupportSection />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Saving...' : 'Save Changes'}
           </Button>

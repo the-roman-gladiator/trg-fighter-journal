@@ -10,6 +10,7 @@ import { ArrowLeft, Plus, Swords, Network, Shield, Clock, User } from 'lucide-re
 import { format } from 'date-fns';
 import { useAppMode } from '@/hooks/useAppMode';
 import { ModeSwitcher } from '@/components/ModeSwitcher';
+import { FighterStatistics } from '@/components/fighter/FighterStatistics';
 
 export default function FighterDashboard() {
   const { user, profile, signOut } = useAuth();

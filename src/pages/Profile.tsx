@@ -190,15 +190,19 @@ export default function Profile() {
 
       <main className="container mx-auto px-4 py-6 max-w-lg pb-28">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Profile Card */}
-          <Card>
-            <CardHeader className="items-center pb-2">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <User className="w-8 h-8 text-primary" />
-              </div>
-              <CardTitle className="text-lg">Profile</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          {/* Profile (collapsible) */}
+          <Collapsible open={profileOpen} onOpenChange={setProfileOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full justify-between" type="button">
+                <span className="flex items-center gap-2">
+                  <User className="h-4 w-4" /> Profile
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <Card className="mt-3">
+                <CardContent className="space-y-4 pt-6">
               <div>
                 <Label htmlFor="name">First Name</Label>
                 <Input id="name" value={name} onChange={e => setName(e.target.value)} required />
@@ -233,17 +237,24 @@ export default function Profile() {
                   ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </CollapsibleContent>
+          </Collapsible>
 
-          {/* My Statement & Motivation */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Quote className="h-4 w-4 text-primary" /> My Statement & Motivation
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
+          {/* My Statement & Motivation (collapsible) */}
+          <Collapsible open={motivationOpen} onOpenChange={setMotivationOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full justify-between" type="button">
+                <span className="flex items-center gap-2">
+                  <Quote className="h-4 w-4" /> My Statement & Motivation
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${motivationOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <Card className="mt-3">
+                <CardContent className="space-y-5 pt-6">
               {/* My Statement */}
               <div>
                 <Label htmlFor="myStatement">Who I Want To Be</Label>

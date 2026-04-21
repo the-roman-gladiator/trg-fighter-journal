@@ -159,6 +159,22 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       return;
     }
 
+    // Fighter Note validation
+    if (makeFighterNote) {
+      if (attemptsCount === '' || executedCount === '') {
+        toast({ title: 'Validation', description: 'Attempts and Executed are required for a Fighter Note', variant: 'destructive' });
+        return;
+      }
+      if (!Number.isInteger(attemptsNum) || !Number.isInteger(executedNum) || attemptsNum < 0 || executedNum < 0) {
+        toast({ title: 'Validation', description: 'Attempts and Executed must be whole numbers ≥ 0', variant: 'destructive' });
+        return;
+      }
+      if (executedNum > attemptsNum) {
+        toast({ title: 'Validation', description: 'Executed cannot exceed Attempts', variant: 'destructive' });
+        return;
+      }
+    }
+
     setLoading(true);
 
     // Calculate effort score
@@ -193,6 +209,13 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         mental_effort_level: mentalEffort || null,
         effort_score: effortScore,
         class_type: classType || null,
+        // Fighter Note fields
+        make_fighter_note: makeFighterNote,
+        fighter_profile_id: makeFighterNote ? (fighterProfile?.id || null) : null,
+        attempts_count: makeFighterNote ? attemptsNum : null,
+        executed_count: makeFighterNote ? executedNum : null,
+        physical_effort_execution: makeFighterNote ? (physicalEffortExecution || null) : null,
+        mindset_effort_execution: makeFighterNote ? (mindsetEffortExecution || null) : null,
       };
 
       let savedSessionId = sessionId;

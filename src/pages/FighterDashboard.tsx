@@ -147,6 +147,9 @@ export default function FighterDashboard() {
           </Card>
         </div>
 
+        {/* Fighter Statistics (from Fighter Notes in main session log) */}
+        {user && <FighterStatistics userId={user.id} onSessionClick={(id) => navigate(`/session/${id}`)} />}
+
         {/* Approved disciplines */}
         <Card>
           <CardHeader className="pb-2">

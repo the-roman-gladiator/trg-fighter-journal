@@ -513,6 +513,106 @@ export function SessionForm({ sessionId }: SessionFormProps) {
           </CardContent>
         </Card>
 
+        {/* Fighter Note (optional) */}
+        {isFighterApproved && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Swords className="h-4 w-4 text-primary" />
+                Fighter Note
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <Checkbox
+                  checked={makeFighterNote}
+                  onCheckedChange={(v) => setMakeFighterNote(v === true)}
+                  className="mt-0.5"
+                />
+                <div>
+                  <p className="text-sm font-medium">Make this a Fighter Note</p>
+                  <p className="text-xs text-muted-foreground">
+                    Also link to your Fighter Profile and feed Fighter Statistics.
+                  </p>
+                </div>
+              </label>
+
+              {makeFighterNote && (
+                <div className="space-y-4 pt-2 border-t border-border">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="attempts" className="text-xs">Attempts</Label>
+                      <Input
+                        id="attempts"
+                        type="number"
+                        min={0}
+                        step={1}
+                        inputMode="numeric"
+                        value={attemptsCount}
+                        onChange={(e) => setAttemptsCount(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="executed" className="text-xs">Executed</Label>
+                      <Input
+                        id="executed"
+                        type="number"
+                        min={0}
+                        step={1}
+                        inputMode="numeric"
+                        value={executedCount}
+                        onChange={(e) => setExecutedCount(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs mb-2 block">Execution Rate</Label>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-3 rounded-full bg-secondary overflow-hidden">
+                        <div
+                          className={`h-full ${rateColor} transition-all`}
+                          style={{ width: `${attemptsNum > 0 ? executionRate : 0}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold tabular-nums w-16 text-right">
+                        {attemptsNum > 0 ? `${executionRate}%` : 'No data'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs mb-2 block">Physical Effort of Execution</Label>
+                    <div className="flex gap-1.5">
+                      {effortLevels.map((level) => (
+                        <EffortButton
+                          key={level}
+                          label={level}
+                          selected={physicalEffortExecution === level}
+                          onClick={() =>
+                            setPhysicalEffortExecution(physicalEffortExecution === level ? '' : level)
+                          }
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs mb-2 block">Mindset Effort of Execution</Label>
+                    <ChipSelect
+                      options={mindsetOptions}
+                      value={mindsetEffortExecution}
+                      onChange={setMindsetEffortExecution}
+                    />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Notes & Tags */}
         <Card>
           <CardHeader>

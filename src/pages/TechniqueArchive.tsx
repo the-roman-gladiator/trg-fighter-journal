@@ -127,10 +127,12 @@ export default function TechniqueArchive() {
                 <Label>Title</Label>
                 <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Jab → Cross → Low Kick" />
               </div>
-              <div>
-                <Label>Disciplines</Label>
-                <MultiDisciplineSelect value={disciplines} onChange={setDisciplines} />
-              </div>
+              <MultiDisciplineSelect
+                options={['MMA', 'Muay Thai', 'K1', 'BJJ', 'Grappling', 'Wrestling']}
+                value={disciplines}
+                onChange={setDisciplines}
+                label="Disciplines"
+              />
               <div>
                 <Label>Strategy</Label>
                 <Input value={strategy} onChange={e => setStrategy(e.target.value)} placeholder="e.g. Attacking, Countering" />
@@ -141,7 +143,7 @@ export default function TechniqueArchive() {
               </div>
               <div>
                 <Label>Tags</Label>
-                <PredictiveTagInput value={tags} onChange={setTags} disciplines={disciplines} />
+                <PredictiveTagInput selectedTags={tags} onTagsChange={setTags} disciplines={disciplines} />
               </div>
               <div>
                 <Label>Notes</Label>

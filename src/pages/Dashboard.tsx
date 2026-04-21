@@ -226,25 +226,35 @@ export default function Dashboard() {
           </h2>
         </div>
 
-        {/* Daily Motivation — priority block, above Quick Log */}
-        {dailyMotivation && (
+        {/* Combined Daily Motivation + My Statement — outstanding top block */}
+        {(dailyMotivation || myStatement) && (
           <Card className="border-primary/40 bg-gradient-to-br from-primary/10 via-card to-card shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.35)]">
-            <CardContent className="pt-5 pb-5">
-              <div className="flex items-center gap-2 mb-2">
-                <Quote className="h-4 w-4 text-primary" />
-                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">Daily Motivation</p>
-              </div>
-              <p className="text-base sm:text-lg font-semibold text-foreground leading-snug">
-                {dailyMotivation}
-              </p>
+            <CardContent className="pt-5 pb-5 space-y-4">
+              {dailyMotivation && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Quote className="h-4 w-4 text-primary" />
+                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">Daily Motivation</p>
+                  </div>
+                  <p className="text-base sm:text-lg font-semibold text-foreground leading-snug">
+                    {dailyMotivation}
+                  </p>
+                </div>
+              )}
+              {myStatement && (
+                <div className={dailyMotivation ? 'pt-3 border-t border-primary/20' : ''}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Swords className="h-4 w-4 text-primary" />
+                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">My Statement</p>
+                  </div>
+                  <p className="text-sm sm:text-base font-medium text-foreground italic leading-snug">
+                    "{myStatement}"
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
-
-        {/* Quick Log Button with Boxing Gloves */}
-        <Button onClick={() => navigate('/session/new')} className="w-full h-14 text-base font-bold tracking-wide">
-          <span className="mr-2 text-lg">🥊</span> Quick Log Session
-        </Button>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-2">
@@ -275,55 +285,13 @@ export default function Dashboard() {
         </div>
 
         {/* Action Buttons Row */}
-        <div className="grid grid-cols-2 gap-2">
-          <Button onClick={() => navigate('/pathway')} variant="outline"
-            className="h-12 text-sm font-semibold tracking-wide border-border hover:border-primary/40 hover:bg-primary/5">
-            <Map className="mr-1.5 h-4 w-4" /> Pathway
-          </Button>
+        <div className="grid grid-cols-1 gap-2">
           <Button onClick={() => navigate('/library')} variant="outline"
             className="h-12 text-sm font-semibold tracking-wide border-border hover:border-primary/40 hover:bg-primary/5">
             <BookOpen className="mr-1.5 h-4 w-4" /> Library
           </Button>
         </div>
 
-        {/* Martial Arts Journal Card — My Statement, Disciplines, Daily Motivation */}
-        <Card className="border-primary/20 bg-card">
-          <CardContent className="pt-4 pb-4 space-y-3">
-            <div className="flex items-center gap-2 mb-1">
-              <Swords className="h-4 w-4 text-primary" />
-              <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">Martial Arts Journal</p>
-            </div>
-
-            {/* My Statement */}
-            {myStatement && (
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">Who I Want To Be</p>
-                <p className="text-sm font-medium text-foreground italic">"{myStatement}"</p>
-              </div>
-            )}
-
-            {/* My Disciplines */}
-            {myDisciplines.length > 0 && (
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">My Disciplines</p>
-                <div className="flex gap-1.5 flex-wrap">
-                  {myDisciplines.map(d => (
-                    <Badge key={d} variant="outline" className="text-[10px] px-2 py-0.5 border"
-                      style={{
-                        backgroundColor: getDisciplineColor(d) + '22',
-                        color: getDisciplineColor(d),
-                        borderColor: getDisciplineColor(d) + '44'
-                      }}>
-                      {d}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* My Daily Motivation — moved to top of dashboard; kept here only if no statement section above */}
-          </CardContent>
-        </Card>
 
         {/* Pie Chart — Type Classes Distribution */}
         <Card className="border-border bg-card">

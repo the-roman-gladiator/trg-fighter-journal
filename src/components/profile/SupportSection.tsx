@@ -10,8 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
-const TERMS_URL = 'https://theromangladiators.com.au/term-condition#trgapptcs';
-const TUTORIAL_URL = 'https://theromangladiators.com.au/tutorial';
+const TERMS_URL = 'https://theromangladiators.com.au/trgapptncstrg#trgapptcs';
+const TUTORIAL_URL = 'https://theromangladiators.com.au/trgapptncstrg#trg-app-tutorial';
 
 export function SupportSection() {
   const { user } = useAuth();

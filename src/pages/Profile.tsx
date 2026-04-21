@@ -317,78 +317,95 @@ export default function Profile() {
             </CardContent>
           </Card>
 
-          {/* Advanced Settings */}
+          {/* Advanced Setting (parent) */}
           <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
             <CollapsibleTrigger asChild>
               <Button variant="outline" className="w-full justify-between" type="button">
                 <span className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" /> Advanced Settings
+                  <Settings className="h-4 w-4" /> Advanced Setting
                 </span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${advancedOpen ? 'rotate-180' : ''}`} />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <Card className="mt-3">
-                <CardContent className="pt-6 space-y-5">
-                  <div>
-                    <Label>Disciplines</Label>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {disciplines.map(d => (
-                        <button key={d} type="button" onClick={() => toggleDiscipline(d)}
-                          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
-                            selectedDisciplines.includes(d)
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'border-border text-foreground hover:border-primary/50'
-                          }`}
-                        >{d}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Martial Arts Level</Label>
-                    <Select value={martialLevel} onValueChange={setMartialLevel}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {martialLevels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Fitness Level</Label>
-                    <Select value={fitnessLevel} onValueChange={(v: any) => setFitnessLevel(v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {fitnessLevels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-            </CollapsibleContent>
-          </Collapsible>
-
-          {/* Advanced Setting — User Libraries */}
-          <Collapsible open={librariesOpen} onOpenChange={setLibrariesOpen}>
-            <CollapsibleTrigger asChild>
-              <Button variant="outline" className="w-full justify-between" type="button">
-                <span className="flex items-center gap-2">
-                  <Library className="h-4 w-4" /> Advanced Setting
-                </span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${librariesOpen ? 'rotate-180' : ''}`} />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
               <div className="mt-3 space-y-3">
-                <p className="text-xs text-muted-foreground px-1">
-                  Manage the items that appear in your training session selectors. Changes only affect your account.
-                </p>
-                <CustomListManager type="technique" title="Techniques" scoped />
-                <CustomListManager type="class_type" title="Class Type" />
-                <CustomListManager type="emotion" title="Emotions" />
-                <CustomListManager type="mindset" title="Mindset" />
+                {/* Activity Setting */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Swords className="h-4 w-4 text-primary" /> Activity Setting
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-5">
+                    <div>
+                      <Label>Disciplines</Label>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {disciplines.map(d => (
+                          <button key={d} type="button" onClick={() => toggleDiscipline(d)}
+                            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                              selectedDisciplines.includes(d)
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'border-border text-foreground hover:border-primary/50'
+                            }`}
+                          >{d}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Martial Arts Level</Label>
+                      <Select value={martialLevel} onValueChange={setMartialLevel}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {martialLevels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Fitness Level</Label>
+                      <Select value={fitnessLevel} onValueChange={(v: any) => setFitnessLevel(v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {fitnessLevels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Personalised Setting */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Library className="h-4 w-4 text-primary" /> Personalised Setting
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-xs text-muted-foreground">
+                      Manage the items that appear in your training session selectors. Changes only affect your account.
+                    </p>
+                    <CustomListManager type="technique" title="Techniques" scoped />
+                    <CustomListManager type="class_type" title="Class Type" />
+                    <CustomListManager type="emotion" title="Emotions" />
+                    <CustomListManager type="mindset" title="Mindset" />
+                  </CardContent>
+                </Card>
               </div>
             </CollapsibleContent>
           </Collapsible>
+
+          {/* Technique Archive shortcut */}
+          <Button type="button" variant="outline" className="w-full justify-between" onClick={() => navigate('/archive')}>
+            <span className="flex items-center gap-2">
+              <BookMarked className="h-4 w-4" /> My Technique Archive
+            </span>
+            <ChevronDown className="h-4 w-4 -rotate-90" />
+          </Button>
+
+          {/* Notifications */}
+          <NotificationsSection />
+
+          {/* Support */}
+          <SupportSection />
 
           {/* Customization */}
           <Collapsible open={customOpen} onOpenChange={setCustomOpen}>

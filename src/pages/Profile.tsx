@@ -328,8 +328,10 @@ export default function Profile() {
                   />
                 </div>
               )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Advanced Setting (parent) */}
           <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>

@@ -417,11 +417,23 @@ export default function Profile() {
             <ChevronDown className="h-4 w-4 -rotate-90" />
           </Button>
 
-          {/* Notifications */}
-          <NotificationsSection />
+          {/* Notifications (collapsible) */}
+          <Collapsible open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full justify-between" type="button">
+                <span className="flex items-center gap-2">
+                  <Bell className="h-4 w-4" /> Notifications
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${notificationsOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-3">
+                <NotificationsSection />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
-          {/* Support */}
-          <SupportSection />
 
           {/* Customization */}
           <Collapsible open={customOpen} onOpenChange={setCustomOpen}>

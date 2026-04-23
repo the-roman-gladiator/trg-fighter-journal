@@ -20,7 +20,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed bottom-0 inset-x-0 z-50 border-t border-primary/25 bg-[hsl(0_0%_5%)]/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_32px_-8px_hsl(var(--primary)/0.35)] before:absolute before:inset-x-0 before:-top-px before:h-px before:bg-gradient-to-r before:from-transparent before:via-primary/60 before:to-transparent"
+      className="fixed bottom-0 inset-x-0 z-50 border-t border-primary/25 bg-black pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_32px_-8px_hsl(var(--primary)/0.35)] before:absolute before:inset-x-0 before:-top-px before:h-px before:bg-gradient-to-r before:from-transparent before:via-primary/60 before:to-transparent"
     >
       <ul className="flex items-stretch justify-between max-w-lg mx-auto px-1">
         {tabs.map(({ to, label, icon: Icon, exact }) => (

@@ -301,7 +301,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
 
   return (
     <div className="relative w-full h-full overflow-hidden">
-      {/* Looping neural pathway background video */}
+      {/* Looping neural pathway background video — lightened */}
       <video
         src={neuralBgVideo}
         autoPlay
@@ -311,6 +311,16 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
         preload="auto"
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        style={{ filter: 'brightness(1.55) saturate(1.15) contrast(0.95)' }}
+      />
+      {/* Soft lifting wash to reduce darkness */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse at center, hsla(190, 70%, 55%, 0.10) 0%, hsla(265, 60%, 50%, 0.08) 45%, hsla(0,0%,100%,0.04) 100%)',
+        }}
       />
       <svg
         ref={svgRef}

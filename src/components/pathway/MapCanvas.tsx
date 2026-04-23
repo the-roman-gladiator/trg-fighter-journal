@@ -19,15 +19,19 @@ interface MapCanvasProps {
 
 const NODE_COLORS: Record<string, { core: string; glow: string }> = {
   root:        { core: '#ffffff', glow: '#e0f2fe' },
-  discipline:  { core: '#06b6d4', glow: '#22d3ee' },
-  strategy:    { core: '#f59e0b', glow: '#fbbf24' },
-  technique:   { core: '#8b5cf6', glow: '#a78bfa' },
-  movement:    { core: '#10b981', glow: '#34d399' },
-  reaction:    { core: '#f43f5e', glow: '#fb7185' },
-  followup:    { core: '#3b82f6', glow: '#60a5fa' },
-  tactic:      { core: '#06b6d4', glow: '#22d3ee' },
-  action:      { core: '#10b981', glow: '#34d399' },
-  default:     { core: '#06b6d4', glow: '#22d3ee' },
+  discipline:  { core: '#E63946', glow: '#ff5d6c' },
+  strategy:    { core: '#FF7F11', glow: '#ffa64d' },
+  technique:   { core: '#2A9D8F', glow: '#4fc3b4' },
+  movement1:   { core: '#4CC9F0', glow: '#7fdcf5' },
+  movement2:   { core: '#F72585', glow: '#ff5cae' },
+  movement3:   { core: '#7FBA00', glow: '#a8d639' },
+  // Legacy aliases (kept for backwards compatibility with FighterPathway tactic/action)
+  movement:    { core: '#4CC9F0', glow: '#7fdcf5' },
+  reaction:    { core: '#F72585', glow: '#ff5cae' },
+  followup:    { core: '#7FBA00', glow: '#a8d639' },
+  tactic:      { core: '#FF7F11', glow: '#ffa64d' },
+  action:      { core: '#2A9D8F', glow: '#4fc3b4' },
+  default:     { core: '#4CC9F0', glow: '#7fdcf5' },
 };
 
 function getNodeColor(type: string, colorTag: string | null) {

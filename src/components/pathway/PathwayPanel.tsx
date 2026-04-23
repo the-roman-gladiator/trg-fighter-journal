@@ -42,6 +42,9 @@ const TYPE_LABELS: Record<string, string> = {
   discipline: 'Discipline',
   strategy: 'Strategy',
   technique: 'Technique',
+  movement1: '1st Movement',
+  movement2: 'Opponent Reaction',
+  movement3: 'Follow-up',
   movement: '1st Movement',
   reaction: 'Opponent Reaction',
   followup: 'Follow-up',
@@ -51,14 +54,17 @@ const TYPE_LABELS: Record<string, string> = {
 
 const TYPE_COLORS: Record<string, string> = {
   root: '#ffffff',
-  discipline: '#06b6d4',
-  strategy: '#f59e0b',
-  technique: '#8b5cf6',
-  movement: '#10b981',
-  reaction: '#f43f5e',
-  followup: '#3b82f6',
-  tactic: '#06b6d4',
-  action: '#10b981',
+  discipline: '#E63946',
+  strategy: '#FF7F11',
+  technique: '#2A9D8F',
+  movement1: '#4CC9F0',
+  movement2: '#F72585',
+  movement3: '#7FBA00',
+  movement: '#4CC9F0',
+  reaction: '#F72585',
+  followup: '#7FBA00',
+  tactic: '#FF7F11',
+  action: '#2A9D8F',
 };
 
 function PathwayChainsList({ sessions }: { sessions: any[] }) {
@@ -320,13 +326,13 @@ export function PathwayPanel({
             if (!open && onClose) onClose();
           }}
         >
-          <DrawerContent className="bg-[#0d0d18] border-cyan-900/30 max-h-[70vh]">
-            <DrawerHeader className="pb-0">
+          <DrawerContent className="bg-[#0d0d18] border-t border-cyan-900/30 rounded-t-2xl max-h-[45vh]">
+            <DrawerHeader className="pb-0 pt-2">
               <DrawerTitle className="text-cyan-400/80 text-sm uppercase tracking-widest">
                 Node Details
               </DrawerTitle>
             </DrawerHeader>
-            <div className="p-4 overflow-y-auto">
+            <div className="p-4 pb-6 overflow-y-auto">
               <NodeDetails
                 selectedNode={selectedNode}
                 parentNode={parentNode}

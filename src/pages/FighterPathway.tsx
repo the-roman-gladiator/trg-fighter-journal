@@ -84,34 +84,40 @@ export default function FighterPathway() {
       }
     }
 
-    // Layout
-    const CX = 400, CY = 300;
+    // --- Layered horizontal layout (top → bottom) ---
+    const WIDTH = 800;
+    const CENTER_X = WIDTH / 2;
+    const layerY: Record<string, number> = {
+      root: 0,
+      strategy: 70,
+      tactic: 220,
+      action: 380,
+    };
+
     const positions = new Map<string, { x: number; y: number }>();
-    positions.set(rootId, { x: CX, y: CY });
+    positions.set(rootId, { x: CENTER_X, y: layerY.root });
 
-    const stratIds = [...nodeMap.keys()].filter(k => k.startsWith('strat:'));
-    radialLayout(CX, CY, stratIds, 160).forEach((p, id) => positions.set(id, p));
+    const layerGroups: Array<{ prefix: string; type: keyof typeof layerY }> = [
+      { prefix: 'strat:', type: 'strategy' },
+      { prefix: 'tactic:', type: 'tactic' },
+      { prefix: 'action:', type: 'action' },
+    ];
 
-    const tacticIds = [...nodeMap.keys()].filter(k => k.startsWith('tactic:'));
-    tacticIds.forEach(tid => {
-      const parentEdge = [...edgeMap.values()].find(e => e.target === tid);
-      const pp = parentEdge ? positions.get(parentEdge.source) || { x: CX, y: CY } : { x: CX, y: CY };
-      const angle = Math.atan2(pp.y - CY, pp.x - CX) + (Math.random() - 0.5) * 0.8;
-      positions.set(tid, { x: pp.x + Math.cos(angle) * 100, y: pp.y + Math.sin(angle) * 100 });
-    });
-
-    const actionIds = [...nodeMap.keys()].filter(k => k.startsWith('action:'));
-    actionIds.forEach(aid => {
-      const parentEdge = [...edgeMap.values()].find(e => e.target === aid);
-      const pp = parentEdge ? positions.get(parentEdge.source) || { x: CX, y: CY } : { x: CX, y: CY };
-      const angle = Math.atan2(pp.y - CY, pp.x - CX) + (Math.random() - 0.5) * 1.2;
-      positions.set(aid, { x: pp.x + Math.cos(angle) * 80, y: pp.y + Math.sin(angle) * 80 });
+    layerGroups.forEach(({ prefix, type }) => {
+      const items = [...nodeMap.keys()].filter(k => k.startsWith(prefix));
+      if (items.length === 0) return;
+      const spacing = Math.max(WIDTH / (items.length + 1), 110);
+      const totalWidth = spacing * (items.length - 1);
+      const startX = CENTER_X - totalWidth / 2;
+      items.forEach((id, i) => {
+        positions.set(id, { x: startX + i * spacing, y: layerY[type] });
+      });
     });
 
     const now = new Date().toISOString();
     const builtNodes: PathwayNode[] = [];
     nodeMap.forEach((data, id) => {
-      const pos = positions.get(id) || { x: CX, y: CY };
+      const pos = positions.get(id) || { x: 400, y: 200 };
       builtNodes.push({
         id, user_id: user?.id || '', title: data.label,
         description: `${data.count} session${data.count !== 1 ? 's' : ''}`,

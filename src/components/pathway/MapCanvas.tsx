@@ -1,6 +1,5 @@
 import { useRef, useState, useCallback, useEffect, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { PathwayNode, PathwayEdge } from './FuturisticMap';
-import nebulaBg from '@/assets/pathway-nebula-bg.png';
 
 export interface MapCanvasHandle {
   zoomIn: () => void;

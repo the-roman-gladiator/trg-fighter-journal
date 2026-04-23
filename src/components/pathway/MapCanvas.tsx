@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { PathwayNode, PathwayEdge } from './FuturisticMap';
+import neuralBgVideo from '@/assets/neural-pathway-bg.mp4';
 
 export interface MapCanvasHandle {
   zoomIn: () => void;
@@ -299,194 +300,52 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
   const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
 
   return (
-    <svg
-      ref={svgRef}
-      className="w-full h-full cursor-grab active:cursor-grabbing"
-      viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onWheel={handleWheel}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      style={{ touchAction: 'none' }}
-    >
-      <defs>
-        {/* Glow filters */}
-        <filter id="glow-soft" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="4" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-        <filter id="glow-strong" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="8" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-        <filter id="glow-edge" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="3" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-
-        {/* Aurora blur filters */}
-        <filter id="aurora-blur-1" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="40" />
-        </filter>
-        <filter id="aurora-blur-2" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="60" />
-        </filter>
-        <filter id="aurora-blur-3" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="25" />
-        </filter>
-
-        {/* Deep space radial gradient */}
-        <radialGradient id="bg-deep" cx="50%" cy="40%">
-          <stop offset="0%" stopColor="#0a0e2a" stopOpacity="1" />
-          <stop offset="100%" stopColor="#00010f" stopOpacity="1" />
-        </radialGradient>
-
-        {/* Background grid pattern */}
-        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(6,182,212,0.04)" strokeWidth="0.5" />
-        </pattern>
-      </defs>
-
-      {/* Deep space base */}
-      <rect
-        x={viewBox.x - 2000} y={viewBox.y - 2000}
-        width={viewBox.w + 4000} height={viewBox.h + 4000}
-        fill="url(#bg-deep)"
+    <div className="relative w-full h-full overflow-hidden">
+      {/* Looping neural pathway background video */}
+      <video
+        src={neuralBgVideo}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
       />
+      <svg
+        ref={svgRef}
+        className="relative w-full h-full cursor-grab active:cursor-grabbing"
+        viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ touchAction: 'none' }}
+      >
+        <defs>
+          {/* Glow filters */}
+          <filter id="glow-soft" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <filter id="glow-strong" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="8" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <filter id="glow-edge" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
 
-      {/* Aurora layer 1 — purple top-left */}
-      <ellipse
-        cx={viewBox.x + viewBox.w * 0.15 + Math.sin(time * 0.08) * viewBox.w * 0.06}
-        cy={viewBox.y + viewBox.h * 0.18 + Math.cos(time * 0.06) * viewBox.h * 0.04}
-        rx={viewBox.w * 0.45} ry={viewBox.h * 0.22}
-        fill="#6B21A8"
-        opacity={0.18 + Math.sin(time * 0.15) * 0.06}
-        filter="url(#aurora-blur-2)"
-      />
-      {/* Aurora layer 2 — teal/green top-right */}
-      <ellipse
-        cx={viewBox.x + viewBox.w * 0.72 + Math.sin(time * 0.07 + 1.2) * viewBox.w * 0.05}
-        cy={viewBox.y + viewBox.h * 0.08 + Math.cos(time * 0.09 + 0.8) * viewBox.h * 0.03}
-        rx={viewBox.w * 0.38} ry={viewBox.h * 0.16}
-        fill="#0d9488"
-        opacity={0.22 + Math.sin(time * 0.12 + 1) * 0.07}
-        filter="url(#aurora-blur-2)"
-      />
-      {/* Aurora layer 3 — blue right-center */}
-      <ellipse
-        cx={viewBox.x + viewBox.w * 0.85 + Math.sin(time * 0.05 + 2.1) * viewBox.w * 0.04}
-        cy={viewBox.y + viewBox.h * 0.48 + Math.cos(time * 0.07 + 1.5) * viewBox.h * 0.06}
-        rx={viewBox.w * 0.32} ry={viewBox.h * 0.28}
-        fill="#1d4ed8"
-        opacity={0.2 + Math.sin(time * 0.1 + 2) * 0.06}
-        filter="url(#aurora-blur-2)"
-      />
-      {/* Aurora layer 4 — cyan bottom-left */}
-      <ellipse
-        cx={viewBox.x + viewBox.w * 0.12 + Math.sin(time * 0.06 + 3.0) * viewBox.w * 0.05}
-        cy={viewBox.y + viewBox.h * 0.82 + Math.cos(time * 0.08 + 2.2) * viewBox.h * 0.04}
-        rx={viewBox.w * 0.35} ry={viewBox.h * 0.2}
-        fill="#0891b2"
-        opacity={0.25 + Math.sin(time * 0.13 + 3) * 0.08}
-        filter="url(#aurora-blur-2)"
-      />
-      {/* Aurora layer 5 — blue bottom-right arc */}
-      <ellipse
-        cx={viewBox.x + viewBox.w * 0.65 + Math.sin(time * 0.09 + 1.8) * viewBox.w * 0.04}
-        cy={viewBox.y + viewBox.h * 0.88 + Math.cos(time * 0.06 + 3.5) * viewBox.h * 0.03}
-        rx={viewBox.w * 0.4} ry={viewBox.h * 0.18}
-        fill="#2563eb"
-        opacity={0.18 + Math.sin(time * 0.11 + 1.5) * 0.06}
-        filter="url(#aurora-blur-2)"
-      />
-      {/* Aurora layer 6 — purple mid-left pulse */}
-      <ellipse
-        cx={viewBox.x + viewBox.w * 0.08 + Math.sin(time * 0.04 + 0.5) * viewBox.w * 0.03}
-        cy={viewBox.y + viewBox.h * 0.55 + Math.cos(time * 0.05 + 1.0) * viewBox.h * 0.05}
-        rx={viewBox.w * 0.22} ry={viewBox.h * 0.3}
-        fill="#7e22ce"
-        opacity={0.14 + Math.sin(time * 0.09 + 0.3) * 0.05}
-        filter="url(#aurora-blur-1)"
-      />
+          {/* Background grid pattern */}
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(6,182,212,0.04)" strokeWidth="0.5" />
+          </pattern>
+        </defs>
 
-      {/* Subtle aurora streaks */}
-      {[
-        { y: 0.12, color: '#5eead4', speed: 0.07, phase: 0 },
-        { y: 0.78, color: '#67e8f9', speed: 0.05, phase: 2.1 },
-        { y: 0.35, color: '#a78bfa', speed: 0.06, phase: 1.3 },
-      ].map((streak, i) => {
-        const offsetX = Math.sin(time * streak.speed + streak.phase) * viewBox.w * 0.08;
-        return (
-          <ellipse
-            key={`streak${i}`}
-            cx={viewBox.x + viewBox.w * 0.5 + offsetX}
-            cy={viewBox.y + viewBox.h * streak.y}
-            rx={viewBox.w * 0.6} ry={viewBox.h * 0.025}
-            fill={streak.color}
-            opacity={0.08 + Math.sin(time * 0.2 + i) * 0.04}
-            filter="url(#aurora-blur-3)"
-          />
-        );
-      })}
-
-      {/* Deep background stars */}
-      {Array.from({ length: 80 }).map((_, i) => {
-        const px = viewBox.x + ((Math.sin(i * 127.1 + 0.3) * 0.5 + 0.5) * (viewBox.w + 1000)) - 500;
-        const py = viewBox.y + ((Math.cos(i * 311.7 + 0.7) * 0.5 + 0.5) * (viewBox.h + 1000)) - 500;
-        const twinkle = 0.15 + Math.abs(Math.sin(time * 0.2 + i * 0.9)) * 0.25;
-        return <circle key={`ds${i}`} cx={px} cy={py} r={0.4} fill="white" opacity={twinkle} />;
-      })}
-
-      {/* Mid stars */}
-      {Array.from({ length: 50 }).map((_, i) => {
-        const px = viewBox.x + ((Math.sin(i * 241.3 + 1.2) * 0.5 + 0.5) * (viewBox.w + 800)) - 400;
-        const py = viewBox.y + ((Math.cos(i * 173.9 + 2.4) * 0.5 + 0.5) * (viewBox.h + 800)) - 400;
-        const twinkle = 0.2 + Math.abs(Math.sin(time * 0.5 + i * 1.3)) * 0.4;
-        return <circle key={`ms${i}`} cx={px} cy={py} r={0.8} fill="white" opacity={twinkle} />;
-      })}
-
-      {/* Bright close stars */}
-      {Array.from({ length: 25 }).map((_, i) => {
-        const px = viewBox.x + ((Math.sin(i * 89.7 + 3.1) * 0.5 + 0.5) * viewBox.w);
-        const py = viewBox.y + ((Math.cos(i * 197.4 + 1.7) * 0.5 + 0.5) * viewBox.h);
-        const twinkle = 0.4 + Math.abs(Math.sin(time * 1.0 + i * 0.7)) * 0.6;
-        const color = i % 3 === 0 ? '#a0d8ef' : i % 3 === 1 ? '#c4b5fd' : 'white';
-        return <circle key={`cs${i}`} cx={px} cy={py} r={1.2} fill={color} opacity={twinkle} />;
-      })}
-
-      {/* Sparkle stars with cross shape */}
-      {Array.from({ length: 5 }).map((_, i) => {
-        const px = viewBox.x + viewBox.w * [0.2, 0.75, 0.45, 0.85, 0.1][i];
-        const py = viewBox.y + viewBox.h * [0.15, 0.42, 0.68, 0.78, 0.88][i];
-        const brightness = 0.5 + Math.abs(Math.sin(time * 1.5 + i)) * 0.5;
-        return (
-          <g key={`spark${i}`} opacity={brightness}>
-            <circle cx={px} cy={py} r={2} fill="white" />
-            <line x1={px - 5} y1={py} x2={px + 5} y2={py} stroke="white" strokeWidth={0.5} opacity={0.6} />
-            <line x1={px} y1={py - 5} x2={px} y2={py + 5} stroke="white" strokeWidth={0.5} opacity={0.6} />
-          </g>
-        );
-      })}
-
-      <rect x={viewBox.x - 1000} y={viewBox.y - 1000} width={viewBox.w + 2000} height={viewBox.h + 2000} fill="url(#grid)" />
-
-      {/* Ambient particles */}
-      {Array.from({ length: 20 }).map((_, i) => {
-        const px = viewBox.x + (Math.sin(time * 0.3 + i * 1.7) * 0.5 + 0.5) * viewBox.w;
-        const py = viewBox.y + (Math.cos(time * 0.2 + i * 2.3) * 0.5 + 0.5) * viewBox.h;
-        return (
-          <circle
-            key={`p${i}`}
-            cx={px}
-            cy={py}
-            r={0.8 + Math.sin(time + i) * 0.3}
-            fill="rgba(6,182,212,0.15)"
-          />
-        );
-      })}
 
       {/* Edges */}
       {edges.map(edge => {
@@ -680,6 +539,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
           </g>
         );
       })}
-    </svg>
+      </svg>
+    </div>
   );
 });

@@ -5,12 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronRight, Circle, X, GitBranch } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
+// Drawer no longer used on mobile — replaced with non-modal floating sheet
 
 interface PathwayChain {
   strategy: string;

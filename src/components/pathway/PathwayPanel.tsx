@@ -326,13 +326,13 @@ export function PathwayPanel({
             if (!open && onClose) onClose();
           }}
         >
-          <DrawerContent className="bg-[#0d0d18] border-cyan-900/30 max-h-[70vh]">
-            <DrawerHeader className="pb-0">
+          <DrawerContent className="bg-[#0d0d18] border-t border-cyan-900/30 rounded-t-2xl max-h-[45vh]">
+            <DrawerHeader className="pb-0 pt-2">
               <DrawerTitle className="text-cyan-400/80 text-sm uppercase tracking-widest">
                 Node Details
               </DrawerTitle>
             </DrawerHeader>
-            <div className="p-4 overflow-y-auto">
+            <div className="p-4 pb-6 overflow-y-auto">
               <NodeDetails
                 selectedNode={selectedNode}
                 parentNode={parentNode}

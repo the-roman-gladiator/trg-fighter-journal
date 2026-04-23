@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, Copy, ChevronDown, ChevronUp, SkipForward, Save, CheckCircle2, Trash2, ArrowUp, ArrowDown, BookOpen, Search } from 'lucide-react';
+import { ArrowLeft, Plus, Copy, ChevronDown, ChevronUp, SkipForward, CheckCircle2, Trash2, ArrowUp, ArrowDown, BookOpen, Search } from 'lucide-react';
 
 interface SetLog {
   setNumber: number;

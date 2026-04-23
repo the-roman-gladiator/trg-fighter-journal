@@ -114,6 +114,7 @@ export default function Reflection() {
     setTitle('');
     setContent('');
     setMoodTag(null);
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* noop */ }
     load();
   };
 
@@ -129,9 +130,15 @@ export default function Reflection() {
   return (
     <div className="min-h-screen bg-background pb-28">
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4 max-w-lg flex items-center gap-2">
-          <NotebookPen className="h-5 w-5 text-primary" />
-          <h1 className="text-xl font-display font-bold text-primary">Reflection</h1>
+        <div className="container mx-auto px-4 py-4 max-w-lg flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <NotebookPen className="h-5 w-5 text-primary" />
+            <h1 className="text-xl font-display font-bold text-primary">Reflection</h1>
+          </div>
+          <AutosaveStatus
+            status={draftStatus}
+            labels={{ saving: 'Saving draft…', saved: 'Draft saved', error: 'Draft not saved' }}
+          />
         </div>
       </header>
 

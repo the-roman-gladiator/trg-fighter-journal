@@ -458,13 +458,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
               />
             )}
 
-            {/* Ambient glow */}
+            {/* Ambient glow — fuller saturation */}
             <circle
               cx={node.position_x}
               cy={node.position_y + floatOffset}
               r={baseRadius + 6}
               fill={colors.core}
-              opacity={isSelected ? 0.15 : isInPathway && selectedNodeId ? 0.12 : 0.06}
+              opacity={isSelected ? 0.4 : isInPathway && selectedNodeId ? 0.3 : 0.2}
               filter="url(#glow-soft)"
             />
 
@@ -485,7 +485,6 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
             <defs>
               <radialGradient id={`grad-${node.id}`} cx="35%" cy="35%">
                 <stop offset="0%" stopColor={colors.glow} stopOpacity="1" />
-                <stop offset="70%" stopColor={colors.core} stopOpacity="1" />
                 <stop offset="100%" stopColor={colors.core} stopOpacity="1" />
               </radialGradient>
             </defs>

@@ -38,7 +38,8 @@ const queryClient = new QueryClient();
 function AppShell() {
   useBrowserNotifications();
   return (
-    <>
+    <div className="h-[100dvh] flex flex-col overflow-hidden bg-background">
+      <main className="flex-1 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))]">
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/auth" element={<Auth />} />
@@ -68,8 +69,9 @@ function AppShell() {
         <Route path="/reflection" element={<Reflection />} />
         <Route path="/award" element={<Award />} />
       </Routes>
+      </main>
       <BottomNav />
-    </>
+    </div>
   );
 }
 

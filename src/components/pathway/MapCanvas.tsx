@@ -468,24 +468,25 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
               filter="url(#glow-soft)"
             />
 
-            {/* Core sphere */}
+            {/* Core sphere — fully colored */}
             <circle
               data-node-id={node.id}
               cx={node.position_x}
               cy={node.position_y + floatOffset}
               r={baseRadius * pulse}
               fill={`url(#grad-${node.id})`}
-              stroke={isSelected ? colors.glow : isInPathway && selectedNodeId ? colors.glow : 'rgba(255,255,255,0.1)'}
-              strokeWidth={isSelected ? 2 : isInPathway && selectedNodeId ? 1.5 : 0.5}
+              stroke={isSelected ? '#ffffff' : colors.glow}
+              strokeWidth={isSelected ? 2.5 : 1.5}
               filter={isSelected ? 'url(#glow-strong)' : 'url(#glow-soft)'}
+              opacity={1}
             />
 
-            {/* Radial gradient for sphere look */}
+            {/* Radial gradient — fully opaque solid color */}
             <defs>
               <radialGradient id={`grad-${node.id}`} cx="35%" cy="35%">
-                <stop offset="0%" stopColor={colors.glow} stopOpacity="0.9" />
-                <stop offset="60%" stopColor={colors.core} stopOpacity="0.8" />
-                <stop offset="100%" stopColor={colors.core} stopOpacity="0.4" />
+                <stop offset="0%" stopColor={colors.glow} stopOpacity="1" />
+                <stop offset="70%" stopColor={colors.core} stopOpacity="1" />
+                <stop offset="100%" stopColor={colors.core} stopOpacity="1" />
               </radialGradient>
             </defs>
 

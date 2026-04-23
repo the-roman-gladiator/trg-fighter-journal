@@ -21,6 +21,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CustomListManager } from '@/components/profile/CustomListManager';
 import { NotificationsSection } from '@/components/profile/NotificationsSection';
 import { SupportSection } from '@/components/profile/SupportSection';
+import { useAutosave } from '@/hooks/useAutosave';
+import { AutosaveStatus } from '@/components/AutosaveStatus';
 
 const accountTypes: AccountType[] = ['free', 'basic', 'pro'];
 const martialLevels = ['Beginner', 'Intermediate', 'Advanced', 'Fighter'] as const;
@@ -123,6 +125,44 @@ export default function Profile() {
     setSelectedDisciplines(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
   };
 
+  // ---- Autosave for profile fields ----
+  // Skip until profile is loaded so we don't overwrite with empty values.
+  const profileLoaded = !!profile && !!user;
+  const profileSnapshot = {
+    name, middleName, surname, nickname, accountType,
+    selectedDisciplines, martialLevel, fitnessLevel,
+    myStatement, motivationMode, fixedMotivationId, customMotivation,
+  };
+  const { status: autosaveStatus } = useAutosave({
+    value: profileSnapshot,
+    enabled: profileLoaded,
+    debounceMs: 800,
+    onSave: async () => {
+      if (!user) return;
+      const dbLevel = martialLevel === 'Fighter' ? 'Pro' : martialLevel;
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name,
+          middle_name: middleName || null,
+          surname: surname || null,
+          nickname,
+          account_type: accountType,
+          discipline: selectedDisciplines.join(', '),
+          level: dbLevel as any,
+          fitness_level: fitnessLevel,
+          my_statement: myStatement || null,
+          daily_motivation_mode: motivationMode,
+          fixed_motivation_id: motivationMode === 'fixed_library' ? fixedMotivationId : null,
+          custom_motivation_text: motivationMode === 'custom' ? customMotivation : null,
+        })
+        .eq('id', user.id);
+      if (error) throw error;
+      // Refresh in the background so other screens see the update.
+      refreshProfile();
+    },
+  });
+
   // Live apply theme
   const handleThemeChange = (mode: 'dark' | 'light') => {
     setThemeMode(mode);
@@ -184,7 +224,10 @@ export default function Profile() {
           <Button variant="ghost" onClick={() => navigate('/')} className="mb-2">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
-          <h1 className="text-2xl font-display font-bold text-primary">My Profile</h1>
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-2xl font-display font-bold text-primary">My Profile</h1>
+            <AutosaveStatus status={autosaveStatus} />
+          </div>
         </div>
       </header>
 
@@ -591,8 +634,11 @@ export default function Profile() {
           </Collapsible>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Saving...' : 'Save Changes'}
+            {loading ? 'Saving...' : 'Save Now'}
           </Button>
+          <p className="text-[10px] text-center text-muted-foreground -mt-3">
+            Changes save automatically as you type. Use this if you want to force-save immediately.
+          </p>
         </form>
       </main>
     </div>

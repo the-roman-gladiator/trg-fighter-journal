@@ -10,6 +10,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useAutosave } from '@/hooks/useAutosave';
+import { AutosaveStatus } from '@/components/AutosaveStatus';
 
 const QUICK_TAGS = [
   'Life achievement',
@@ -28,6 +30,8 @@ interface Reflection {
   created_at: string;
 }
 
+const DRAFT_KEY = 'trg.reflection.draft.v1';
+
 export default function Reflection() {
   const { user } = useAuth();
   const [reflections, setReflections] = useState<Reflection[]>([]);
@@ -36,6 +40,41 @@ export default function Reflection() {
   const [moodTag, setMoodTag] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [draftLoaded, setDraftLoaded] = useState(false);
+
+  // Restore draft from localStorage on mount.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (d?.title) setTitle(d.title);
+        if (d?.content) setContent(d.content);
+        if (d?.moodTag) setMoodTag(d.moodTag);
+      }
+    } catch {
+      // ignore corrupt drafts
+    }
+    setDraftLoaded(true);
+  }, []);
+
+  // Autosave the in-progress draft so nothing is lost between sessions.
+  const { status: draftStatus } = useAutosave({
+    value: { title, content, moodTag },
+    enabled: draftLoaded,
+    debounceMs: 500,
+    onSave: async (snapshot) => {
+      try {
+        if (!snapshot.title && !snapshot.content && !snapshot.moodTag) {
+          localStorage.removeItem(DRAFT_KEY);
+        } else {
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(snapshot));
+        }
+      } catch {
+        throw new Error('storage');
+      }
+    },
+  });
 
   useEffect(() => {
     if (user) load();
@@ -75,6 +114,7 @@ export default function Reflection() {
     setTitle('');
     setContent('');
     setMoodTag(null);
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* noop */ }
     load();
   };
 
@@ -90,9 +130,15 @@ export default function Reflection() {
   return (
     <div className="min-h-screen bg-background pb-28">
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4 max-w-lg flex items-center gap-2">
-          <NotebookPen className="h-5 w-5 text-primary" />
-          <h1 className="text-xl font-display font-bold text-primary">Reflection</h1>
+        <div className="container mx-auto px-4 py-4 max-w-lg flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <NotebookPen className="h-5 w-5 text-primary" />
+            <h1 className="text-xl font-display font-bold text-primary">Reflection</h1>
+          </div>
+          <AutosaveStatus
+            status={draftStatus}
+            labels={{ saving: 'Saving draft…', saved: 'Draft saved', error: 'Draft not saved' }}
+          />
         </div>
       </header>
 

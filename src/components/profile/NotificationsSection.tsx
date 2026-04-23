@@ -8,6 +8,8 @@ import { Bell, BellOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useAutosave } from '@/hooks/useAutosave';
+import { AutosaveStatus } from '@/components/AutosaveStatus';
 
 const DAYS = [
   { key: 'mon', label: 'Mon' },
@@ -50,7 +52,7 @@ export function NotificationsSection() {
   const { toast } = useToast();
   const [settings, setSettings] = useState<Settings>(DEFAULTS);
   const [permission, setPermission] = useState<NotificationPermission>('default');
-  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (typeof Notification !== 'undefined') setPermission(Notification.permission);
@@ -75,8 +77,32 @@ export function NotificationsSection() {
           timezone: data.timezone,
         });
       }
+      setLoaded(true);
     })();
   }, [user]);
+
+  // Autosave: debounced for time inputs, fast enough to feel instant for switches.
+  const { status: autosaveStatus } = useAutosave({
+    value: settings,
+    enabled: loaded && !!user,
+    debounceMs: 600,
+    onSave: async (snapshot) => {
+      if (!user) return;
+      const { error } = await supabase
+        .from('notification_settings')
+        .upsert(
+          {
+            user_id: user.id,
+            ...snapshot,
+            daily_motivation_time: snapshot.daily_motivation_time + ':00',
+            my_statement_time: snapshot.my_statement_time + ':00',
+            enter_session_time: snapshot.enter_session_time + ':00',
+          },
+          { onConflict: 'user_id' },
+        );
+      if (error) throw error;
+    },
+  });
 
   const requestPermission = async () => {
     if (typeof Notification === 'undefined') {
@@ -93,20 +119,6 @@ export function NotificationsSection() {
       ...s,
       [field]: s[field].includes(day) ? s[field].filter(d => d !== day) : [...s[field], day],
     }));
-  };
-
-  const save = async () => {
-    if (!user) return;
-    setLoading(true);
-    const { error } = await supabase
-      .from('notification_settings')
-      .upsert({ user_id: user.id, ...settings, daily_motivation_time: settings.daily_motivation_time + ':00', my_statement_time: settings.my_statement_time + ':00', enter_session_time: settings.enter_session_time + ':00' }, { onConflict: 'user_id' });
-    setLoading(false);
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Notifications saved' });
-    }
   };
 
   const renderToggle = (
@@ -163,8 +175,11 @@ export function NotificationsSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Bell className="h-4 w-4 text-primary" /> Notifications
+        <CardTitle className="flex items-center justify-between gap-2 text-base">
+          <span className="flex items-center gap-2">
+            <Bell className="h-4 w-4 text-primary" /> Notifications
+          </span>
+          <AutosaveStatus status={autosaveStatus} />
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -197,11 +212,7 @@ export function NotificationsSection() {
           'enter_session_enabled', 'enter_session_days', 'enter_session_time',
         )}
 
-        <p className="text-[10px] text-muted-foreground">Timezone: {settings.timezone}</p>
-
-        <Button type="button" onClick={save} disabled={loading} className="w-full">
-          {loading ? 'Saving...' : 'Save Notification Settings'}
-        </Button>
+        <p className="text-[10px] text-muted-foreground">Timezone: {settings.timezone} · Changes save automatically.</p>
       </CardContent>
     </Card>
   );

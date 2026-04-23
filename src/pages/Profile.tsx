@@ -224,7 +224,10 @@ export default function Profile() {
           <Button variant="ghost" onClick={() => navigate('/')} className="mb-2">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
-          <h1 className="text-2xl font-display font-bold text-primary">My Profile</h1>
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-2xl font-display font-bold text-primary">My Profile</h1>
+            <AutosaveStatus status={autosaveStatus} />
+          </div>
         </div>
       </header>
 
@@ -631,8 +634,11 @@ export default function Profile() {
           </Collapsible>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Saving...' : 'Save Changes'}
+            {loading ? 'Saving...' : 'Save Now'}
           </Button>
+          <p className="text-[10px] text-center text-muted-foreground -mt-3">
+            Changes save automatically as you type. Use this if you want to force-save immediately.
+          </p>
         </form>
       </main>
     </div>

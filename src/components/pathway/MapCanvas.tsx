@@ -301,7 +301,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
 
   return (
     <div className="relative w-full h-full overflow-hidden">
-      {/* Looping neural pathway background video */}
+      {/* Looping neural pathway background video — lightened */}
       <video
         src={neuralBgVideo}
         autoPlay
@@ -311,6 +311,16 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
         preload="auto"
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        style={{ filter: 'brightness(1.55) saturate(1.15) contrast(0.95)' }}
+      />
+      {/* Soft lifting wash to reduce darkness */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse at center, hsla(190, 70%, 55%, 0.10) 0%, hsla(265, 60%, 50%, 0.08) 45%, hsla(0,0%,100%,0.04) 100%)',
+        }}
       />
       <svg
         ref={svgRef}
@@ -344,8 +354,65 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
           <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
             <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(6,182,212,0.04)" strokeWidth="0.5" />
           </pattern>
+          <filter id="synapse-blur" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="1.2" />
+          </filter>
         </defs>
 
+        {/* Synaptic particle field — edge-weighted, slow drift */}
+        {Array.from({ length: 90 }).map((_, i) => {
+          const seedX = (Math.sin(i * 91.7) * 0.5 + 0.5);
+          const seedY = (Math.cos(i * 53.3) * 0.5 + 0.5);
+          // Push toward edges: bias away from 0.5
+          const ex = seedX < 0.5 ? seedX * 0.85 : 0.15 + seedX * 0.85;
+          const ey = seedY < 0.5 ? seedY * 0.85 : 0.15 + seedY * 0.85;
+          const driftX = Math.sin(time * 0.25 + i * 0.7) * viewBox.w * 0.012;
+          const driftY = Math.cos(time * 0.22 + i * 0.5) * viewBox.h * 0.012;
+          const px = viewBox.x + ex * viewBox.w + driftX;
+          const py = viewBox.y + ey * viewBox.h + driftY;
+          const twinkle = 0.25 + Math.abs(Math.sin(time * 1.1 + i * 0.9)) * 0.55;
+          const r = 0.8 + (i % 5) * 0.35;
+          const tint = i % 4 === 0 ? '#a0d8ef' : i % 4 === 1 ? '#c4b5fd' : i % 4 === 2 ? '#7dd3fc' : '#ffffff';
+          return (
+            <circle
+              key={`syn${i}`}
+              cx={px}
+              cy={py}
+              r={r}
+              fill={tint}
+              opacity={twinkle}
+              filter="url(#synapse-blur)"
+            />
+          );
+        })}
+
+        {/* Faint synaptic threads — short, drifting */}
+        {Array.from({ length: 14 }).map((_, i) => {
+          const baseX = (Math.sin(i * 31.7) * 0.5 + 0.5);
+          const baseY = (Math.cos(i * 17.9) * 0.5 + 0.5);
+          // Edge bias
+          const ex = baseX < 0.5 ? baseX * 0.7 : 0.3 + baseX * 0.7;
+          const ey = baseY < 0.5 ? baseY * 0.7 : 0.3 + baseY * 0.7;
+          const cx = viewBox.x + ex * viewBox.w;
+          const cy = viewBox.y + ey * viewBox.h;
+          const angle = i * 0.7 + time * 0.08;
+          const len = viewBox.w * (0.04 + (i % 3) * 0.015);
+          const x1 = cx + Math.cos(angle) * len;
+          const y1 = cy + Math.sin(angle) * len;
+          const x2 = cx - Math.cos(angle) * len;
+          const y2 = cy - Math.sin(angle) * len;
+          const op = 0.08 + Math.abs(Math.sin(time * 0.6 + i)) * 0.12;
+          return (
+            <line
+              key={`thread${i}`}
+              x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke="#a5f3fc"
+              strokeWidth={0.5}
+              opacity={op}
+              filter="url(#synapse-blur)"
+            />
+          );
+        })}
 
       {/* Edges */}
       {edges.map(edge => {

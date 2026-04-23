@@ -728,9 +728,9 @@ export default function WorkoutSessionPage() {
           </CardContent>
         </Card>
 
-        {/* Save as Custom Workout */}
+        {/* Add to Custom Workouts */}
         <Button variant="outline" className="w-full" onClick={saveAsCustomWorkout} disabled={saving || exercises.length === 0}>
-          <BookOpen className="mr-2 h-4 w-4" /> Save as Custom Workout
+          <BookOpen className="mr-2 h-4 w-4" /> Add to My Workouts
         </Button>
       </main>
 
@@ -743,7 +743,7 @@ export default function WorkoutSessionPage() {
             disabled={saving}
             onClick={() => saveWorkout('in_progress')}
           >
-            <Save className="mr-1 h-4 w-4" /> Draft
+            Draft
           </Button>
           <Button
             variant="secondary"

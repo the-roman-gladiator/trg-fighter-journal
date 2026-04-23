@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NotebookPen, Save, Trash2, Sparkles } from 'lucide-react';
+import { NotebookPen, Trash2, Sparkles } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -197,8 +197,8 @@ export default function Reflection() {
               disabled={saving || !content.trim()}
               className="w-full h-11 font-semibold"
             >
-              <Save className="mr-2 h-4 w-4" />
-              {saving ? 'Saving...' : 'Save Reflection'}
+              <NotebookPen className="mr-2 h-4 w-4" />
+              {saving ? 'Posting…' : 'Post Reflection'}
             </Button>
           </CardContent>
         </Card>

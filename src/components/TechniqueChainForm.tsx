@@ -146,7 +146,7 @@ export function TechniqueChainForm({
           </div>
 
           <div className="flex gap-4">
-            <Button type="submit" disabled={!subType || !startingAction || !defenderReaction || !continuationFinish}>Save Technique</Button>
+            <Button type="submit" disabled={!subType || !startingAction || !defenderReaction || !continuationFinish}>Add Technique</Button>
             <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
           </div>
         </form>

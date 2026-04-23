@@ -635,10 +635,10 @@ export function SessionForm({ sessionId }: SessionFormProps) {
           </CardContent>
         </Card>
 
-        {/* Save */}
+        {/* Submit */}
         <div className="flex gap-4 sticky bottom-4">
           <Button type="submit" disabled={loading} className="flex-1">
-            {loading ? 'Saving...' : 'Save Session'}
+            {loading ? 'Submitting…' : 'Done'}
           </Button>
           <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
         </div>

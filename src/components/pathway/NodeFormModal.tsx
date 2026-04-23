@@ -114,7 +114,7 @@ export function NodeFormModal({ mode, node, onSave, onClose }: NodeFormModalProp
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={onClose} className="text-cyan-400/60">Cancel</Button>
             <Button type="submit" className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30">
-              {mode === 'add' ? 'Create Node' : 'Save Changes'}
+              {mode === 'add' ? 'Create Node' : 'Done'}
             </Button>
           </DialogFooter>
         </form>

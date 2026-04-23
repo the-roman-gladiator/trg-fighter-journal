@@ -21,6 +21,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CustomListManager } from '@/components/profile/CustomListManager';
 import { NotificationsSection } from '@/components/profile/NotificationsSection';
 import { SupportSection } from '@/components/profile/SupportSection';
+import { useAutosave } from '@/hooks/useAutosave';
+import { AutosaveStatus } from '@/components/AutosaveStatus';
 
 const accountTypes: AccountType[] = ['free', 'basic', 'pro'];
 const martialLevels = ['Beginner', 'Intermediate', 'Advanced', 'Fighter'] as const;

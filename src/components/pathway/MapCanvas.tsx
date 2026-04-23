@@ -335,7 +335,50 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
 
       {/* Background */}
       <rect x={viewBox.x - 1000} y={viewBox.y - 1000} width={viewBox.w + 2000} height={viewBox.h + 2000} fill="#0a0a12" />
+
+      {/* Nebula blobs (deep space haze) */}
+      {[
+        { cx: viewBox.x + viewBox.w * 0.2, cy: viewBox.y + viewBox.h * 0.3, color: '#1a0533' },
+        { cx: viewBox.x + viewBox.w * 0.7, cy: viewBox.y + viewBox.h * 0.6, color: '#00141f' },
+        { cx: viewBox.x + viewBox.w * 0.5, cy: viewBox.y + viewBox.h * 0.1, color: '#0a1a0a' },
+      ].map((blob, i) => (
+        <ellipse
+          key={`neb${i}`}
+          cx={blob.cx}
+          cy={blob.cy}
+          rx={viewBox.w * 0.25}
+          ry={viewBox.h * 0.2}
+          fill={blob.color}
+          opacity={0.6}
+          filter="url(#glow-strong)"
+        />
+      ))}
+
       <rect x={viewBox.x - 1000} y={viewBox.y - 1000} width={viewBox.w + 2000} height={viewBox.h + 2000} fill="url(#grid)" />
+
+      {/* Deep stars */}
+      {Array.from({ length: 60 }).map((_, i) => {
+        const px = viewBox.x + ((Math.sin(i * 127.1) * 0.5 + 0.5) * (viewBox.w + 2000)) - 1000;
+        const py = viewBox.y + ((Math.cos(i * 311.7) * 0.5 + 0.5) * (viewBox.h + 2000)) - 1000;
+        const twinkle = 0.2 + Math.abs(Math.sin(time * 0.3 + i)) * 0.3;
+        return <circle key={`ds${i}`} cx={px} cy={py} r={0.5} fill="white" opacity={twinkle} />;
+      })}
+
+      {/* Mid stars */}
+      {Array.from({ length: 40 }).map((_, i) => {
+        const px = viewBox.x + ((Math.sin(i * 241.3 + 1.2) * 0.5 + 0.5) * (viewBox.w + 1600)) - 800;
+        const py = viewBox.y + ((Math.cos(i * 173.9 + 2.4) * 0.5 + 0.5) * (viewBox.h + 1600)) - 800;
+        const twinkle = 0.3 + Math.abs(Math.sin(time * 0.6 + i * 1.3)) * 0.5;
+        return <circle key={`ms${i}`} cx={px} cy={py} r={1} fill="white" opacity={twinkle} />;
+      })}
+
+      {/* Close stars */}
+      {Array.from({ length: 20 }).map((_, i) => {
+        const px = viewBox.x + ((Math.sin(i * 89.7 + 3.1) * 0.5 + 0.5) * viewBox.w);
+        const py = viewBox.y + ((Math.cos(i * 197.4 + 1.7) * 0.5 + 0.5) * viewBox.h);
+        const twinkle = 0.5 + Math.abs(Math.sin(time * 1.2 + i * 0.7)) * 0.5;
+        return <circle key={`cs${i}`} cx={px} cy={py} r={1.5} fill="#a0d8ef" opacity={twinkle} />;
+      })}
 
       {/* Ambient particles */}
       {Array.from({ length: 20 }).map((_, i) => {

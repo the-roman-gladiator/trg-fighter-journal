@@ -69,8 +69,9 @@ function AppShell() {
         <Route path="/reflection" element={<Reflection />} />
         <Route path="/award" element={<Award />} />
       </Routes>
+      </main>
       <BottomNav />
-    </>
+    </div>
   );
 }
 

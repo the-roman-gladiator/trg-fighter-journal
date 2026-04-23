@@ -539,6 +539,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
           </g>
         );
       })}
-    </svg>
+      </svg>
+    </div>
   );
 });

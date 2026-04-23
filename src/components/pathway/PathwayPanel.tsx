@@ -5,12 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronRight, Circle, X, GitBranch } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
+// Drawer no longer used on mobile — replaced with non-modal floating sheet
 
 interface PathwayChain {
   strategy: string;
@@ -316,39 +311,40 @@ export function PathwayPanel({
   }
 
   if (isMobile) {
-    // On mobile: show drawer for node details — do NOT clear selection on close so map stays highlighted
-    if (selectedNode) {
-      return (
-        <Drawer
-          open={true}
-          onOpenChange={(open) => {
-            // Drawer dismissed — keep map highlighted, just close the drawer
-            if (!open && onClose) onClose();
-          }}
-        >
-          <DrawerContent className="bg-[#0d0d18] border-t border-cyan-900/30 rounded-t-2xl max-h-[45vh]">
-            <DrawerHeader className="pb-0 pt-2">
-              <DrawerTitle className="text-cyan-400/80 text-sm uppercase tracking-widest">
-                Node Details
-              </DrawerTitle>
-            </DrawerHeader>
-            <div className="p-4 pb-6 overflow-y-auto">
-              <NodeDetails
-                selectedNode={selectedNode}
-                parentNode={parentNode}
-                childNodes={childNodes}
-                onSelectNode={onSelectNode}
-                pathwayNodeIds={pathwayNodeIds}
-                allNodes={allNodes}
-              />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      );
-    }
-
-    // No node selected on mobile: show chains in a drawer triggered by a floating button
-    return null;
+    // On mobile: render a non-modal bottom sheet that floats above the map.
+    // No overlay, no body scaling, no blur — map stays fully visible & interactive.
+    if (!selectedNode) return null;
+    return (
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 h-[50vh] bg-[#0d0d18] border-t border-cyan-900/30 rounded-t-2xl shadow-2xl flex flex-col animate-fade-in"
+        style={{ touchAction: 'pan-y' }}
+        onPointerDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
+      >
+        <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-cyan-900/40 shrink-0" />
+        <div className="flex items-center justify-between px-4 pt-2 pb-1 shrink-0">
+          <h3 className="text-cyan-400/80 text-sm uppercase tracking-widest">Node Details</h3>
+          <button
+            onClick={() => onClose?.()}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-cyan-300/70 hover:bg-cyan-500/10"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="p-4 pb-6 overflow-y-auto flex-1">
+          <NodeDetails
+            selectedNode={selectedNode}
+            parentNode={parentNode}
+            childNodes={childNodes}
+            onSelectNode={onSelectNode}
+            pathwayNodeIds={pathwayNodeIds}
+            allNodes={allNodes}
+          />
+        </div>
+      </div>
+    );
   }
 
   // Desktop: sidebar with both chains and node details

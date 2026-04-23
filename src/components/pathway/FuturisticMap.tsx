@@ -127,59 +127,48 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
       if (discId) { ensureNode(discId, s.discipline, 'discipline', s); ensureEdge(rootId, discId); }
       if (stratId) { ensureNode(stratId, s.strategy, 'strategy', s); if (discId) ensureEdge(discId, stratId); }
       if (techId) { ensureNode(techId, s.technique, 'technique', s); if (stratId) ensureEdge(stratId, techId); else if (discId) ensureEdge(discId, techId); }
-      if (m1Id) { ensureNode(m1Id, s.first_movement, 'movement', s); if (techId) ensureEdge(techId, m1Id); else if (stratId) ensureEdge(stratId, m1Id); }
-      if (m2Id) { ensureNode(m2Id, s.opponent_action, 'reaction', s); if (m1Id) ensureEdge(m1Id, m2Id); }
-      if (m3Id) { ensureNode(m3Id, s.second_movement, 'followup', s); if (m2Id) ensureEdge(m2Id, m3Id); }
+      if (m1Id) { ensureNode(m1Id, s.first_movement, 'movement1', s); if (techId) ensureEdge(techId, m1Id); else if (stratId) ensureEdge(stratId, m1Id); }
+      if (m2Id) { ensureNode(m2Id, s.opponent_action, 'movement2', s); if (m1Id) ensureEdge(m1Id, m2Id); }
+      if (m3Id) { ensureNode(m3Id, s.second_movement, 'movement3', s); if (m2Id) ensureEdge(m2Id, m3Id); }
     }
 
-    // --- Layout: radial layers from center ---
-    const CENTER_X = 400;
-    const CENTER_Y = 300;
+    // --- Layered horizontal layout (top → bottom) ---
+    const WIDTH = 800;
+    const CENTER_X = WIDTH / 2;
+    const layerY: Record<string, number> = {
+      root: 0,
+      discipline: 70,
+      strategy: 190,
+      technique: 320,
+      movement1: 440,
+      movement2: 540,
+      movement3: 640,
+    };
 
     const positions = new Map<string, { x: number; y: number }>();
-    positions.set(rootId, { x: CENTER_X, y: CENTER_Y });
+    positions.set(rootId, { x: CENTER_X, y: layerY.root });
 
-    // Layer 1: Disciplines around root
-    const discIds = [...nodeMap.keys()].filter(k => k.startsWith('disc:'));
-    const discPositions = radialLayout(CENTER_X, CENTER_Y, discIds, 140);
-    discPositions.forEach((pos, id) => positions.set(id, pos));
+    // Group node IDs by their type-prefix for layered placement
+    const layerGroups: Array<{ prefix: string; type: keyof typeof layerY }> = [
+      { prefix: 'disc:', type: 'discipline' },
+      { prefix: 'strat:', type: 'strategy' },
+      { prefix: 'tech:', type: 'technique' },
+      { prefix: 'move:', type: 'movement1' },
+      { prefix: 'react:', type: 'movement2' },
+      { prefix: 'follow:', type: 'movement3' },
+    ];
 
-    // Layer 2: Strategies around their discipline
-    const stratIds = [...nodeMap.keys()].filter(k => k.startsWith('strat:'));
-    // Group strategies by discipline connection
-    const stratByDisc = new Map<string, string[]>();
-    stratIds.forEach(sid => {
-      const parentEdge = [...edgeMap.values()].find(e => e.target === sid && e.source.startsWith('disc:'));
-      const parent = parentEdge?.source || discIds[0] || rootId;
-      if (!stratByDisc.has(parent)) stratByDisc.set(parent, []);
-      stratByDisc.get(parent)!.push(sid);
-    });
-    stratByDisc.forEach((strats, discId) => {
-      const discPos = positions.get(discId) || { x: CENTER_X, y: CENTER_Y };
-      const angle = Math.atan2(discPos.y - CENTER_Y, discPos.x - CENTER_X);
-      const sp = radialLayout(discPos.x, discPos.y, strats, 100, angle - Math.PI / 4);
-      sp.forEach((pos, id) => positions.set(id, pos));
-    });
-
-    // Layer 3: Techniques around their strategy
-    const techIds = [...nodeMap.keys()].filter(k => k.startsWith('tech:'));
-    techIds.forEach(tid => {
-      const parentEdge = [...edgeMap.values()].find(e => e.target === tid);
-      const parentPos = parentEdge ? (positions.get(parentEdge.source) || { x: CENTER_X, y: CENTER_Y }) : { x: CENTER_X, y: CENTER_Y };
-      const angle = Math.atan2(parentPos.y - CENTER_Y, parentPos.x - CENTER_X) + (Math.random() - 0.5) * 0.8;
-      const dist = 80 + Math.random() * 30;
-      positions.set(tid, { x: parentPos.x + Math.cos(angle) * dist, y: parentPos.y + Math.sin(angle) * dist });
+    layerGroups.forEach(({ prefix, type }) => {
+      const items = [...nodeMap.keys()].filter(k => k.startsWith(prefix));
+      if (items.length === 0) return;
+      const spacing = Math.max(WIDTH / (items.length + 1), 110);
+      const totalWidth = spacing * (items.length - 1);
+      const startX = CENTER_X - totalWidth / 2;
+      items.forEach((id, i) => {
+        positions.set(id, { x: startX + i * spacing, y: layerY[type] });
+      });
     });
 
-    // Layer 4: Movements around their technique
-    const moveIds = [...nodeMap.keys()].filter(k => k.startsWith('move:') || k.startsWith('react:') || k.startsWith('follow:'));
-    moveIds.forEach(mid => {
-      const parentEdge = [...edgeMap.values()].find(e => e.target === mid);
-      const parentPos = parentEdge ? (positions.get(parentEdge.source) || { x: CENTER_X, y: CENTER_Y }) : { x: CENTER_X, y: CENTER_Y };
-      const angle = Math.atan2(parentPos.y - CENTER_Y, parentPos.x - CENTER_X) + (Math.random() - 0.5) * 1.2;
-      const dist = 60 + Math.random() * 30;
-      positions.set(mid, { x: parentPos.x + Math.cos(angle) * dist, y: parentPos.y + Math.sin(angle) * dist });
-    });
 
     // Build final nodes array
     const now = new Date().toISOString();

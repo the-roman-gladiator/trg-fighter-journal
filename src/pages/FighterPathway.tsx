@@ -117,7 +117,7 @@ export default function FighterPathway() {
     const now = new Date().toISOString();
     const builtNodes: PathwayNode[] = [];
     nodeMap.forEach((data, id) => {
-      const pos = positions.get(id) || { x: CX, y: CY };
+      const pos = positions.get(id) || { x: 400, y: 200 };
       builtNodes.push({
         id, user_id: user?.id || '', title: data.label,
         description: `${data.count} session${data.count !== 1 ? 's' : ''}`,

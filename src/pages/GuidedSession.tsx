@@ -256,7 +256,7 @@ export default function GuidedSession() {
           </Card>
 
           <Button onClick={handleFinish} className="w-full h-14 text-base font-bold">
-            <CheckCircle className="mr-2 h-5 w-5" /> Save & Finish
+            <CheckCircle className="mr-2 h-5 w-5" /> Finish Session
           </Button>
         </main>
       </div>

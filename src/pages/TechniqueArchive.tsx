@@ -151,7 +151,7 @@ export default function TechniqueArchive() {
               </div>
               <div className="flex gap-2">
                 <Button onClick={save} disabled={loading} className="flex-1">
-                  {loading ? 'Saving...' : 'Save'}
+                  {loading ? 'Adding…' : 'Add to Archive'}
                 </Button>
                 <Button variant="outline" onClick={reset} type="button">Cancel</Button>
               </div>

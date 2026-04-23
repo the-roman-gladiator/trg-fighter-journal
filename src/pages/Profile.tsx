@@ -633,11 +633,8 @@ export default function Profile() {
             </CollapsibleContent>
           </Collapsible>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Saving...' : 'Save Now'}
-          </Button>
-          <p className="text-[10px] text-center text-muted-foreground -mt-3">
-            Changes save automatically as you type. Use this if you want to force-save immediately.
+          <p className="text-[10px] text-center text-muted-foreground">
+            Changes save automatically as you type.
           </p>
         </form>
       </main>

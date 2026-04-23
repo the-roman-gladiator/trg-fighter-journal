@@ -377,9 +377,9 @@ export function StrengthWorkoutForm({
         </CardContent>
       </Card>
 
-      {/* Save as template */}
+      {/* Add to template library */}
       <Button type="button" variant="outline" onClick={saveAsTemplate} className="w-full">
-        <BookOpen className="h-4 w-4 mr-2" /> Save as Template
+        <BookOpen className="h-4 w-4 mr-2" /> Add to Templates
       </Button>
     </div>
   );

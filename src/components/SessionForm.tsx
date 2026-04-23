@@ -635,12 +635,21 @@ export function SessionForm({ sessionId }: SessionFormProps) {
           </CardContent>
         </Card>
 
-        {/* Submit */}
-        <div className="flex gap-4 sticky bottom-4">
-          <Button type="submit" disabled={loading} className="flex-1">
-            {loading ? 'Submitting…' : 'Done'}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
+        {/* Spacer so last fields are never hidden behind the fixed action bar */}
+        <div aria-hidden className="h-[calc(5rem+env(safe-area-inset-bottom))]" />
+
+        {/* Fixed bottom action bar — Log Session only */}
+        <div
+          className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 pb-[env(safe-area-inset-bottom)]"
+        >
+          <div className="container mx-auto px-4 py-3 flex gap-3">
+            <Button type="submit" disabled={loading} className="flex-1">
+              {loading ? 'Submitting…' : 'Done'}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+              Cancel
+            </Button>
+          </div>
         </div>
       </form>
     </div>

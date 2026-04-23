@@ -174,7 +174,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
     const now = new Date().toISOString();
     const builtNodes: PathwayNode[] = [];
     nodeMap.forEach((data, id) => {
-      const pos = positions.get(id) || { x: CENTER_X, y: CENTER_Y };
+      const pos = positions.get(id) || { x: CENTER_X, y: 300 };
       builtNodes.push({
         id,
         user_id: user?.id || '',

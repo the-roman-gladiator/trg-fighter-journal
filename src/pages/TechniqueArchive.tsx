@@ -134,7 +134,7 @@ export default function TechniqueArchive() {
                 label="Disciplines"
               />
               <div>
-                <Label>Strategy</Label>
+                <Label>Tactic</Label>
                 <Input value={strategy} onChange={e => setStrategy(e.target.value)} placeholder="e.g. Attacking, Countering" />
               </div>
               <div>

@@ -446,7 +446,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
               fill="none"
               stroke={isInPathway ? srcColor.glow : 'rgba(6,182,212,0.15)'}
               strokeWidth={isInPathway ? 2.5 : 1}
-              opacity={dimmed ? 0.06 : isInPathway ? 0.9 : 0.3}
+              opacity={dimmed ? 0.2 : isInPathway ? 0.9 : 0.3}
               filter={isInPathway ? 'url(#glow-edge)' : undefined}
             />
             {/* Pulse dot traveling along edge */}
@@ -478,7 +478,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
             key={node.id}
             data-node-id={node.id}
             className="cursor-pointer"
-            opacity={dimmed ? 0.1 : 1}
+            opacity={dimmed ? 0.35 : 1}
             style={{ transition: 'opacity 0.4s ease' }}
           >
             {/* Outer glow ring for selected */}
@@ -566,7 +566,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
               textAnchor="middle"
               fontSize={isSelected ? '11' : '10'}
               fontWeight={isSelected ? '600' : isInPathway && selectedNodeId ? '500' : '400'}
-              fill={isSelected ? colors.glow : isInPathway && selectedNodeId ? colors.glow : 'rgba(255,255,255,0.6)'}
+              fill={isSelected ? colors.glow : isInPathway && selectedNodeId ? colors.glow : 'rgba(255,255,255,0.45)'}
               className="pointer-events-none select-none"
               style={{ textShadow: `0 0 8px ${colors.core}40` }}
             >

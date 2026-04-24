@@ -27,7 +27,10 @@ interface PathwayChain {
 export default function MyPathway() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [view, setView] = useState<ViewMode>('home');
+  const [view, setView] = useState<ViewMode>(() => {
+    if (typeof window === 'undefined') return 'home';
+    return (sessionStorage.getItem('records-tab') as ViewMode) || 'home';
+  });
   const [allSessions, setAllSessions] = useState<any[]>([]);
   const [archivedSessions, setArchivedSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +47,11 @@ export default function MyPathway() {
   // Pathway filter
   const [pathwayFilter, setPathwayFilter] = useState('all');
   const [mapFocusSessionId, setMapFocusSessionId] = useState<string | null>(null);
+
+  // Persist current view as a "tab" so user lands back on the same screen
+  useEffect(() => {
+    sessionStorage.setItem('records-tab', view);
+  }, [view]);
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
@@ -161,13 +169,11 @@ export default function MyPathway() {
 
   const SessionCard = ({ session }: { session: any }) => {
     const chain = [session.first_movement, session.opponent_action, session.second_movement].filter(Boolean).join(' → ');
+    const highlightTerm = (session as any).technique || session.title || session.discipline || '';
     return (
       <Card
         className="group cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-colors"
-        onClick={() => {
-          setMapFocusSessionId(session.id);
-          setView('interactive-map');
-        }}
+        onClick={() => navigate(`/records?highlight=${encodeURIComponent(highlightTerm)}`)}
       >
         <CardContent className="py-3">
           <div className="flex items-start justify-between gap-2">

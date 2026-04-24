@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
@@ -214,6 +215,11 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
   // Compute full pathway (ancestors + descendants) for highlighting
   const pathwayNodeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();
+    const selNode = nodes.find(n => n.id === selectedNodeId);
+    // Root selected → highlight everything
+    if (selNode?.is_root) {
+      return new Set(nodes.map(n => n.id));
+    }
     const ids = new Set<string>([selectedNodeId]);
     // Walk ancestors
     let frontier = [selectedNodeId];
@@ -244,7 +250,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
       frontier = next;
     }
     return ids;
-  }, [selectedNodeId, edges]);
+  }, [selectedNodeId, edges, nodes]);
 
   const childNodes = useMemo(() => {
     if (!selectedNodeId) return [];
@@ -278,8 +284,20 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
     if (bestNodeId) setSelectedNodeId(bestNodeId);
   }, [initialSessionId, sessions, nodes]);
 
+  // Highlight node from ?highlight=<title> search param (from session card click on /records)
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const highlight = searchParams.get('highlight');
+    if (!highlight || nodes.length === 0) return;
+    const target = highlight.toLowerCase();
+    const match = nodes.find(n => n.title.toLowerCase() === target);
+    if (match) setSelectedNodeId(match.id);
+  }, [searchParams, nodes]);
+
   const handleCanvasClick = (nodeId: string | null) => {
-    setSelectedNodeId(nodeId);
+    if (!nodeId) { setSelectedNodeId(null); return; }
+    // Toggle off if same node clicked again (works for root and others)
+    setSelectedNodeId(prev => (prev === nodeId ? null : nodeId));
   };
 
   // No-op for auto-generated map (positions are computed, not persisted)

@@ -334,7 +334,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="title">Session Title</Label>
+              <Label htmlFor="title">Session Title / Strategy Name</Label>
               <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Jab timing study" />
             </div>
 

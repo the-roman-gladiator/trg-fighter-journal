@@ -383,7 +383,13 @@ export default function MyPathway() {
             <p className="text-center text-muted-foreground text-sm py-8">No archived notes found.</p>
           ) : (
             <div className="space-y-2">
-              {filteredArchived.map(s => <SessionCard key={s.id} session={s} />)}
+              {filteredArchived.map(s => (
+                <SessionCard
+                  key={s.id}
+                  session={s}
+                  onOpen={(sess) => { setMapFocusSessionId(sess.id); setView('interactive-map'); }}
+                />
+              ))}
             </div>
           )}
         </main>

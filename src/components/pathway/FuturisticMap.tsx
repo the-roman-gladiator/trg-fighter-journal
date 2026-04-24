@@ -215,6 +215,11 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
   // Compute full pathway (ancestors + descendants) for highlighting
   const pathwayNodeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();
+    const selNode = nodes.find(n => n.id === selectedNodeId);
+    // Root selected → highlight everything
+    if (selNode?.is_root) {
+      return new Set(nodes.map(n => n.id));
+    }
     const ids = new Set<string>([selectedNodeId]);
     // Walk ancestors
     let frontier = [selectedNodeId];
@@ -245,7 +250,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
       frontier = next;
     }
     return ids;
-  }, [selectedNodeId, edges]);
+  }, [selectedNodeId, edges, nodes]);
 
   const childNodes = useMemo(() => {
     if (!selectedNodeId) return [];

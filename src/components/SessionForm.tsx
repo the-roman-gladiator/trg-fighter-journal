@@ -224,6 +224,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       let savedSessionId = sessionId;
 
       if (sessionId && sessionId !== 'new') {
+        // When a user edits a session that originated from a coach plan,
+        // detach the coach link so it becomes their own personal note.
+        sessionData.coach_session_id = null;
         const { error } = await supabase.from('training_sessions').update(sessionData).eq('id', sessionId);
         if (error) throw error;
       } else {

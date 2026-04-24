@@ -170,18 +170,50 @@ export default function MyPathway() {
   const SessionCard = ({ session, onOpen }: { session: any; onOpen?: (s: any) => void }) => {
     const chain = [session.first_movement, session.opponent_action, session.second_movement].filter(Boolean).join(' → ');
     const highlightTerm = (session as any).technique || session.title || session.discipline || '';
+
+    // Determine source type for visual distinction
+    const isCoachPlan = !!session.coach_session_id;
+    const isFighterNote = !isCoachPlan && !!session.make_fighter_note;
+    // Personal = neither coach plan nor fighter note
+
+    const sourceMeta = isCoachPlan
+      ? {
+          label: '🎓 Coach Plan',
+          borderClass: 'border-l-4 border-l-blue-500/70',
+          bgClass: 'bg-blue-500/5',
+          badgeClass: 'border-blue-500/40 bg-blue-500/10 text-blue-400',
+        }
+      : isFighterNote
+      ? {
+          label: '🥊 Fighter Note',
+          borderClass: 'border-l-4 border-l-primary',
+          bgClass: 'bg-primary/5',
+          badgeClass: 'border-primary/40 bg-primary/15 text-primary',
+        }
+      : {
+          label: '📓 Personal Note',
+          borderClass: 'border-l-4 border-l-muted-foreground/40',
+          bgClass: '',
+          badgeClass: 'border-border bg-muted/40 text-muted-foreground',
+        };
+
     const handleClick = () => {
       if (onOpen) onOpen(session);
       else navigate(`/records?highlight=${encodeURIComponent(highlightTerm)}`);
     };
     return (
       <Card
-        className="group cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-colors"
+        className={`group cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-colors ${sourceMeta.borderClass} ${sourceMeta.bgClass}`}
         onClick={handleClick}
       >
         <CardContent className="py-3">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ${sourceMeta.badgeClass}`}>
+                  {sourceMeta.label}
+                </Badge>
+              </div>
               <p className="text-sm font-medium truncate">{session.title || (session as any).technique || `${session.discipline} Training`}</p>
               <p className="text-xs text-muted-foreground">{format(new Date(session.date), 'MMM d, yyyy')}{session.time && ` – ${session.time}`}</p>
               {chain && <p className="text-xs text-primary/70 mt-1 font-mono">{chain}</p>}
@@ -195,7 +227,7 @@ export default function MyPathway() {
                   navigate(`/session/${session.id}/edit`);
                 }}
                 className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                title="Edit session"
+                title={isCoachPlan ? 'Edit & save as personal note' : 'Edit session'}
                 aria-label="Edit session"
               >
                 <Pencil className="h-3.5 w-3.5" />
@@ -378,6 +410,12 @@ export default function MyPathway() {
                 {strategies.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+          {/* Legend: source types */}
+          <div className="flex flex-wrap gap-2 text-[10px]">
+            <Badge variant="outline" className="border-l-4 border-l-muted-foreground/40 bg-muted/40 text-muted-foreground">📓 Personal</Badge>
+            <Badge variant="outline" className="border-l-4 border-l-primary bg-primary/15 text-primary">🥊 Fighter</Badge>
+            <Badge variant="outline" className="border-l-4 border-l-blue-500/70 bg-blue-500/10 text-blue-400">🎓 Coach Plan</Badge>
           </div>
           {filteredArchived.length === 0 ? (
             <p className="text-center text-muted-foreground text-sm py-8">No archived notes found.</p>

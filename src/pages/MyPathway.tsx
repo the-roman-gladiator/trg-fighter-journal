@@ -169,13 +169,11 @@ export default function MyPathway() {
 
   const SessionCard = ({ session }: { session: any }) => {
     const chain = [session.first_movement, session.opponent_action, session.second_movement].filter(Boolean).join(' → ');
+    const highlightTerm = (session as any).technique || session.title || session.discipline || '';
     return (
       <Card
         className="group cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-colors"
-        onClick={() => {
-          setMapFocusSessionId(session.id);
-          setView('interactive-map');
-        }}
+        onClick={() => navigate(`/records?highlight=${encodeURIComponent(highlightTerm)}`)}
       >
         <CardContent className="py-3">
           <div className="flex items-start justify-between gap-2">

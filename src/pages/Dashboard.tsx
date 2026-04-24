@@ -235,7 +235,7 @@ export default function Dashboard() {
             <div className="relative z-10 flex-1 min-w-0">
               <h1 className="font-headline leading-[0.85] tracking-[0.01em] text-[48px] sm:text-[58px]">
                 <span className="block text-foreground">FIGHTER</span>
-                <span className="block text-primary drop-shadow-[0_2px_8px_hsl(var(--primary)/0.4)]">JOURNAL</span>
+                <span className="journal-title block text-primary drop-shadow-[0_2px_8px_hsl(var(--primary)/0.4)]">JOURNAL</span>
               </h1>
               <p className="mt-2 text-[11px] tracking-[0.18em] uppercase text-muted-foreground font-medium">
                 Track. Improve. Win.

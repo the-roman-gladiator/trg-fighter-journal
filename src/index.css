@@ -318,11 +318,19 @@
   background-image: none !important;
 }
 
-/* Hide the dark fighter silhouette image inside the dashboard header in light mode
-   (the inline background-image would otherwise show a black square on the red header) */
+/* Dashboard fighter silhouette inside the red header in light mode — keep image visible
+   with a slight tone-down so it blends on the red background */
 [data-theme='light'] header div[aria-hidden="true"][style*="background-image"] {
-  background-image: none !important;
-  background-color: hsl(0 0% 100% / 0.12) !important;
+  filter: brightness(0.9) contrast(1.1) !important;
+  opacity: 0.95 !important;
+}
+
+/* "JOURNAL" headline must be black in light mode (FIGHTER stays white from header rule above) */
+[data-theme='light'] header .journal-title {
+  color: hsl(0 0% 0%) !important;
+  -webkit-text-fill-color: hsl(0 0% 0%) !important;
+  filter: none !important;
+  text-shadow: none !important;
 }
 
 /* Mode switcher (Athlete / Fighter / Coach) — darker grey track in light mode for contrast on red header */

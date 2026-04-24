@@ -156,7 +156,7 @@ export default function SessionDetail() {
               </div>
               {session.strategy && (
                 <div>
-                  <p className="text-xs text-muted-foreground">Strategy</p>
+                  <p className="text-xs text-muted-foreground">Tactic</p>
                   <p className="font-semibold text-sm">{session.strategy}</p>
                 </div>
               )}

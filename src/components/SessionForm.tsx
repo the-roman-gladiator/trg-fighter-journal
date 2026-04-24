@@ -371,9 +371,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             />
 
             <div>
-              <Label>Strategy</Label>
+              <Label>Tactic</Label>
               <Select value={strategy} onValueChange={(v: Strategy) => setStrategy(v)}>
-                <SelectTrigger><SelectValue placeholder="Select strategy" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select tactic" /></SelectTrigger>
                 <SelectContent>
                   {strategies.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
                 </SelectContent>

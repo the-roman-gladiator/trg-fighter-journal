@@ -82,28 +82,85 @@
     --font-headline: 'Bebas Neue', 'Oswald', 'Inter', sans-serif;
   }
 
-  /* TRG Light Theme */
+  /* TRG Light Theme — clean inverse of the dark gladiator theme */
   [data-theme='light'] {
-    --background: 0 0% 97%;
-    --foreground: 0 0% 7%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 8%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 7%;
+    --card-foreground: 0 0% 8%;
+    --card-elevated: 0 0% 96%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 7%;
-    --primary: 352 82% 40%;
+    --popover-foreground: 0 0% 8%;
+    --primary: 352 84% 42%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 92%;
-    --secondary-foreground: 0 0% 30%;
-    --muted: 0 0% 92%;
-    --muted-foreground: 0 0% 40%;
-    --accent: 352 72% 92%;
-    --accent-foreground: 352 82% 35%;
-    --destructive: 0 72% 50%;
+    --primary-glow: 352 90% 56%;
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 18%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 38%;
+    --accent: 352 80% 95%;
+    --accent-foreground: 352 84% 32%;
+    --destructive: 0 75% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 86%;
-    --input: 0 0% 86%;
-    --ring: 352 82% 40%;
+    --border: 0 0% 88%;
+    --input: 0 0% 92%;
+    --ring: 352 84% 42%;
+
+    /* Light gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(352 84% 42%), hsl(352 90% 56%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 97%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 99%) 0%, hsl(352 60% 96%) 100%);
+
+    /* Light shadows */
+    --shadow-glow: 0 0 24px hsl(352 84% 42% / 0.18);
+    --shadow-card-premium: 0 4px 16px -4px hsl(0 0% 0% / 0.08), 0 0 0 1px hsl(0 0% 0% / 0.04);
+
+    /* Strategy semantic colors — slightly deeper for contrast on light bg */
+    --strategy-attacking: 352 72% 46%;
+    --strategy-defending: 217 85% 48%;
+    --strategy-countering: 28 95% 46%;
+    --strategy-control: 265 65% 46%;
+    --strategy-transitions: 170 60% 36%;
+    --strategy-intercepting: 38 92% 44%;
+
+    /* Chart colors */
+    --chart-1: 352 78% 46%;
+    --chart-2: 217 85% 48%;
+    --chart-3: 28 95% 46%;
+    --chart-4: 265 65% 46%;
+    --chart-5: 170 60% 36%;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 0 0% 12%;
+    --sidebar-primary: 352 84% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 94%;
+    --sidebar-accent-foreground: 0 0% 22%;
+    --sidebar-border: 0 0% 88%;
+    --sidebar-ring: 352 84% 42%;
+    --sidebar: 0 0% 99%;
+
+    /* Lighter shadows */
+    --shadow-2xs: 0 1px 2px 0px hsl(0 0% 0% / 0.04);
+    --shadow-xs: 0 1px 2px 0px hsl(0 0% 0% / 0.05);
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.06);
+    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.06);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.08), 0 2px 4px -2px hsl(0 0% 0% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.08), 0 4px 6px -4px hsl(0 0% 0% / 0.06);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.10), 0 8px 10px -6px hsl(0 0% 0% / 0.06);
+    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.18);
   }
+
+  /* Adjust body backdrop & scrollbar in light mode (overrides defaults below) */
+  [data-theme='light'] body {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(352 70% 92% / 0.55), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(352 70% 95% / 0.5), transparent 70%);
+  }
+  [data-theme='light'] ::-webkit-scrollbar-track { background: hsl(0 0% 94%); }
+  [data-theme='light'] ::-webkit-scrollbar-thumb { background: hsl(0 0% 75%); }
+  [data-theme='light'] ::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.5); }
 }
 
 @layer base {

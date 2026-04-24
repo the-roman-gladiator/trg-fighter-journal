@@ -241,16 +241,16 @@ export default function Dashboard() {
                 Track. Improve. Win.
               </p>
             </div>
-            {/* Fighter silhouette accent (right side) */}
+            {/* Fighter silhouette accent (right side) — tuned for small screens */}
             <div
               aria-hidden="true"
-              className="relative w-[130px] h-[130px] sm:w-[150px] sm:h-[150px] shrink-0 rounded-lg overflow-hidden"
+              className="relative w-[110px] h-[110px] xs:w-[120px] xs:h-[120px] sm:w-[150px] sm:h-[150px] shrink-0 rounded-lg overflow-hidden self-stretch max-h-[140px] sm:max-h-none"
               style={{
                 backgroundImage: `url(${fighterBg})`,
                 backgroundSize: 'cover',
-                backgroundPosition: 'center 20%',
-                maskImage: 'linear-gradient(to left, black 35%, transparent 100%)',
-                WebkitMaskImage: 'linear-gradient(to left, black 35%, transparent 100%)',
+                backgroundPosition: 'center 25%',
+                maskImage: 'linear-gradient(to left, black 40%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to left, black 40%, transparent 100%)',
               }}
             />
             <div

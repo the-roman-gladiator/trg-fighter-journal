@@ -30,6 +30,7 @@ import Trends from "./pages/Trends";
 import Reflection from "./pages/Reflection";
 import Award from "./pages/Award";
 import TechniqueArchive from "./pages/TechniqueArchive";
+import AIFighterAssistant from "./pages/AIFighterAssistant";
 import NotFound from "./pages/NotFound";
 import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
 
@@ -68,6 +69,7 @@ function AppShell() {
         <Route path="/trends" element={<Trends />} />
         <Route path="/reflection" element={<Reflection />} />
         <Route path="/award" element={<Award />} />
+        <Route path="/ai-assistant" element={<AIFighterAssistant />} />
       </Routes>
       </main>
       <BottomNav />

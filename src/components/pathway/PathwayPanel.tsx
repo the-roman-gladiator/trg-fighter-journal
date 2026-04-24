@@ -35,7 +35,7 @@ interface PathwayPanelProps {
 const TYPE_LABELS: Record<string, string> = {
   root: 'Core',
   discipline: 'Discipline',
-  strategy: 'Strategy',
+  strategy: 'Tactic',
   technique: 'Technique',
   movement1: '1st Movement',
   movement2: 'Opponent Reaction',

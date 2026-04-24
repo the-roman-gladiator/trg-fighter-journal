@@ -278,16 +278,16 @@
 }
 [data-theme='light'] nav[data-bottom-nav] .nav-item-inactive,
 [data-theme='light'] nav[data-bottom-nav] .nav-item-inactive svg {
-  color: hsl(0 0% 0% / 0.75) !important;
+  color: hsl(0 0% 100% / 0.8) !important;
 }
 [data-theme='light'] nav[data-bottom-nav] .nav-item-inactive:hover,
 [data-theme='light'] nav[data-bottom-nav] .nav-item-inactive:hover svg {
-  color: hsl(0 0% 0%) !important;
+  color: hsl(0 0% 100%) !important;
 }
 [data-theme='light'] nav[data-bottom-nav] .nav-item-active,
 [data-theme='light'] nav[data-bottom-nav] .nav-item-active svg {
-  color: hsl(0 0% 0%) !important;
+  color: hsl(0 0% 100%) !important;
 }
 [data-theme='light'] nav[data-bottom-nav] .nav-indicator {
-  background-color: hsl(0 0% 0%) !important;
+  background-color: hsl(0 0% 100%) !important;
 }

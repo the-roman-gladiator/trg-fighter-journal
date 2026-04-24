@@ -139,6 +139,41 @@
   ::-webkit-scrollbar-track { background: hsl(0 0% 5%); }
   ::-webkit-scrollbar-thumb { background: hsl(0 0% 18%); border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.6); }
+
+  /* Make native date/time/datetime/month/week picker icons visible on dark inputs.
+     The default WebKit calendar/clock icon is near-black and disappears on dark backgrounds. */
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+  input[type="month"]::-webkit-calendar-picker-indicator,
+  input[type="week"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.2) opacity(0.85);
+    cursor: pointer;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover,
+  input[type="time"]::-webkit-calendar-picker-indicator:hover,
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
+  /* Ensure the typed value (date/time text) uses the foreground color */
+  input[type="date"], input[type="time"], input[type="datetime-local"],
+  input[type="month"], input[type="week"] {
+    color-scheme: dark;
+  }
+  [data-theme='light'] input[type="date"],
+  [data-theme='light'] input[type="time"],
+  [data-theme='light'] input[type="datetime-local"],
+  [data-theme='light'] input[type="month"],
+  [data-theme='light'] input[type="week"] {
+    color-scheme: light;
+  }
+  [data-theme='light'] input[type="date"]::-webkit-calendar-picker-indicator,
+  [data-theme='light'] input[type="time"]::-webkit-calendar-picker-indicator,
+  [data-theme='light'] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+  [data-theme='light'] input[type="month"]::-webkit-calendar-picker-indicator,
+  [data-theme='light'] input[type="week"]::-webkit-calendar-picker-indicator {
+    filter: none;
+  }
 }
 
 /* Strategy badge utility classes */

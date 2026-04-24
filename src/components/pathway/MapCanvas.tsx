@@ -478,7 +478,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
             key={node.id}
             data-node-id={node.id}
             className="cursor-pointer"
-            opacity={dimmed ? 0.1 : 1}
+            opacity={dimmed ? 0.35 : 1}
             style={{ transition: 'opacity 0.4s ease' }}
           >
             {/* Outer glow ring for selected */}

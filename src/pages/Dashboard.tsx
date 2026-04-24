@@ -8,7 +8,7 @@ import { ModeSwitcher } from '@/components/ModeSwitcher';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, User, Map, Swords, Shield, Network, GraduationCap, CalendarDays, Clock, BookOpen, CheckCircle2, Flame, Zap, Target, Quote } from 'lucide-react';
+import { Plus, User, Map, Swords, Shield, Network, GraduationCap, CalendarDays, Clock, BookOpen, CheckCircle2, Flame, Zap, Target, Quote, Sparkles } from 'lucide-react';
 import { format, startOfWeek, startOfYear, subDays } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
@@ -266,7 +266,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Floating Library access — circular */}
+      {/* Floating actions — Library + AI Assistant */}
       <button
         onClick={() => navigate('/library')}
         aria-label="Open Library"
@@ -274,6 +274,14 @@ export default function Dashboard() {
       >
         <BookOpen className="h-6 w-6" />
         <span className="sr-only">Library</span>
+      </button>
+      <button
+        onClick={() => navigate('/ai-assistant')}
+        aria-label="Open Fighter Pathway AI"
+        className="fixed z-40 right-4 bottom-[calc(env(safe-area-inset-bottom)+144px)] md:bottom-[88px] md:right-8 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/40 backdrop-blur-md border border-primary/60 text-primary-foreground transition-all shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.7)] hover:shadow-[0_10px_36px_-4px_hsl(var(--primary)/0.85)] hover:scale-105"
+      >
+        <Sparkles className="h-6 w-6" />
+        <span className="sr-only">Fighter Pathway AI</span>
       </button>
 
       <main className="container mx-auto px-4 py-5 max-w-lg space-y-5 pb-28 relative z-10">

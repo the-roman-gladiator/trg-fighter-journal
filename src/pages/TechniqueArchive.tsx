@@ -182,7 +182,7 @@ export default function TechniqueArchive() {
                 )}
                 {(e.strategy || e.class_type) && (
                   <p className="text-xs text-muted-foreground">
-                    {e.strategy && <span>Strategy: {e.strategy}</span>}
+                    {e.strategy && <span>Tactic: {e.strategy}</span>}
                     {e.strategy && e.class_type && ' · '}
                     {e.class_type && <span>Class: {e.class_type}</span>}
                   </p>

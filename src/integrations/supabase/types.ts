@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_fighter_notes: {
+        Row: {
+          advanced_variation: string | null
+          athlete_id: string | null
+          coach_explanation: string | null
+          coach_id: string | null
+          coach_reviewed: boolean
+          created_at: string
+          discipline: string | null
+          id: string
+          linked_pathway_node_id: string | null
+          linked_session_id: string | null
+          mistakes_to_avoid: Json
+          movement_1: string | null
+          movement_2: string | null
+          movement_3: string | null
+          neural_connections: Json
+          neural_nodes: Json
+          original_input: string
+          save_type: string | null
+          tactic: string | null
+          technique: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          advanced_variation?: string | null
+          athlete_id?: string | null
+          coach_explanation?: string | null
+          coach_id?: string | null
+          coach_reviewed?: boolean
+          created_at?: string
+          discipline?: string | null
+          id?: string
+          linked_pathway_node_id?: string | null
+          linked_session_id?: string | null
+          mistakes_to_avoid?: Json
+          movement_1?: string | null
+          movement_2?: string | null
+          movement_3?: string | null
+          neural_connections?: Json
+          neural_nodes?: Json
+          original_input: string
+          save_type?: string | null
+          tactic?: string | null
+          technique?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          advanced_variation?: string | null
+          athlete_id?: string | null
+          coach_explanation?: string | null
+          coach_id?: string | null
+          coach_reviewed?: boolean
+          created_at?: string
+          discipline?: string | null
+          id?: string
+          linked_pathway_node_id?: string | null
+          linked_session_id?: string | null
+          mistakes_to_avoid?: Json
+          movement_1?: string | null
+          movement_2?: string | null
+          movement_3?: string | null
+          neural_connections?: Json
+          neural_nodes?: Json
+          original_input?: string
+          save_type?: string | null
+          tactic?: string | null
+          technique?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       assigned_program_sessions: {
         Row: {
           assigned_program_id: string
@@ -906,6 +981,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          started_at: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          tier: Database["public"]["Enums"]["subscription_tier"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       support_tickets: {
         Row: {
@@ -1830,6 +1938,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_pro_user: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "athlete" | "coach" | "admin"
@@ -1864,6 +1973,8 @@ export type Database = {
         | "Intercepting"
         | "Transitions"
         | "Control"
+      subscription_status: "active" | "cancelled" | "expired" | "trial"
+      subscription_tier: "free" | "fighter" | "coach" | "pro" | "pro_coach"
       tactical_goal: "Attacking" | "Defending" | "Countering" | "Intercepting"
       user_level: "Beginner" | "Intermediate" | "Advanced" | "Pro"
       workout_mode: "manual" | "template" | "qr"
@@ -2029,6 +2140,8 @@ export const Constants = {
         "Transitions",
         "Control",
       ],
+      subscription_status: ["active", "cancelled", "expired", "trial"],
+      subscription_tier: ["free", "fighter", "coach", "pro", "pro_coach"],
       tactical_goal: ["Attacking", "Defending", "Countering", "Intercepting"],
       user_level: ["Beginner", "Intermediate", "Advanced", "Pro"],
       workout_mode: ["manual", "template", "qr"],

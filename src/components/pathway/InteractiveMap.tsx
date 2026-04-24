@@ -221,11 +221,11 @@ export function InteractiveMap({ sessions, onBack }: InteractiveMapProps) {
                 </Select>
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Strategy</label>
+                <label className="text-xs text-muted-foreground mb-1 block">Tactic</label>
                 <Select value={filterStrategy} onValueChange={v => { setFilterStrategy(v); setSelectedNode(null); }}>
                   <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Strategies</SelectItem>
+                    <SelectItem value="all">All Tactics</SelectItem>
                     {strategies.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>

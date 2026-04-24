@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, BookOpen, Network, Search, X, Filter, GitBranch } from 'lucide-react';
+import { ArrowLeft, BookOpen, Network, Search, X, Filter, GitBranch, Pencil } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InteractiveMap } from '@/components/pathway/InteractiveMap';
@@ -163,22 +163,33 @@ export default function MyPathway() {
     const chain = [session.first_movement, session.opponent_action, session.second_movement].filter(Boolean).join(' → ');
     return (
       <Card
-        className="cursor-pointer hover:border-primary/20"
+        className="group cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-colors"
         onClick={() => {
           setMapFocusSessionId(session.id);
           setView('interactive-map');
         }}
       >
         <CardContent className="py-3">
-          <div className="flex justify-between items-start">
+          <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium truncate">{session.title || (session as any).technique || `${session.discipline} Training`}</p>
               <p className="text-xs text-muted-foreground">{format(new Date(session.date), 'MMM d, yyyy')}{session.time && ` – ${session.time}`}</p>
               {chain && <p className="text-xs text-primary/70 mt-1 font-mono">{chain}</p>}
               {session.notes && <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{session.notes}</p>}
             </div>
-            <div className="flex gap-1 ml-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <Badge variant="outline" className="text-[10px]">{session.discipline}</Badge>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/session/${session.id}/edit`);
+                }}
+                className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                title="Edit session"
+                aria-label="Edit session"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
         </CardContent>

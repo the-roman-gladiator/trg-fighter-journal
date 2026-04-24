@@ -291,3 +291,29 @@
 [data-theme='light'] nav[data-bottom-nav] .nav-indicator {
   background-color: hsl(0 0% 100%) !important;
 }
+
+/* Page headers in light mode: match bottom nav — red background, white text & icons */
+[data-theme='light'] header {
+  background-color: hsl(var(--primary)) !important;
+  background-image: none !important;
+  border-bottom-color: hsl(0 0% 0% / 0.2) !important;
+  color: hsl(0 0% 100%) !important;
+}
+[data-theme='light'] header * {
+  color: hsl(0 0% 100%) !important;
+  border-color: hsl(0 0% 100% / 0.25) !important;
+}
+[data-theme='light'] header svg {
+  color: hsl(0 0% 100%) !important;
+  stroke: hsl(0 0% 100%) !important;
+}
+/* Keep header buttons readable on red background */
+[data-theme='light'] header button:hover {
+  background-color: hsl(0 0% 100% / 0.15) !important;
+}
+[data-theme='light'] header [class*="bg-card"],
+[data-theme='light'] header [class*="bg-secondary"],
+[data-theme='light'] header [class*="bg-muted"] {
+  background-color: hsl(0 0% 100% / 0.15) !important;
+  background-image: none !important;
+}

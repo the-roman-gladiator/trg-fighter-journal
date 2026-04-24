@@ -411,6 +411,12 @@ export default function MyPathway() {
               </SelectContent>
             </Select>
           </div>
+          {/* Legend: source types */}
+          <div className="flex flex-wrap gap-2 text-[10px]">
+            <Badge variant="outline" className="border-l-4 border-l-muted-foreground/40 bg-muted/40 text-muted-foreground">📓 Personal</Badge>
+            <Badge variant="outline" className="border-l-4 border-l-primary bg-primary/15 text-primary">🥊 Fighter</Badge>
+            <Badge variant="outline" className="border-l-4 border-l-blue-500/70 bg-blue-500/10 text-blue-400">🎓 Coach Plan</Badge>
+          </div>
           {filteredArchived.length === 0 ? (
             <p className="text-center text-muted-foreground text-sm py-8">No archived notes found.</p>
           ) : (

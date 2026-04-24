@@ -167,13 +167,17 @@ export default function MyPathway() {
 
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>;
 
-  const SessionCard = ({ session }: { session: any }) => {
+  const SessionCard = ({ session, onOpen }: { session: any; onOpen?: (s: any) => void }) => {
     const chain = [session.first_movement, session.opponent_action, session.second_movement].filter(Boolean).join(' → ');
     const highlightTerm = (session as any).technique || session.title || session.discipline || '';
+    const handleClick = () => {
+      if (onOpen) onOpen(session);
+      else navigate(`/records?highlight=${encodeURIComponent(highlightTerm)}`);
+    };
     return (
       <Card
         className="group cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-colors"
-        onClick={() => navigate(`/records?highlight=${encodeURIComponent(highlightTerm)}`)}
+        onClick={handleClick}
       >
         <CardContent className="py-3">
           <div className="flex items-start justify-between gap-2">
@@ -379,7 +383,13 @@ export default function MyPathway() {
             <p className="text-center text-muted-foreground text-sm py-8">No archived notes found.</p>
           ) : (
             <div className="space-y-2">
-              {filteredArchived.map(s => <SessionCard key={s.id} session={s} />)}
+              {filteredArchived.map(s => (
+                <SessionCard
+                  key={s.id}
+                  session={s}
+                  onOpen={(sess) => { setMapFocusSessionId(sess.id); setView('interactive-map'); }}
+                />
+              ))}
             </div>
           )}
         </main>

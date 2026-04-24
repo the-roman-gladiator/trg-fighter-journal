@@ -566,7 +566,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
               textAnchor="middle"
               fontSize={isSelected ? '11' : '10'}
               fontWeight={isSelected ? '600' : isInPathway && selectedNodeId ? '500' : '400'}
-              fill={isSelected ? colors.glow : isInPathway && selectedNodeId ? colors.glow : 'rgba(255,255,255,0.6)'}
+              fill={isSelected ? colors.glow : isInPathway && selectedNodeId ? colors.glow : 'rgba(255,255,255,0.45)'}
               className="pointer-events-none select-none"
               style={{ textShadow: `0 0 8px ${colors.core}40` }}
             >

@@ -200,7 +200,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         title: title || null,
         notes: notes || null,
         strategy: strategy || null,
-        technique: technique || null,
+        technique: resolvedTechnique || null,
         first_movement: firstMovement || null,
         opponent_action: opponentReaction || null,
         second_movement: thirdMovement || null,
@@ -235,7 +235,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       // Build auto-tags from all fields (one tag per selected discipline)
       const autoTags: string[] = [...selectedDisciplines];
       if (strategy) autoTags.push(strategy);
-      if (technique) autoTags.push(technique);
+      if (resolvedTechnique) autoTags.push(resolvedTechnique);
       if (firstMovement) autoTags.push(firstMovement);
       if (opponentReaction) autoTags.push(opponentReaction);
       if (thirdMovement) autoTags.push(thirdMovement);

@@ -102,7 +102,7 @@ export default function Trends() {
             <div className="space-y-3">
               <PieTrendCard title="Discipline" data={disciplineData} colorMap={DISCIPLINE_COLORS} />
               <PieTrendCard title="Type of Class" data={classTypeData} colorMap={CLASS_TYPE_COLORS} />
-              <PieTrendCard title="Strategy" data={strategyData} colorMap={STRATEGY_COLORS} />
+              <PieTrendCard title="Tactic" data={strategyData} colorMap={STRATEGY_COLORS} />
             </div>
 
             <PerformanceComparisonCard sessions={sessions} />

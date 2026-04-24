@@ -362,9 +362,9 @@ export default function MyPathway() {
               </SelectContent>
             </Select>
             <Select value={filterStrategy} onValueChange={setFilterStrategy}>
-              <SelectTrigger className="flex-1"><SelectValue placeholder="Strategy" /></SelectTrigger>
+              <SelectTrigger className="flex-1"><SelectValue placeholder="Tactic" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Strategies</SelectItem>
+                <SelectItem value="all">All Tactics</SelectItem>
                 {strategies.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>

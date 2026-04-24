@@ -446,7 +446,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
               fill="none"
               stroke={isInPathway ? srcColor.glow : 'rgba(6,182,212,0.15)'}
               strokeWidth={isInPathway ? 2.5 : 1}
-              opacity={dimmed ? 0.06 : isInPathway ? 0.9 : 0.3}
+              opacity={dimmed ? 0.2 : isInPathway ? 0.9 : 0.3}
               filter={isInPathway ? 'url(#glow-edge)' : undefined}
             />
             {/* Pulse dot traveling along edge */}

@@ -59,6 +59,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const discipline: MartialArtsDiscipline = (selectedDisciplines[0] as MartialArtsDiscipline) || (availableDisciplines[0] || 'MMA');
   const [strategy, setStrategy] = useState<Strategy | ''>('');
   const [technique, setTechnique] = useState<string>('');
+  const [customTechnique, setCustomTechnique] = useState<string>('');
   const [title, setTitle] = useState('');
   const [firstMovement, setFirstMovement] = useState('');
   const [opponentReaction, setOpponentReaction] = useState('');

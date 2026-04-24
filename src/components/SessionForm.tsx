@@ -383,12 +383,32 @@ export function SessionForm({ sessionId }: SessionFormProps) {
 
             <div>
               <Label>Technique</Label>
-              <Select value={technique} onValueChange={setTechnique}>
+              <Select
+                value={technique === '__custom__' || (technique && !techniqueOptions.includes(technique)) ? '__custom__' : technique}
+                onValueChange={(v) => {
+                  if (v === '__custom__') {
+                    setTechnique('__custom__');
+                    setCustomTechnique('');
+                  } else {
+                    setTechnique(v);
+                    setCustomTechnique('');
+                  }
+                }}
+              >
                 <SelectTrigger><SelectValue placeholder="Select technique" /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__custom__">+ Custom (type your own)</SelectItem>
                   {techniqueOptions.map((t) => (<SelectItem key={t} value={t}>{t}</SelectItem>))}
                 </SelectContent>
               </Select>
+              {technique === '__custom__' && (
+                <Input
+                  className="mt-2"
+                  value={customTechnique}
+                  onChange={(e) => setCustomTechnique(e.target.value)}
+                  placeholder="Type your custom technique (will create a pathway node)"
+                />
+              )}
             </div>
           </CardContent>
         </Card>

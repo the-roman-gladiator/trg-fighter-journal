@@ -253,9 +253,9 @@ export function useGuidedPathway() {
   };
 
   const getPhaseColor = (week: number): string => {
-    if (week <= 4) return 'bg-blue-500/10 text-blue-700';
-    if (week <= 8) return 'bg-amber-500/10 text-amber-700';
-    return 'bg-red-500/10 text-red-700';
+    if (week <= 4) return 'bg-blue-500/15 text-blue-300 border border-blue-500/30';
+    if (week <= 8) return 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
+    return 'bg-red-500/15 text-red-300 border border-red-500/30';
   };
 
   useEffect(() => {

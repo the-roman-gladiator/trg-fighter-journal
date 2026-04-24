@@ -27,7 +27,10 @@ interface PathwayChain {
 export default function MyPathway() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [view, setView] = useState<ViewMode>('home');
+  const [view, setView] = useState<ViewMode>(() => {
+    if (typeof window === 'undefined') return 'home';
+    return (sessionStorage.getItem('records-tab') as ViewMode) || 'home';
+  });
   const [allSessions, setAllSessions] = useState<any[]>([]);
   const [archivedSessions, setArchivedSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +47,11 @@ export default function MyPathway() {
   // Pathway filter
   const [pathwayFilter, setPathwayFilter] = useState('all');
   const [mapFocusSessionId, setMapFocusSessionId] = useState<string | null>(null);
+
+  // Persist current view as a "tab" so user lands back on the same screen
+  useEffect(() => {
+    sessionStorage.setItem('records-tab', view);
+  }, [view]);
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }

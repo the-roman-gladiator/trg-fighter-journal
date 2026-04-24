@@ -155,8 +155,10 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       return;
     }
 
-    if (!technique) {
-      toast({ title: 'Validation', description: 'Please select a technique', variant: 'destructive' });
+    const resolvedTechnique = technique === '__custom__' ? customTechnique.trim() : technique;
+
+    if (!resolvedTechnique) {
+      toast({ title: 'Validation', description: 'Please select or enter a technique', variant: 'destructive' });
       return;
     }
 

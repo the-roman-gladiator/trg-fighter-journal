@@ -267,7 +267,7 @@
   }
 }
 
-/* Bottom navigation light-mode override: red background with black icons & text */
+/* Bottom navigation light-mode override: red background with white icons & text */
 [data-theme='light'] nav[data-bottom-nav] {
   background-color: hsl(var(--primary)) !important;
   border-top-color: hsl(0 0% 0% / 0.2);

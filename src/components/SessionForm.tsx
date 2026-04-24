@@ -59,6 +59,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const discipline: MartialArtsDiscipline = (selectedDisciplines[0] as MartialArtsDiscipline) || (availableDisciplines[0] || 'MMA');
   const [strategy, setStrategy] = useState<Strategy | ''>('');
   const [technique, setTechnique] = useState<string>('');
+  const [customTechnique, setCustomTechnique] = useState<string>('');
   const [title, setTitle] = useState('');
   const [firstMovement, setFirstMovement] = useState('');
   const [opponentReaction, setOpponentReaction] = useState('');
@@ -154,8 +155,10 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       return;
     }
 
-    if (!technique) {
-      toast({ title: 'Validation', description: 'Please select a technique', variant: 'destructive' });
+    const resolvedTechnique = technique === '__custom__' ? customTechnique.trim() : technique;
+
+    if (!resolvedTechnique) {
+      toast({ title: 'Validation', description: 'Please select or enter a technique', variant: 'destructive' });
       return;
     }
 
@@ -197,7 +200,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         title: title || null,
         notes: notes || null,
         strategy: strategy || null,
-        technique: technique || null,
+        technique: resolvedTechnique || null,
         first_movement: firstMovement || null,
         opponent_action: opponentReaction || null,
         second_movement: thirdMovement || null,
@@ -232,7 +235,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       // Build auto-tags from all fields (one tag per selected discipline)
       const autoTags: string[] = [...selectedDisciplines];
       if (strategy) autoTags.push(strategy);
-      if (technique) autoTags.push(technique);
+      if (resolvedTechnique) autoTags.push(resolvedTechnique);
       if (firstMovement) autoTags.push(firstMovement);
       if (opponentReaction) autoTags.push(opponentReaction);
       if (thirdMovement) autoTags.push(thirdMovement);
@@ -334,7 +337,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="title">Session Title</Label>
+              <Label htmlFor="title">Session Title / Strategy Name</Label>
               <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Jab timing study" />
             </div>
 
@@ -382,12 +385,32 @@ export function SessionForm({ sessionId }: SessionFormProps) {
 
             <div>
               <Label>Technique</Label>
-              <Select value={technique} onValueChange={setTechnique}>
+              <Select
+                value={technique === '__custom__' || (technique && !techniqueOptions.includes(technique)) ? '__custom__' : technique}
+                onValueChange={(v) => {
+                  if (v === '__custom__') {
+                    setTechnique('__custom__');
+                    setCustomTechnique('');
+                  } else {
+                    setTechnique(v);
+                    setCustomTechnique('');
+                  }
+                }}
+              >
                 <SelectTrigger><SelectValue placeholder="Select technique" /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__custom__">+ Custom (type your own)</SelectItem>
                   {techniqueOptions.map((t) => (<SelectItem key={t} value={t}>{t}</SelectItem>))}
                 </SelectContent>
               </Select>
+              {technique === '__custom__' && (
+                <Input
+                  className="mt-2"
+                  value={customTechnique}
+                  onChange={(e) => setCustomTechnique(e.target.value)}
+                  placeholder="Type your custom technique (will create a pathway node)"
+                />
+              )}
             </div>
           </CardContent>
         </Card>

@@ -24,6 +24,10 @@ export const techniquesByDiscipline: Record<MartialArtsDiscipline, string[]> = {
     'Pull Counter', 'Slip Counter', 'Body Shot', 'Head Kick', 'Body Kick', 'Low Kick', 'Calf Kick',
     'Teep', 'Switch Kick', 'Superman Punch', 'Flying Knee', 'Knee', 'Elbow',
     'Spinning Back Fist', 'Spinning Elbow',
+    // Striking Defences
+    'Block', 'High Guard', 'Parry', 'Slip', 'Slip Outside', 'Slip Inside',
+    'Roll', 'Bob and Weave', 'Pull', 'Lean Back', 'Step Back', 'Shoulder Roll',
+    'Check Kick', 'Catch Kick', 'Cover Up',
     // Clinch
     'Clinch Entry', 'Collar Tie', 'Double Collar Tie', 'Frame', 'Pummel', 'Underhook', 'Overhook',
     'Knee from Clinch', 'Elbow from Clinch', 'Clinch Turn', 'Clinch Exit',
@@ -32,6 +36,8 @@ export const techniquesByDiscipline: Record<MartialArtsDiscipline, string[]> = {
     'Blast Double', 'Snatch Single', 'Running the Pipe', 'Switch to Double',
     'Inside Leg Trip', 'Outside Trip', 'Foot Sweep', 'Snap Down', 'Front Headlock',
     'Mat Return', 'Cage Takedown', 'Wall Control', 'Sprawl',
+    // Wrestling/Grappling Defences
+    'Whizzer', 'Crossface', 'Hip Heist', 'Limp Arm', 'Frame & Circle',
     // Grappling / BJJ
     'Guard Pull', 'Closed Guard', 'Open Guard', 'Half Guard', 'Butterfly Guard',
     'De La Riva', 'X Guard', 'Guard Pass', 'Knee Cut', 'Torreando', 'Smash Pass',
@@ -39,7 +45,9 @@ export const techniquesByDiscipline: Record<MartialArtsDiscipline, string[]> = {
     'Escape', 'Bridge Escape', 'Shrimp Escape', 'Sweep', 'Technical Stand Up',
     'Armbar', 'Triangle', 'Kimura', 'Americana', 'Guillotine', 'Rear Naked Choke',
     'Anaconda', "D'Arce", 'Leg Lock Entry', 'Heel Hook', 'Straight Ankle Lock',
-    'Ground and Pound',
+    // Submission Defences
+    'Posture Up', 'Hand Fight', 'Hide the Arm', 'Tuck Chin',
+    'Ground and Pound', 'Ground & Pound',
   ],
   'Muay Thai': [
     'Jab', 'Cross', 'Hook', 'Uppercut', 'Double Jab',
@@ -48,11 +56,19 @@ export const techniquesByDiscipline: Record<MartialArtsDiscipline, string[]> = {
     'Elbow', 'Horizontal Elbow', 'Upward Elbow',
     'Clinch Entry', 'Double Collar Tie', 'Long Guard',
     'Check', 'Catch and Counter', 'Sweep', 'Frame Exit', 'Angle Step',
+    // Striking Defences
+    'Block', 'High Guard', 'Parry', 'Slip', 'Slip Outside', 'Slip Inside',
+    'Roll', 'Bob and Weave', 'Pull', 'Lean Back', 'Step Back', 'Shoulder Roll',
+    'Check Kick', 'Catch Kick', 'Cover Up',
   ],
   'K1': [
     'Jab', 'Cross', 'Hook', 'Uppercut',
     'Teep', 'Low Kick', 'Body Kick', 'Head Kick', 'Knee',
     'Check', 'Catch and Counter', 'Sweep', 'Angle Step', 'Frame Exit',
+    // Striking Defences
+    'Block', 'High Guard', 'Parry', 'Slip', 'Slip Outside', 'Slip Inside',
+    'Roll', 'Bob and Weave', 'Pull', 'Lean Back', 'Step Back', 'Shoulder Roll',
+    'Check Kick', 'Catch Kick', 'Cover Up',
   ],
   'Wrestling': [
     'Stance', 'Hand Fighting', 'Level Change', 'Penetration Step',
@@ -61,6 +77,9 @@ export const techniquesByDiscipline: Record<MartialArtsDiscipline, string[]> = {
     'Body Lock', 'Underhook', 'Overhook',
     'Mat Return', 'Switch', 'Stand Up', 'Sit Out', 'Sprawl',
     'Inside Trip', 'Outside Trip',
+    // Wrestling Defences
+    'Whizzer', 'Crossface', 'Hip Heist', 'Limp Arm', 'Frame & Circle',
+    'Down Block', 'Re-shot',
   ],
   'Grappling': [
     'Double Leg', 'Single Leg', 'Inside Leg Trip', 'Outside Trip',
@@ -70,6 +89,9 @@ export const techniquesByDiscipline: Record<MartialArtsDiscipline, string[]> = {
     'Half Guard', 'Side Control', 'Mount', 'Back Take',
     'Escape', 'Sweep',
     'Guillotine', 'Kimura', 'Rear Naked Choke',
+    // Grappling Defences
+    'Whizzer', 'Crossface', 'Hip Heist', 'Frame & Circle',
+    'Posture Up', 'Hand Fight', 'Hide the Arm', 'Tuck Chin',
   ],
   'BJJ': [
     'Closed Guard', 'Open Guard', 'Half Guard', 'Butterfly Guard', 'Spider Guard',
@@ -80,6 +102,9 @@ export const techniquesByDiscipline: Record<MartialArtsDiscipline, string[]> = {
     'Guard Pass', 'Knee Cut', 'Torreando',
     'Side Control', 'Mount', 'Back Control',
     'Escape', 'Technical Stand Up',
+    // BJJ Defences
+    'Posture Up', 'Hand Fight', 'Hide the Arm', 'Tuck Chin',
+    'Bridge Escape', 'Shrimp Escape', 'Frame & Circle',
   ],
 };
 

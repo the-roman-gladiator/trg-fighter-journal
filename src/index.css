@@ -317,3 +317,26 @@
   background-color: hsl(0 0% 100% / 0.15) !important;
   background-image: none !important;
 }
+
+/* Hide the dark fighter silhouette image inside the dashboard header in light mode
+   (the inline background-image would otherwise show a black square on the red header) */
+[data-theme='light'] header div[aria-hidden="true"][style*="background-image"] {
+  background-image: none !important;
+  background-color: hsl(0 0% 100% / 0.12) !important;
+}
+
+/* Mode switcher (Athlete / Fighter / Coach) — darker grey track in light mode for contrast on red header */
+[data-theme='light'] header .bg-secondary\/50 {
+  background-color: hsl(0 0% 25% / 0.85) !important;
+}
+[data-theme='light'] header .bg-secondary\/50 button {
+  color: hsl(0 0% 100%) !important;
+}
+[data-theme='light'] header .bg-secondary\/50 button[class*="bg-primary"],
+[data-theme='light'] header .bg-secondary\/50 .bg-primary {
+  background-color: hsl(0 0% 100%) !important;
+  color: hsl(var(--primary)) !important;
+}
+[data-theme='light'] header .bg-secondary\/50 button[class*="bg-primary"] * {
+  color: hsl(var(--primary)) !important;
+}

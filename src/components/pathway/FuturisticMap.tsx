@@ -548,6 +548,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
           sessions={sessions}
           pathwayNodeIds={pathwayNodeIds}
           allNodes={nodes}
+          sessionIndex={sessionIndex}
         />
       </div>
     </div>

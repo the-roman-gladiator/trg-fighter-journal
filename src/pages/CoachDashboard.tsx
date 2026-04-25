@@ -110,6 +110,38 @@ export default function CoachDashboard() {
       .limit(50);
     setCoachSessions(cSessions || []);
 
+    // Load all approved fighters' training sessions and full profile details
+    if (fighters && fighters.length > 0) {
+      const approvedIds = fighters
+        .filter((f: any) => f.fighter_status === 'approved')
+        .map((f: any) => f.user_id);
+
+      if (approvedIds.length > 0) {
+        const { data: allNotes } = await supabase
+          .from('training_sessions')
+          .select('*')
+          .in('user_id', approvedIds)
+          .eq('session_type', 'Completed')
+          .order('date', { ascending: false });
+
+        const notesGrouped: Record<string, any[]> = {};
+        (allNotes || []).forEach((note: any) => {
+          if (!notesGrouped[note.user_id]) notesGrouped[note.user_id] = [];
+          notesGrouped[note.user_id].push(note);
+        });
+        setFighterNotes(notesGrouped);
+
+        const { data: fullProfiles } = await supabase
+          .from('profiles')
+          .select('id, name, middle_name, surname, nickname, email')
+          .in('id', approvedIds);
+
+        const profilesById: Record<string, any> = {};
+        (fullProfiles || []).forEach((p: any) => { profilesById[p.id] = p; });
+        setFighterProfiles(profilesById);
+      }
+    }
+
     setLoading(false);
   };
 

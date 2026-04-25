@@ -308,7 +308,24 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
 
   const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);
 
-  // Compute full pathway for highlighting — session-scoped
+  // Sessions whose chain includes the currently selected node
+  const matchingSessionIds = useMemo(() => {
+    if (!selectedNodeId) return [] as string[];
+    const out: string[] = [];
+    sessionIndex.forEach((chain, sid) => {
+      if (chain.includes(selectedNodeId)) out.push(sid);
+    });
+    return out;
+  }, [selectedNodeId, sessionIndex]);
+
+  // Reset session focus whenever the selected node changes or focus no longer applies
+  useEffect(() => {
+    if (focusedSessionId && !matchingSessionIds.includes(focusedSessionId)) {
+      setFocusedSessionId(null);
+    }
+  }, [matchingSessionIds, focusedSessionId]);
+
+  // Compute full pathway for highlighting — session-scoped, optionally focused on one session
   const pathwayNodeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();
 
@@ -317,21 +334,19 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
     // Root node selected → highlight everything
     if (selNode?.is_root) return new Set(nodes.map(n => n.id));
 
-    // Find all sessions whose chain contains the selected node
-    const matchingSessions = new Set<string>();
-    sessionIndex.forEach((chain, sid) => {
-      if (chain.includes(selectedNodeId)) matchingSessions.add(sid);
-    });
+    // If a single session is focused, only show that session's chain
+    const sessionsToShow = focusedSessionId && matchingSessionIds.includes(focusedSessionId)
+      ? [focusedSessionId]
+      : matchingSessionIds;
 
-    // Collect every node ID from all matching sessions
     const ids = new Set<string>([ROOT_ID, selectedNodeId]);
-    matchingSessions.forEach(sid => {
+    sessionsToShow.forEach(sid => {
       const chain = sessionIndex.get(sid) || [];
       chain.forEach(nodeId => ids.add(nodeId));
     });
 
     return ids;
-  }, [selectedNodeId, nodes, sessionIndex]);
+  }, [selectedNodeId, nodes, sessionIndex, focusedSessionId, matchingSessionIds]);
 
   const childNodes = useMemo(() => {
     if (!selectedNodeId) return [];

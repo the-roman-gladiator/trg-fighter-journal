@@ -30,6 +30,8 @@ interface PathwayPanelProps {
   pathwayNodeIds?: Set<string>;
   /** All nodes available to look up by id */
   allNodes?: PathwayNode[];
+  /** Map of session id → ordered chain of node ids belonging to that session */
+  sessionIndex?: Map<string, string[]>;
 }
 
 const TYPE_LABELS: Record<string, string> = {

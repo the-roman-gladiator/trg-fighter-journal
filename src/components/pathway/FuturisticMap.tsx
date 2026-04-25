@@ -73,6 +73,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [focusedSessionId, setFocusedSessionId] = useState<string | null>(null);
   const [chainsOpen, setChainsOpen] = useState(false);
   const isMobile = useIsMobile();
   const mapRef = useRef<MapCanvasHandle>(null);
@@ -307,7 +308,24 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
 
   const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);
 
-  // Compute full pathway for highlighting — session-scoped
+  // Sessions whose chain includes the currently selected node
+  const matchingSessionIds = useMemo(() => {
+    if (!selectedNodeId) return [] as string[];
+    const out: string[] = [];
+    sessionIndex.forEach((chain, sid) => {
+      if (chain.includes(selectedNodeId)) out.push(sid);
+    });
+    return out;
+  }, [selectedNodeId, sessionIndex]);
+
+  // Reset session focus whenever the selected node changes or focus no longer applies
+  useEffect(() => {
+    if (focusedSessionId && !matchingSessionIds.includes(focusedSessionId)) {
+      setFocusedSessionId(null);
+    }
+  }, [matchingSessionIds, focusedSessionId]);
+
+  // Compute full pathway for highlighting — session-scoped, optionally focused on one session
   const pathwayNodeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();
 
@@ -316,21 +334,19 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
     // Root node selected → highlight everything
     if (selNode?.is_root) return new Set(nodes.map(n => n.id));
 
-    // Find all sessions whose chain contains the selected node
-    const matchingSessions = new Set<string>();
-    sessionIndex.forEach((chain, sid) => {
-      if (chain.includes(selectedNodeId)) matchingSessions.add(sid);
-    });
+    // If a single session is focused, only show that session's chain
+    const sessionsToShow = focusedSessionId && matchingSessionIds.includes(focusedSessionId)
+      ? [focusedSessionId]
+      : matchingSessionIds;
 
-    // Collect every node ID from all matching sessions
     const ids = new Set<string>([ROOT_ID, selectedNodeId]);
-    matchingSessions.forEach(sid => {
+    sessionsToShow.forEach(sid => {
       const chain = sessionIndex.get(sid) || [];
       chain.forEach(nodeId => ids.add(nodeId));
     });
 
     return ids;
-  }, [selectedNodeId, nodes, sessionIndex]);
+  }, [selectedNodeId, nodes, sessionIndex, focusedSessionId, matchingSessionIds]);
 
   const childNodes = useMemo(() => {
     if (!selectedNodeId) return [];
@@ -487,6 +503,43 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
             </button>
             <div />
           </div>
+
+          {/* Session Filter — only when selected node spans multiple sessions */}
+          {matchingSessionIds.length > 1 && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/90 border border-border/60 backdrop-blur-md shadow-lg max-w-[90vw]">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground shrink-0">
+                Focus
+              </span>
+              <select
+                value={focusedSessionId ?? ''}
+                onChange={(e) => setFocusedSessionId(e.target.value || null)}
+                className="bg-transparent text-xs text-foreground outline-none max-w-[200px] truncate cursor-pointer"
+                aria-label="Focus on a single session"
+              >
+                <option value="">All {matchingSessionIds.length} sessions</option>
+                {matchingSessionIds.map((sid) => {
+                  const s = sessions.find(ss => ss.id === sid);
+                  if (!s) return null;
+                  const dateLabel = s.date ? new Date(s.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+                  const titleLabel = s.title || s.technique || s.discipline || 'Session';
+                  return (
+                    <option key={sid} value={sid} className="bg-card text-foreground">
+                      {dateLabel ? `${dateLabel} · ` : ''}{titleLabel}
+                    </option>
+                  );
+                })}
+              </select>
+              {focusedSessionId && (
+                <button
+                  onClick={() => setFocusedSessionId(null)}
+                  className="text-[10px] text-cyan-300 hover:text-cyan-100 transition-colors shrink-0"
+                  aria-label="Clear session focus"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Empty state */}
           {sessions.length === 0 && (

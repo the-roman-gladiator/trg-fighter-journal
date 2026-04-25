@@ -36,6 +36,8 @@ export default function CoachDashboard() {
   const [coachSessions, setCoachSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvalDisciplines, setApprovalDisciplines] = useState<Record<string, string[]>>({});
+  const [fighterNotes, setFighterNotes] = useState<Record<string, any[]>>({});
+  const [fighterProfiles, setFighterProfiles] = useState<Record<string, any>>({});
 
   const isHeadCoach = profile?.coach_level === 'head_coach';
 

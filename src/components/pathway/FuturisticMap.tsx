@@ -504,6 +504,43 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
             <div />
           </div>
 
+          {/* Session Filter — only when selected node spans multiple sessions */}
+          {matchingSessionIds.length > 1 && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/90 border border-border/60 backdrop-blur-md shadow-lg max-w-[90vw]">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground shrink-0">
+                Focus
+              </span>
+              <select
+                value={focusedSessionId ?? ''}
+                onChange={(e) => setFocusedSessionId(e.target.value || null)}
+                className="bg-transparent text-xs text-foreground outline-none max-w-[200px] truncate cursor-pointer"
+                aria-label="Focus on a single session"
+              >
+                <option value="">All {matchingSessionIds.length} sessions</option>
+                {matchingSessionIds.map((sid) => {
+                  const s = sessions.find(ss => ss.id === sid);
+                  if (!s) return null;
+                  const dateLabel = s.date ? new Date(s.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+                  const titleLabel = s.title || s.technique || s.discipline || 'Session';
+                  return (
+                    <option key={sid} value={sid} className="bg-card text-foreground">
+                      {dateLabel ? `${dateLabel} · ` : ''}{titleLabel}
+                    </option>
+                  );
+                })}
+              </select>
+              {focusedSessionId && (
+                <button
+                  onClick={() => setFocusedSessionId(null)}
+                  className="text-[10px] text-cyan-300 hover:text-cyan-100 transition-colors shrink-0"
+                  aria-label="Clear session focus"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Empty state */}
           {sessions.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

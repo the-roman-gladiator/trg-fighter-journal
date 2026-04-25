@@ -434,6 +434,106 @@ export default function CoachDashboard() {
               ))
             )}
           </TabsContent>
+
+          {/* Fighter Notes */}
+          <TabsContent value="fighter_notes" className="space-y-4 mt-4">
+            {approvedFighters.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                  No approved fighters yet.
+                </CardContent>
+              </Card>
+            ) : (
+              approvedFighters.map(fighter => {
+                const prof = fighterProfiles[fighter.user_id];
+                const notes = fighterNotes[fighter.user_id] || [];
+                const fullName = [prof?.name, prof?.middle_name, prof?.surname]
+                  .filter(Boolean).join(' ') || fighter.profile_name;
+                const nickname = prof?.nickname;
+
+                return (
+                  <Card key={fighter.id} className="border-primary/20">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Swords className="h-4 w-4 text-primary" />
+                            {fullName}
+                          </CardTitle>
+                          {nickname && (
+                            <p className="text-xs text-primary/70 mt-0.5 italic">
+                              "{nickname}"
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {prof?.email || fighter.profile_email}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <Badge className="bg-emerald-500/20 text-emerald-400 text-xs">
+                            Approved Fighter
+                          </Badge>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {notes.length} session{notes.length !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 flex-wrap mt-2">
+                        {(fighter.approved_fight_disciplines || []).map((d: string) => (
+                          <Badge key={d} variant="default" className="text-[10px]">{d}</Badge>
+                        ))}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0 space-y-2">
+                      {notes.length === 0 ? (
+                        <p className="text-xs text-muted-foreground py-2">
+                          No training sessions recorded yet.
+                        </p>
+                      ) : (
+                        notes.map(note => {
+                          const chain = [
+                            note.first_movement,
+                            note.opponent_action,
+                            note.second_movement,
+                          ].filter(Boolean).join(' → ');
+                          return (
+                            <div
+                              key={note.id}
+                              className="rounded-lg border border-border/50 bg-muted/20 px-3 py-2.5 space-y-1"
+                            >
+                              <div className="flex justify-between items-start gap-2">
+                                <p className="text-sm font-medium truncate flex-1">
+                                  {note.title || note.technique || `${note.discipline} Training`}
+                                </p>
+                                <Badge variant="outline" className="text-[10px] shrink-0">
+                                  {note.discipline}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(note.date), 'MMM d, yyyy')}
+                                {note.time && ` · ${note.time}`}
+                                {note.strategy && ` · ${note.strategy}`}
+                              </p>
+                              {chain && (
+                                <p className="text-xs text-primary/70 font-mono">
+                                  {chain}
+                                </p>
+                              )}
+                              {note.notes && (
+                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                  {note.notes}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </TabsContent>
         </Tabs>
       </main>
     </div>

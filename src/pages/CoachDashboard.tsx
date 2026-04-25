@@ -36,6 +36,8 @@ export default function CoachDashboard() {
   const [coachSessions, setCoachSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvalDisciplines, setApprovalDisciplines] = useState<Record<string, string[]>>({});
+  const [fighterNotes, setFighterNotes] = useState<Record<string, any[]>>({});
+  const [fighterProfiles, setFighterProfiles] = useState<Record<string, any>>({});
 
   const isHeadCoach = profile?.coach_level === 'head_coach';
 
@@ -107,6 +109,38 @@ export default function CoachDashboard() {
       .order('created_at', { ascending: false })
       .limit(50);
     setCoachSessions(cSessions || []);
+
+    // Load all approved fighters' training sessions and full profile details
+    if (fighters && fighters.length > 0) {
+      const approvedIds = fighters
+        .filter((f: any) => f.fighter_status === 'approved')
+        .map((f: any) => f.user_id);
+
+      if (approvedIds.length > 0) {
+        const { data: allNotes } = await supabase
+          .from('training_sessions')
+          .select('*')
+          .in('user_id', approvedIds)
+          .eq('session_type', 'Completed')
+          .order('date', { ascending: false });
+
+        const notesGrouped: Record<string, any[]> = {};
+        (allNotes || []).forEach((note: any) => {
+          if (!notesGrouped[note.user_id]) notesGrouped[note.user_id] = [];
+          notesGrouped[note.user_id].push(note);
+        });
+        setFighterNotes(notesGrouped);
+
+        const { data: fullProfiles } = await supabase
+          .from('profiles')
+          .select('id, name, middle_name, surname, nickname, email')
+          .in('id', approvedIds);
+
+        const profilesById: Record<string, any> = {};
+        (fullProfiles || []).forEach((p: any) => { profilesById[p.id] = p; });
+        setFighterProfiles(profilesById);
+      }
+    }
 
     setLoading(false);
   };
@@ -237,6 +271,11 @@ export default function CoachDashboard() {
             )}
             {isHeadCoach && (
               <TabsTrigger value="fighters" className="flex-1">Fighters</TabsTrigger>
+            )}
+            {isHeadCoach && (
+              <TabsTrigger value="fighter_notes" className="flex-1">
+                Fighter Notes
+              </TabsTrigger>
             )}
             {isHeadCoach && (
               <TabsTrigger value="sessions" className="flex-1">
@@ -393,6 +432,106 @@ export default function CoachDashboard() {
                   </CardContent>
                 </Card>
               ))
+            )}
+          </TabsContent>
+
+          {/* Fighter Notes */}
+          <TabsContent value="fighter_notes" className="space-y-4 mt-4">
+            {approvedFighters.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                  No approved fighters yet.
+                </CardContent>
+              </Card>
+            ) : (
+              approvedFighters.map(fighter => {
+                const prof = fighterProfiles[fighter.user_id];
+                const notes = fighterNotes[fighter.user_id] || [];
+                const fullName = [prof?.name, prof?.middle_name, prof?.surname]
+                  .filter(Boolean).join(' ') || fighter.profile_name;
+                const nickname = prof?.nickname;
+
+                return (
+                  <Card key={fighter.id} className="border-primary/20">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Swords className="h-4 w-4 text-primary" />
+                            {fullName}
+                          </CardTitle>
+                          {nickname && (
+                            <p className="text-xs text-primary/70 mt-0.5 italic">
+                              "{nickname}"
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {prof?.email || fighter.profile_email}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <Badge className="bg-emerald-500/20 text-emerald-400 text-xs">
+                            Approved Fighter
+                          </Badge>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {notes.length} session{notes.length !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 flex-wrap mt-2">
+                        {(fighter.approved_fight_disciplines || []).map((d: string) => (
+                          <Badge key={d} variant="default" className="text-[10px]">{d}</Badge>
+                        ))}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0 space-y-2">
+                      {notes.length === 0 ? (
+                        <p className="text-xs text-muted-foreground py-2">
+                          No training sessions recorded yet.
+                        </p>
+                      ) : (
+                        notes.map(note => {
+                          const chain = [
+                            note.first_movement,
+                            note.opponent_action,
+                            note.second_movement,
+                          ].filter(Boolean).join(' → ');
+                          return (
+                            <div
+                              key={note.id}
+                              className="rounded-lg border border-border/50 bg-muted/20 px-3 py-2.5 space-y-1"
+                            >
+                              <div className="flex justify-between items-start gap-2">
+                                <p className="text-sm font-medium truncate flex-1">
+                                  {note.title || note.technique || `${note.discipline} Training`}
+                                </p>
+                                <Badge variant="outline" className="text-[10px] shrink-0">
+                                  {note.discipline}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(note.date), 'MMM d, yyyy')}
+                                {note.time && ` · ${note.time}`}
+                                {note.strategy && ` · ${note.strategy}`}
+                              </p>
+                              {chain && (
+                                <p className="text-xs text-primary/70 font-mono">
+                                  {chain}
+                                </p>
+                              )}
+                              {note.notes && (
+                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                  {note.notes}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
             )}
           </TabsContent>
         </Tabs>

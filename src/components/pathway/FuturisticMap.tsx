@@ -307,45 +307,30 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
 
   const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);
 
-  // Compute full pathway (ancestors + descendants) for highlighting
+  // Compute full pathway for highlighting — session-scoped
   const pathwayNodeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();
+
     const selNode = nodes.find(n => n.id === selectedNodeId);
-    // Root selected → highlight everything
-    if (selNode?.is_root) {
-      return new Set(nodes.map(n => n.id));
-    }
-    const ids = new Set<string>([selectedNodeId]);
-    // Walk ancestors
-    let frontier = [selectedNodeId];
-    while (frontier.length > 0) {
-      const next: string[] = [];
-      for (const id of frontier) {
-        for (const e of edges) {
-          if (e.target_node_id === id && !ids.has(e.source_node_id)) {
-            ids.add(e.source_node_id);
-            next.push(e.source_node_id);
-          }
-        }
-      }
-      frontier = next;
-    }
-    // Walk descendants
-    frontier = [selectedNodeId];
-    while (frontier.length > 0) {
-      const next: string[] = [];
-      for (const id of frontier) {
-        for (const e of edges) {
-          if (e.source_node_id === id && !ids.has(e.target_node_id)) {
-            ids.add(e.target_node_id);
-            next.push(e.target_node_id);
-          }
-        }
-      }
-      frontier = next;
-    }
+
+    // Root node selected → highlight everything
+    if (selNode?.is_root) return new Set(nodes.map(n => n.id));
+
+    // Find all sessions whose chain contains the selected node
+    const matchingSessions = new Set<string>();
+    sessionIndex.forEach((chain, sid) => {
+      if (chain.includes(selectedNodeId)) matchingSessions.add(sid);
+    });
+
+    // Collect every node ID from all matching sessions
+    const ids = new Set<string>([ROOT_ID, selectedNodeId]);
+    matchingSessions.forEach(sid => {
+      const chain = sessionIndex.get(sid) || [];
+      chain.forEach(nodeId => ids.add(nodeId));
+    });
+
     return ids;
-  }, [selectedNodeId, edges, nodes]);
+  }, [selectedNodeId, nodes, sessionIndex]);
 
   const childNodes = useMemo(() => {
     if (!selectedNodeId) return [];
@@ -362,20 +347,18 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
 
   useEffect(() => {
     if (!initialSessionId || nodes.length === 0) return;
-
-    const session = sessions.find((s) => s.id === initialSessionId);
+    const session = sessions.find(s => s.id === initialSessionId);
     if (!session) return;
-
+    const sid = session.id;
     const candidateIds = [
-      session.discipline ? `disc:${session.discipline}` : null,
-      session.strategy ? `strat:${session.strategy}` : null,
-      session.technique ? `tech:${session.technique}` : null,
-      session.first_movement ? `move:${session.first_movement}` : null,
-      session.opponent_action ? `react:${session.opponent_action}` : null,
-      session.second_movement ? `follow:${session.second_movement}` : null,
+      session.second_movement ? `follow:${sid}:${session.second_movement}` : null,
+      session.opponent_action ? `react:${sid}:${session.opponent_action}`  : null,
+      session.first_movement  ? `move:${sid}:${session.first_movement}`    : null,
+      session.technique       ? `tech:${sid}:${session.technique}`         : null,
+      session.strategy        ? `strat:${sid}:${session.strategy}`         : null,
+      session.discipline      ? `disc:${session.discipline}`               : null,
     ].filter(Boolean) as string[];
-
-    const bestNodeId = candidateIds.reverse().find((id) => nodes.some((node) => node.id === id)) || null;
+    const bestNodeId = candidateIds.find(id => nodes.some(n => n.id === id)) || null;
     if (bestNodeId) setSelectedNodeId(bestNodeId);
   }, [initialSessionId, sessions, nodes]);
 
@@ -384,8 +367,9 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
   useEffect(() => {
     const highlight = searchParams.get('highlight');
     if (!highlight || nodes.length === 0) return;
-    const target = highlight.toLowerCase();
-    const match = nodes.find(n => n.title.toLowerCase() === target);
+    const target = highlight.toLowerCase().trim();
+    const match = nodes.find(n => n.title.toLowerCase() === target)
+      || nodes.find(n => n.title.toLowerCase().includes(target));
     if (match) setSelectedNodeId(match.id);
   }, [searchParams, nodes]);
 

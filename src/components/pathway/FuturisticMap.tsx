@@ -73,6 +73,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [focusedSessionId, setFocusedSessionId] = useState<string | null>(null);
   const [chainsOpen, setChainsOpen] = useState(false);
   const isMobile = useIsMobile();
   const mapRef = useRef<MapCanvasHandle>(null);

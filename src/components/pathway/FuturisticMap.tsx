@@ -66,6 +66,8 @@ function radialLayout(
   return positions;
 }
 
+const ROOT_ID = 'root:training';
+
 export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<any[]>([]);

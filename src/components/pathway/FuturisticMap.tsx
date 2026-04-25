@@ -93,87 +93,180 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
   useEffect(() => { loadSessions(); }, [loadSessions]);
 
   // Auto-generate graph from sessions
-  const { nodes, edges } = useMemo(() => {
-    const nodeMap = new Map<string, { label: string; type: string; count: number; sessions: any[] }>();
-    const edgeMap = new Map<string, { source: string; target: string; weight: number }>();
+  const { nodes, edges, sessionIndex } = useMemo(() => {
+    const nodeMap = new Map<string, {
+      label: string;
+      type: string;
+      count: number;
+      sessionIds: Set<string>;
+    }>();
 
-    const ensureNode = (id: string, label: string, type: string, session: any) => {
+    const edgeMap = new Map<string, {
+      source: string;
+      target: string;
+      weight: number;
+      sessionIds: Set<string>;
+    }>();
+
+    // sessionId → ordered array of node IDs for that session
+    const sessionIndex = new Map<string, string[]>();
+
+    const rootId = ROOT_ID;
+
+    const ensureNode = (id: string, label: string, type: string, sessionId: string) => {
       const existing = nodeMap.get(id);
       if (existing) {
         existing.count++;
-        existing.sessions.push(session);
+        existing.sessionIds.add(sessionId);
       } else {
-        nodeMap.set(id, { label, type, count: 1, sessions: [session] });
+        nodeMap.set(id, { label, type, count: 1, sessionIds: new Set([sessionId]) });
       }
     };
 
-    const ensureEdge = (sourceId: string, targetId: string) => {
+    const ensureEdge = (sourceId: string, targetId: string, sessionId: string) => {
       if (!sourceId || !targetId) return;
       const key = `${sourceId}→${targetId}`;
       const existing = edgeMap.get(key);
-      if (existing) existing.weight++;
-      else edgeMap.set(key, { source: sourceId, target: targetId, weight: 1 });
+      if (existing) {
+        existing.weight++;
+        existing.sessionIds.add(sessionId);
+      } else {
+        edgeMap.set(key, { source: sourceId, target: targetId, weight: 1, sessionIds: new Set([sessionId]) });
+      }
     };
 
-    // Create a central root node
-    const rootId = 'root:training';
-    nodeMap.set(rootId, { label: 'My Training', type: 'root', count: sessions.length, sessions: [] });
+    // Root node
+    nodeMap.set(rootId, {
+      label: 'My Training',
+      type: 'root',
+      count: sessions.length,
+      sessionIds: new Set(),
+    });
 
     for (const s of sessions) {
-      const discId = s.discipline ? `disc:${s.discipline}` : null;
-      const stratId = s.strategy ? `strat:${s.strategy}` : null;
-      const techId = s.technique ? `tech:${s.technique}` : null;
-      const m1Id = s.first_movement ? `move:${s.first_movement}` : null;
-      const m2Id = s.opponent_action ? `react:${s.opponent_action}` : null;
-      const m3Id = s.second_movement ? `follow:${s.second_movement}` : null;
+      const sid = s.id;
 
-      if (discId) { ensureNode(discId, s.discipline, 'discipline', s); ensureEdge(rootId, discId); }
-      if (stratId) { ensureNode(stratId, s.strategy, 'strategy', s); if (discId) ensureEdge(discId, stratId); }
-      if (techId) { ensureNode(techId, s.technique, 'technique', s); if (stratId) ensureEdge(stratId, techId); else if (discId) ensureEdge(discId, techId); }
-      if (m1Id) { ensureNode(m1Id, s.first_movement, 'movement1', s); if (techId) ensureEdge(techId, m1Id); else if (stratId) ensureEdge(stratId, m1Id); }
-      if (m2Id) { ensureNode(m2Id, s.opponent_action, 'movement2', s); if (m1Id) ensureEdge(m1Id, m2Id); }
-      if (m3Id) { ensureNode(m3Id, s.second_movement, 'movement3', s); if (m2Id) ensureEdge(m2Id, m3Id); }
+      // Multi-discipline support: check disciplines array first, fall back to discipline string
+      const disciplineList: string[] = (
+        Array.isArray(s.disciplines) && s.disciplines.length > 0
+          ? s.disciplines
+          : s.discipline
+            ? [s.discipline]
+            : []
+      );
+
+      // Labels from DB columns
+      const tacticLabel: string | null = s.strategy || null;       // DB column: strategy (displayed as Tactic)
+      const techLabel: string | null   = s.technique || null;
+      const m1Label: string | null     = s.first_movement || null; // 1st Movement: How did you start?
+      const m2Label: string | null     = s.opponent_action || null;// 2nd Movement: Opponent reaction
+      const m3Label: string | null     = s.second_movement || null;// 3rd Movement: What did I capitalize with?
+
+      // Discipline nodes are GLOBAL (shared across sessions — disciplines are categories)
+      // Tactic, Technique, and all movements are SESSION-SCOPED to prevent ghost connections
+      const tacticId = tacticLabel ? `strat:${sid}:${tacticLabel}` : null;
+      const techId   = techLabel   ? `tech:${sid}:${techLabel}`    : null;
+      const m1Id     = m1Label     ? `move:${sid}:${m1Label}`      : null;
+      const m2Id     = m2Label     ? `react:${sid}:${m2Label}`     : null;
+      const m3Id     = m3Label     ? `follow:${sid}:${m3Label}`    : null;
+
+      // Build this session's ordered chain for pathway highlighting
+      const sessionChain: string[] = [rootId];
+
+      // Discipline nodes — one per discipline in this session
+      const discIds: string[] = [];
+      for (const disc of disciplineList) {
+        const discId = `disc:${disc}`;
+        ensureNode(discId, disc, 'discipline', sid);
+        ensureEdge(rootId, discId, sid);
+        discIds.push(discId);
+        sessionChain.push(discId);
+      }
+
+      // Tactic (DB: strategy) — session-scoped
+      if (tacticId && tacticLabel) {
+        ensureNode(tacticId, tacticLabel, 'tactic', sid);
+        if (discIds.length > 0) {
+          for (const discId of discIds) ensureEdge(discId, tacticId, sid);
+        } else {
+          ensureEdge(rootId, tacticId, sid);
+        }
+        sessionChain.push(tacticId);
+      }
+
+      // Technique — session-scoped
+      if (techId && techLabel) {
+        ensureNode(techId, techLabel, 'technique', sid);
+        if (tacticId)            ensureEdge(tacticId, techId, sid);
+        else if (discIds[0])     ensureEdge(discIds[0], techId, sid);
+        else                     ensureEdge(rootId, techId, sid);
+        sessionChain.push(techId);
+      }
+
+      // 1st Movement: How did you start? — session-scoped
+      if (m1Id && m1Label) {
+        ensureNode(m1Id, m1Label, 'movement1', sid);
+        if (techId)          ensureEdge(techId, m1Id, sid);
+        else if (tacticId)   ensureEdge(tacticId, m1Id, sid);
+        else if (discIds[0]) ensureEdge(discIds[0], m1Id, sid);
+        sessionChain.push(m1Id);
+      }
+
+      // 2nd Movement: Opponent reaction — session-scoped
+      if (m2Id && m2Label) {
+        ensureNode(m2Id, m2Label, 'movement2', sid);
+        if (m1Id) ensureEdge(m1Id, m2Id, sid);
+        else if (techId) ensureEdge(techId, m2Id, sid);
+        sessionChain.push(m2Id);
+      }
+
+      // 3rd Movement: What did I capitalize with? — session-scoped
+      if (m3Id && m3Label) {
+        ensureNode(m3Id, m3Label, 'movement3', sid);
+        if (m2Id) ensureEdge(m2Id, m3Id, sid);
+        else if (m1Id) ensureEdge(m1Id, m3Id, sid);
+        sessionChain.push(m3Id);
+      }
+
+      sessionIndex.set(sid, sessionChain);
     }
 
-    // --- Layered horizontal layout (top → bottom) ---
+    // Layered horizontal layout — same visual structure as before
     const WIDTH = 800;
     const CENTER_X = WIDTH / 2;
     const layerY: Record<string, number> = {
-      root: 0,
+      root:       0,
       discipline: 70,
-      strategy: 190,
-      technique: 320,
-      movement1: 440,
-      movement2: 540,
-      movement3: 640,
+      tactic:     190,
+      technique:  320,
+      movement1:  440,
+      movement2:  540,
+      movement3:  640,
     };
 
     const positions = new Map<string, { x: number; y: number }>();
     positions.set(rootId, { x: CENTER_X, y: layerY.root });
 
-    // Group node IDs by their type-prefix for layered placement
-    const layerGroups: Array<{ prefix: string; type: keyof typeof layerY }> = [
-      { prefix: 'disc:', type: 'discipline' },
-      { prefix: 'strat:', type: 'strategy' },
-      { prefix: 'tech:', type: 'technique' },
-      { prefix: 'move:', type: 'movement1' },
-      { prefix: 'react:', type: 'movement2' },
-      { prefix: 'follow:', type: 'movement3' },
+    const layerGroups: Array<{ prefix: string; type: string }> = [
+      { prefix: 'disc:',   type: 'discipline' },
+      { prefix: 'strat:',  type: 'tactic'     },
+      { prefix: 'tech:',   type: 'technique'  },
+      { prefix: 'move:',   type: 'movement1'  },
+      { prefix: 'react:',  type: 'movement2'  },
+      { prefix: 'follow:', type: 'movement3'  },
     ];
 
     layerGroups.forEach(({ prefix, type }) => {
       const items = [...nodeMap.keys()].filter(k => k.startsWith(prefix));
       if (items.length === 0) return;
-      const spacing = Math.max(WIDTH / (items.length + 1), 110);
+      const spacing = Math.max(WIDTH / (items.length + 1), 90);
       const totalWidth = spacing * (items.length - 1);
       const startX = CENTER_X - totalWidth / 2;
       items.forEach((id, i) => {
-        positions.set(id, { x: startX + i * spacing, y: layerY[type] });
+        positions.set(id, { x: startX + i * spacing, y: layerY[type] || 400 });
       });
     });
 
-
-    // Build final nodes array
     const now = new Date().toISOString();
     const builtNodes: PathwayNode[] = [];
     nodeMap.forEach((data, id) => {
@@ -209,7 +302,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
       });
     });
 
-    return { nodes: builtNodes, edges: builtEdges };
+    return { nodes: builtNodes, edges: builtEdges, sessionIndex };
   }, [sessions, user]);
 
   const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);

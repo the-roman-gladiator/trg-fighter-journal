@@ -273,6 +273,11 @@ export default function CoachDashboard() {
               <TabsTrigger value="fighters" className="flex-1">Fighters</TabsTrigger>
             )}
             {isHeadCoach && (
+              <TabsTrigger value="fighter_notes" className="flex-1">
+                Fighter Notes
+              </TabsTrigger>
+            )}
+            {isHeadCoach && (
               <TabsTrigger value="sessions" className="flex-1">
                 Reviews {fighterSessions.length > 0 && <Badge variant="secondary" className="ml-1 text-[10px]">{fighterSessions.length}</Badge>}
               </TabsTrigger>

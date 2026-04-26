@@ -569,6 +569,61 @@ export default function Dashboard() {
         <p className="text-center text-[10px] text-muted-foreground/50 font-display tracking-widest pt-4 pb-8">
           STRENGTH & HONOUR
         </p>
+        </div>
+        {/* /CENTER */}
+
+        {/* DESKTOP RIGHT — Latest Notes */}
+        <aside className="hidden lg:block sticky top-4">
+          <Card className="border-border bg-card">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-2 mb-3">
+                <BookOpen className="h-4 w-4 text-primary" />
+                <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">Latest Notes</p>
+              </div>
+              {latestNotes.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No notes yet. Log your first session to see it here.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {latestNotes.map((n) => {
+                    const summary = (n.notes || n.technique || '').toString().trim();
+                    return (
+                      <li key={n.id}>
+                        <button
+                          onClick={() => navigate(`/session/${n.id}`)}
+                          className="w-full text-left p-2.5 rounded-md border border-border/60 hover:border-primary/50 hover:bg-primary/5 transition-colors group"
+                        >
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <p className="text-xs font-semibold text-foreground truncate group-hover:text-primary">
+                              {n.title || n.discipline || 'Session'}
+                            </p>
+                            <span className="text-[10px] text-muted-foreground shrink-0 tabular-nums">
+                              {format(new Date(n.date), 'd MMM')}
+                            </span>
+                          </div>
+                          {summary && (
+                            <p className="text-[11px] text-muted-foreground line-clamp-2">{summary}</p>
+                          )}
+                          <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                            {n.discipline && (
+                              <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-primary/30 text-primary">
+                                {n.discipline}
+                              </Badge>
+                            )}
+                            {n.strategy && (
+                              <Badge variant="secondary" className="text-[9px] px-1.5 py-0">
+                                {n.strategy}
+                              </Badge>
+                            )}
+                          </div>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </aside>
       </main>
     </div>
   );

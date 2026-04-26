@@ -42,49 +42,68 @@ interface CoachRow {
 }
 
 export function CoachRoster() {
+  const { profile } = useAuth();
+  const { toast } = useToast();
   const [coaches, setCoaches] = useState<CoachRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const { data: rows } = await supabase
+  const isHeadCoach = profile?.coach_level === 'head_coach';
+
+  const load = async () => {
+    setLoading(true);
+    const { data: rows } = await supabase
+      .from('profiles')
+      .select('id, name, surname, email, coach_level, assigned_disciplines, invited_by, created_at')
+      .not('coach_level', 'is', null)
+      .order('coach_level', { ascending: true })
+      .order('created_at', { ascending: true });
+
+    const list = (rows || []) as CoachRow[];
+
+    const inviterIds = Array.from(
+      new Set(list.map(c => c.invited_by).filter(Boolean) as string[])
+    );
+    let nameMap = new Map<string, string>();
+    if (inviterIds.length > 0) {
+      const { data: inviters } = await supabase
         .from('profiles')
-        .select('id, name, surname, email, coach_level, assigned_disciplines, invited_by, created_at')
-        .not('coach_level', 'is', null)
-        .order('coach_level', { ascending: true })
-        .order('created_at', { ascending: true });
-
-      const list = (rows || []) as CoachRow[];
-
-      // Resolve inviter names
-      const inviterIds = Array.from(
-        new Set(list.map(c => c.invited_by).filter(Boolean) as string[])
+        .select('id, name, surname')
+        .in('id', inviterIds);
+      nameMap = new Map(
+        (inviters || []).map((p: any) => [
+          p.id,
+          [p.name, p.surname].filter(Boolean).join(' ') || 'Unknown',
+        ])
       );
-      let nameMap = new Map<string, string>();
-      if (inviterIds.length > 0) {
-        const { data: inviters } = await supabase
-          .from('profiles')
-          .select('id, name, surname')
-          .in('id', inviterIds);
-        nameMap = new Map(
-          (inviters || []).map((p: any) => [
-            p.id,
-            [p.name, p.surname].filter(Boolean).join(' ') || 'Unknown',
-          ])
-        );
-      }
+    }
 
-      setCoaches(
-        list.map(c => ({
-          ...c,
-          inviter_name: c.invited_by ? nameMap.get(c.invited_by) : undefined,
-        }))
-      );
-      setLoading(false);
-    };
+    setCoaches(
+      list.map(c => ({
+        ...c,
+        inviter_name: c.invited_by ? nameMap.get(c.invited_by) : undefined,
+      }))
+    );
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleRemove = async (c: CoachRow) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        coach_level: null,
+        assigned_disciplines: [],
+        hierarchy_delegation_enabled: false,
+      })
+      .eq('id', c.id);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Coach removed', description: `${c.name || c.email} is no longer a coach.` });
     load();
-  }, []);
+  };
 
   return (
     <Card>
@@ -106,6 +125,8 @@ export function CoachRoster() {
         ) : (
           coaches.map(c => {
             const fullName = [c.name, c.surname].filter(Boolean).join(' ') || c.email;
+            const canRemove =
+              isHeadCoach && c.coach_level !== 'head_coach' && c.id !== profile?.id;
             return (
               <div
                 key={c.id}
@@ -121,9 +142,44 @@ export function CoachRoster() {
                     </div>
                     <p className="text-[11px] text-muted-foreground truncate">{c.email}</p>
                   </div>
-                  <Badge variant="outline" className={`text-[10px] ${LEVEL_BADGE[c.coach_level]}`}>
-                    {LEVEL_LABEL[c.coach_level]}
-                  </Badge>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Badge variant="outline" className={`text-[10px] ${LEVEL_BADGE[c.coach_level]}`}>
+                      {LEVEL_LABEL[c.coach_level]}
+                    </Badge>
+                    {canRemove && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+                            title="Remove coach"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Remove coach?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This removes <strong>{fullName}</strong> from the coaching
+                              hierarchy ({LEVEL_LABEL[c.coach_level]}). Their account
+                              and training data are kept, but they lose all coach access.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleRemove(c)}
+                              className="bg-destructive text-destructive-foreground"
+                            >
+                              Remove Coach
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
                 </div>
 
                 {c.assigned_disciplines && c.assigned_disciplines.length > 0 && (

@@ -13,6 +13,7 @@ import {
   Target,
   Flame,
 } from 'lucide-react';
+import BetaRequestForm from '@/components/landing/BetaRequestForm';
 
 export default function Landing() {
   const navigate = useNavigate();

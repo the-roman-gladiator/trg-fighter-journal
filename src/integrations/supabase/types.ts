@@ -1938,6 +1938,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_head_coach: { Args: { _user_id: string }; Returns: boolean }
       is_pro_user: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {

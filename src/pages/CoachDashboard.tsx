@@ -13,6 +13,8 @@ import { useAppMode } from '@/hooks/useAppMode';
 import { ModeSwitcher } from '@/components/ModeSwitcher';
 import { format } from 'date-fns';
 import { CoachInvitations } from '@/components/coach/CoachInvitations';
+import { HierarchySettings } from '@/components/coach/HierarchySettings';
+import { useCoachAccess } from '@/hooks/useCoachAccess';
 
 const ALL_FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
 
@@ -42,7 +44,8 @@ export default function CoachDashboard() {
 
   const isHeadCoach = profile?.coach_level === 'head_coach';
   const isMainCoach = profile?.coach_level === 'main_coach';
-  const canInviteCoaches = isHeadCoach || isMainCoach;
+  const { canNominate } = useCoachAccess();
+  const canInviteCoaches = canNominate;
 
   const isCoach = !!profile?.coach_level;
 

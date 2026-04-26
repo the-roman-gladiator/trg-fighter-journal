@@ -94,7 +94,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
   useEffect(() => { loadSessions(); }, [loadSessions]);
 
   // Auto-generate graph from sessions
-  const { nodes, edges, sessionIndex } = useMemo(() => {
+  const { nodes, edges, sessionIndex, sessionDisciplines } = useMemo(() => {
     const nodeMap = new Map<string, {
       label: string;
       type: string;
@@ -111,6 +111,9 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
 
     // sessionId → ordered array of node IDs for that session
     const sessionIndex = new Map<string, string[]>();
+
+    // sessionId → discipline list for that session
+    const sessionDisciplines = new Map<string, string[]>();
 
     const rootId = ROOT_ID;
 
@@ -147,34 +150,34 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
     for (const s of sessions) {
       const sid = s.id;
 
-      // Multi-discipline support: check disciplines array first, fall back to discipline string
-      const disciplineList: string[] = (
+      // Multi-discipline support
+      const disciplineList: string[] =
         Array.isArray(s.disciplines) && s.disciplines.length > 0
           ? s.disciplines
           : s.discipline
-            ? [s.discipline]
-            : []
-      );
+          ? [s.discipline]
+          : [];
 
-      // Labels from DB columns
-      const tacticLabel: string | null = s.strategy || null;       // DB column: strategy (displayed as Tactic)
+      sessionDisciplines.set(sid, disciplineList);
+
+      // Labels — all GLOBAL (one node per unique label)
+      const tacticLabel: string | null = s.strategy || null;
       const techLabel: string | null   = s.technique || null;
-      const m1Label: string | null     = s.first_movement || null; // 1st Movement: How did you start?
-      const m2Label: string | null     = s.opponent_action || null;// 2nd Movement: Opponent reaction
-      const m3Label: string | null     = s.second_movement || null;// 3rd Movement: What did I capitalize with?
+      const m1Label: string | null     = s.first_movement || null;
+      const m2Label: string | null     = s.opponent_action || null;
+      const m3Label: string | null     = s.second_movement || null;
 
-      // Discipline nodes are GLOBAL (shared across sessions — disciplines are categories)
-      // Tactic, Technique, and all movements are SESSION-SCOPED to prevent ghost connections
-      const tacticId = tacticLabel ? `strat:${sid}:${tacticLabel}` : null;
-      const techId   = techLabel   ? `tech:${sid}:${techLabel}`    : null;
-      const m1Id     = m1Label     ? `move:${sid}:${m1Label}`      : null;
-      const m2Id     = m2Label     ? `react:${sid}:${m2Label}`     : null;
-      const m3Id     = m3Label     ? `follow:${sid}:${m3Label}`    : null;
+      // Node IDs — ALL GLOBAL by label only (one node per unique name)
+      const tacticId = tacticLabel ? `tactic:${tacticLabel}` : null;
+      const techId   = techLabel   ? `tech:${techLabel}`     : null;
+      const m1Id     = m1Label     ? `move1:${m1Label}`      : null;
+      const m2Id     = m2Label     ? `move2:${m2Label}`      : null;
+      const m3Id     = m3Label     ? `move3:${m3Label}`      : null;
 
-      // Build this session's ordered chain for pathway highlighting
+      // Session chain — ordered list of node IDs for this session
       const sessionChain: string[] = [rootId];
 
-      // Discipline nodes — one per discipline in this session
+      // Discipline nodes — one per discipline, global
       const discIds: string[] = [];
       for (const disc of disciplineList) {
         const discId = `disc:${disc}`;
@@ -184,7 +187,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
         sessionChain.push(discId);
       }
 
-      // Tactic (DB: strategy) — session-scoped
+      // Tactic — global, connects from each discipline in this session
       if (tacticId && tacticLabel) {
         ensureNode(tacticId, tacticLabel, 'tactic', sid);
         if (discIds.length > 0) {
@@ -195,16 +198,16 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
         sessionChain.push(tacticId);
       }
 
-      // Technique — session-scoped
+      // Technique — global (one Jab node total)
       if (techId && techLabel) {
         ensureNode(techId, techLabel, 'technique', sid);
-        if (tacticId)            ensureEdge(tacticId, techId, sid);
-        else if (discIds[0])     ensureEdge(discIds[0], techId, sid);
-        else                     ensureEdge(rootId, techId, sid);
+        if (tacticId)        ensureEdge(tacticId, techId, sid);
+        else if (discIds[0]) ensureEdge(discIds[0], techId, sid);
+        else                 ensureEdge(rootId, techId, sid);
         sessionChain.push(techId);
       }
 
-      // 1st Movement: How did you start? — session-scoped
+      // 1st Movement — global (one node per unique label)
       if (m1Id && m1Label) {
         ensureNode(m1Id, m1Label, 'movement1', sid);
         if (techId)          ensureEdge(techId, m1Id, sid);
@@ -213,18 +216,18 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
         sessionChain.push(m1Id);
       }
 
-      // 2nd Movement: Opponent reaction — session-scoped
+      // 2nd Movement: Opponent reaction — global
       if (m2Id && m2Label) {
         ensureNode(m2Id, m2Label, 'movement2', sid);
-        if (m1Id) ensureEdge(m1Id, m2Id, sid);
+        if (m1Id)        ensureEdge(m1Id, m2Id, sid);
         else if (techId) ensureEdge(techId, m2Id, sid);
         sessionChain.push(m2Id);
       }
 
-      // 3rd Movement: What did I capitalize with? — session-scoped
+      // 3rd Movement: What did I capitalize with? — global
       if (m3Id && m3Label) {
         ensureNode(m3Id, m3Label, 'movement3', sid);
-        if (m2Id) ensureEdge(m2Id, m3Id, sid);
+        if (m2Id)      ensureEdge(m2Id, m3Id, sid);
         else if (m1Id) ensureEdge(m1Id, m3Id, sid);
         sessionChain.push(m3Id);
       }
@@ -232,17 +235,17 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
       sessionIndex.set(sid, sessionChain);
     }
 
-    // Layered horizontal layout — same visual structure as before
+    // Layered horizontal layout
     const WIDTH = 800;
     const CENTER_X = WIDTH / 2;
     const layerY: Record<string, number> = {
       root:       0,
-      discipline: 70,
-      tactic:     190,
-      technique:  320,
-      movement1:  440,
-      movement2:  540,
-      movement3:  640,
+      discipline: 80,
+      tactic:     200,
+      technique:  330,
+      movement1:  450,
+      movement2:  550,
+      movement3:  650,
     };
 
     const positions = new Map<string, { x: number; y: number }>();
@@ -250,11 +253,11 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
 
     const layerGroups: Array<{ prefix: string; type: string }> = [
       { prefix: 'disc:',   type: 'discipline' },
-      { prefix: 'strat:',  type: 'tactic'     },
+      { prefix: 'tactic:', type: 'tactic'     },
       { prefix: 'tech:',   type: 'technique'  },
-      { prefix: 'move:',   type: 'movement1'  },
-      { prefix: 'react:',  type: 'movement2'  },
-      { prefix: 'follow:', type: 'movement3'  },
+      { prefix: 'move1:',  type: 'movement1'  },
+      { prefix: 'move2:',  type: 'movement2'  },
+      { prefix: 'move3:',  type: 'movement3'  },
     ];
 
     layerGroups.forEach(({ prefix, type }) => {
@@ -303,7 +306,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
       });
     });
 
-    return { nodes: builtNodes, edges: builtEdges, sessionIndex };
+    return { nodes: builtNodes, edges: builtEdges, sessionIndex, sessionDisciplines };
   }, [sessions, user]);
 
   const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);

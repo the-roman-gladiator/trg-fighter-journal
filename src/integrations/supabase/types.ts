@@ -2015,6 +2015,7 @@ export type Database = {
         Returns: Json
       }
       redeem_coach_invitation: { Args: { _code: string }; Returns: Json }
+      user_has_fighter_profile: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "athlete" | "coach" | "admin"

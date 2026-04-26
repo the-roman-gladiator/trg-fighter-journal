@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { CoachInvitations } from '@/components/coach/CoachInvitations';
 import { HierarchySettings } from '@/components/coach/HierarchySettings';
 import { CoachRoster } from '@/components/coach/CoachRoster';
+import { FighterManager } from '@/components/coach/FighterManager';
 import { useCoachAccess } from '@/hooks/useCoachAccess';
 
 const ALL_FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
@@ -396,30 +397,9 @@ export default function CoachDashboard() {
             )}
           </TabsContent>
 
-          {/* Approved Fighters */}
+          {/* Approved Fighters – head coach manager */}
           <TabsContent value="fighters" className="space-y-3 mt-4">
-            {approvedFighters.length === 0 ? (
-              <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">No approved fighters yet.</CardContent></Card>
-            ) : (
-              approvedFighters.map(f => (
-                <Card key={f.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold text-sm">{f.profile_name}</p>
-                        <p className="text-xs text-muted-foreground">{f.profile_email}</p>
-                      </div>
-                      <Badge className="bg-emerald-500/20 text-emerald-400 text-xs">Approved</Badge>
-                    </div>
-                    <div className="flex gap-1 flex-wrap mt-2">
-                      {(f.approved_fight_disciplines || []).map(d => (
-                        <Badge key={d} variant="default" className="text-xs">{d}</Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
+            <FighterManager fighters={requests as any} onChanged={fetchData} />
           </TabsContent>
 
           {/* Sessions in Review */}

@@ -227,6 +227,8 @@ export default function Dashboard() {
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const nickname = profile?.nickname || '';
 
+  const fighterBg = settings.theme_mode === 'light' ? fighterBgLight : fighterBgDark;
+
   return (
     <div className="min-h-screen bg-background relative">
       {/* Dashboard-only fighter background graphic */}

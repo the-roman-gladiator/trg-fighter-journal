@@ -56,6 +56,11 @@ export default function Dashboard() {
   // Pie chart data
   const [classTypeData, setClassTypeData] = useState<{ name: string; value: number }[]>([]);
 
+  // Desktop side-panels data
+  const [disciplineBreakdown, setDisciplineBreakdown] = useState<{ name: string; value: number }[]>([]);
+  const [strategyBreakdown, setStrategyBreakdown] = useState<{ name: string; value: number }[]>([]);
+  const [latestNotes, setLatestNotes] = useState<any[]>([]);
+
   useEffect(() => {
     if (!user) return;
     fetchData();

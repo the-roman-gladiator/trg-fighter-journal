@@ -289,7 +289,7 @@ export default function Dashboard() {
             />
             <div
               aria-hidden="true"
-              className="absolute right-0 top-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-primary/20 blur-3xl pointer-events-none"
+              className="absolute right-0 top-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-primary/20 blur-3xl pointer-events-none hidden dark:block"
             />
           </div>
 

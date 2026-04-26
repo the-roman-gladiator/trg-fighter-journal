@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, ClipboardList, TrendingUp, NotebookPen, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 const tabs = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -15,7 +16,10 @@ const HIDDEN_ROUTES = ['/auth', '/onboarding'];
 
 export function BottomNav() {
   const { pathname } = useLocation();
+  const { user } = useAuth();
   if (HIDDEN_ROUTES.some(r => pathname.startsWith(r))) return null;
+  // Hide on public landing (root, logged out)
+  if (pathname === '/' && !user) return null;
 
   return (
     <nav

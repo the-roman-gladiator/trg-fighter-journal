@@ -1,81 +1,53 @@
 ## Goal
-Make `trg.tech25@gmail.com` a full **developer account** with unrestricted visibility across every part of the app (sessions, fighter notes, AI notes, subscriptions, support tickets, archives, motivations, coach data, all profiles, etc.).
+Make coach invitations actually email the recipient (with the invite code, the inviter's name, the assigned level/disciplines, and a link to sign up + redeem). Today, no email is sent — the app only generates a code for you to copy/paste manually.
 
-## Current state of the account
-Confirmed via DB query — `trg.tech25@gmail.com` (id `6599542f-54e2-4b27-847c-83264d1042e9`) currently has:
-- ✅ `coach_level = head_coach`
-- ✅ All 6 disciplines assigned (MMA, Muay Thai, K1, Wrestling, Grappling, BJJ)
-- ✅ `approval_status = approved`
-- ❌ **Missing the `admin` role** in `user_roles` (only has `coach`)
+## Why no email arrived
+- The project has **no email domain configured** in Lovable Cloud.
+- There is **no edge function** that sends invitation emails.
+- `CoachInvitations.tsx` only inserts a row into `coach_invitations` and displays the code in the UI.
 
-The `admin` role is what unlocks the “see everything” RLS policies across the database — without it, the account is just a head coach and is blocked from many tables.
+## What I'll build
 
-## What admin unlocks (existing RLS already in place)
-The codebase already has admin-only policies on these tables — adding the role will instantly grant access:
-- `ai_fighter_notes` — view/edit all AI notes from every user
-- `subscriptions` — manage all subscriptions
-- `support_tickets` — view & update all tickets
-- `technique_archive` — view all users’ personal archives
-- `technique_library` — manage the master library
-- `motivations_library` — manage daily motivation entries
-- `user_roles` — manage roles for other users
-- `workout_templates` — manage all templates
-- `is_pro_user()` returns true → unlocks every Pro-gated feature
-- `useSubscription` hook already returns `isPro: true` and `isAdmin: true` automatically
+### 1. Email infrastructure (one-time setup)
+- Set up an email sender domain (you'll be prompted to enter the domain you want emails to come from, e.g. `notify.yourdomain.com`).
+- Provision Lovable's built-in email queue and infrastructure (no external API key, no Resend account needed).
 
-## What still won’t be visible after adding admin (gaps to close)
-A few tables only have **head_coach** policies, not admin policies. Since the account is also head_coach those are already covered, but a few tables only let users see their own rows with no override at all:
-- `training_sessions` — head coaches can only see sessions where `make_fighter_note = true`. To truly see everything, we need an admin SELECT policy.
-- `fighter_sessions`, `coach_sessions`, `daily_reflections`, `pathway_nodes`, `pathway_edges`, `notification_settings`, `assigned_programs`, `athlete_plan_assignments`, etc. — owner-only, no admin override.
+### 2. Transactional email template — `coach-invitation`
+Branded React Email template matching the TRG dark theme (Cinzel header, Primary #B11226, white body background as required for emails). Content:
+- "You've been invited to join [Academy] as a [Coach Level]"
+- Inviter's name
+- Assigned disciplines
+- The invite code (large, monospace, copy-friendly)
+- Button: "Accept invitation" → links to your published app's `/auth` (then they redeem the code from their profile)
+- Expiry date
 
-To make this a real **developer** account, I’ll add admin-override SELECT policies to those tables too.
+### 3. Wire up sending in `CoachInvitations.tsx`
+After the `coach_invitations` row is successfully inserted, call `supabase.functions.invoke('send-transactional-email', ...)` with:
+- `templateName: 'coach-invitation'`
+- `recipientEmail`: the invited email
+- `idempotencyKey`: `coach-invite-${invitation.id}` (so retries don't double-send)
+- `templateData`: `{ inviterName, coachLevel, disciplines, inviteCode, expiresAt, acceptUrl }`
 
-## Implementation steps
+Update the success toast from "Share code with X" → "Invitation emailed to X" and keep the on-screen code as a fallback (in case email is delayed or lands in spam).
 
-### 1. Add the `admin` role to the account (data change)
-Insert into `user_roles`:
-```sql
-INSERT INTO public.user_roles (user_id, role)
-VALUES ('6599542f-54e2-4b27-847c-83264d1042e9', 'admin')
-ON CONFLICT (user_id, role) DO NOTHING;
-```
+### 4. Optional polish
+- Add a "Resend email" button next to each pending invitation in the Sent Invitations list (re-invokes the edge function with the same idempotency key prefix + `-resend-N`).
 
-### 2. Add admin-override SELECT policies (schema migration)
-For each table below, add a policy: `USING (has_role(auth.uid(), 'admin'))`.
-- `training_sessions`
-- `fighter_sessions`
-- `coach_sessions`
-- `daily_reflections`
-- `pathway_nodes`
-- `pathway_edges`
-- `technique_chains`
-- `session_tags`
-- `strength_workout_exercises`
-- `strength_workout_sets`
-- `assigned_programs`
-- `assigned_program_sessions`
-- `athlete_plan_assignments`
-- `athlete_plan_session_progress`
-- `body_composition_classifications`
-- `notification_settings`
-- `fighter_profiles` (already has head_coach SELECT, admin override added for symmetry)
-- `coach_invitations`
-- `profiles` (admins can view all profiles — currently only own + head-coach-of-fighter-applicants)
+## Files I'll create / modify
+- **New**: `supabase/functions/send-transactional-email/` (scaffolded automatically)
+- **New**: `supabase/functions/_shared/transactional-email-templates/coach-invitation.tsx`
+- **New**: `supabase/functions/_shared/transactional-email-templates/registry.ts` (scaffolded)
+- **New**: `supabase/functions/handle-email-unsubscribe/` + `handle-email-suppression/` (scaffolded)
+- **New**: `/unsubscribe` page in the app (required for compliance)
+- **Modified**: `src/components/coach/CoachInvitations.tsx` — invoke the edge function after insert; update toast copy
 
-All policies use the existing `has_role(_user_id, _role)` security-definer function — no recursion risk.
+## What you'll need to do
+- Provide the sender domain you own (e.g. `trg.tech` or similar) when prompted, and add the NS records Lovable gives you at your domain registrar. DNS propagation can take up to 72h, but I can scaffold and deploy everything immediately — emails just start flowing once DNS verifies.
 
-### 3. No frontend changes required
-- `useSubscription` already detects admin and returns `isPro = true` + `isAdmin = true`.
-- No UI is hidden behind explicit `isAdmin` checks beyond what RLS already controls.
+## What I will NOT do
+- Will not use Resend, SendGrid, or any third-party email service (Lovable's built-in system handles this end-to-end).
+- Will not change the existing manual code-sharing fallback — it stays as a backup.
+- Will not change any RLS or coach hierarchy logic.
 
-## Result
-After this change, signing in as `trg.tech25@gmail.com` will:
-- Keep all existing head-coach powers (invite coaches, approve fighters, manage hierarchy)
-- Unlock every Pro/admin gated feature automatically
-- Allow read access to **every** user’s sessions, notes, pathways, reflections, plans, support tickets, AI notes, archives, and profiles — true developer visibility
-- Other users remain unaffected — only this account gains the elevated access
-
-## Files / changes
-- 1 SQL migration to add the admin-override SELECT policies on the listed tables
-- 1 data insert to grant the `admin` role to the account
-- No code/UI files need editing
+## Quick alternative if you don't want to set up a domain right now
+I can instead just relabel the UI honestly ("Copy this code and send it to the coach yourself") and remove the misleading "Sent Invitations" / email-implying language — no infrastructure work needed. Let me know which path you prefer.

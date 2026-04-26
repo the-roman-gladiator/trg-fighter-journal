@@ -8,7 +8,9 @@ import { UserSettingsProvider } from "./hooks/useUserSettings";
 import { AppModeProvider } from "./hooks/useAppMode";
 import { BottomNav } from "./components/BottomNav";
 import Dashboard from "./pages/Dashboard";
+import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
+import { useAuth } from "./hooks/useAuth";
 import SessionEdit from "./pages/SessionEdit";
 import SessionDetail from "./pages/SessionDetail";
 import Profile from "./pages/Profile";
@@ -42,7 +44,7 @@ function AppShell() {
     <div className="h-[100dvh] flex flex-col overflow-hidden bg-background">
       <main className="flex-1 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))]">
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<RootRoute />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/session/new" element={<SessionEdit />} />
         <Route path="/session/:id" element={<SessionDetail />} />

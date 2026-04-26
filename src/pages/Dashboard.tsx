@@ -267,7 +267,10 @@ export default function Dashboard() {
           {/* Hero block: title left, fighter image right */}
           <div className="relative flex items-center justify-between gap-3 min-h-[120px]">
             <div className="relative z-10 flex-1 min-w-0">
-              <h1 className="font-headline leading-[0.85] tracking-[0.01em] text-[48px] sm:text-[58px]">
+              <h1
+                className="leading-[0.95] tracking-[0.01em] text-[40px] sm:text-[52px] font-bold"
+                style={{ fontFamily: 'Cinzel, serif' }}
+              >
                 <span className="block text-foreground">FIGHTER</span>
                 <span className="journal-title block text-primary drop-shadow-[0_2px_8px_hsl(var(--primary)/0.4)]">JOURNAL</span>
               </h1>

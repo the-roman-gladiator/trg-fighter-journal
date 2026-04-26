@@ -38,6 +38,12 @@ import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
 
 const queryClient = new QueryClient();
 
+function RootRoute() {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen bg-background" />;
+  return user ? <Dashboard /> : <Landing />;
+}
+
 function AppShell() {
   useBrowserNotifications();
   return (

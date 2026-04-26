@@ -285,6 +285,9 @@ export default function CoachDashboard() {
                 Reviews {fighterSessions.length > 0 && <Badge variant="secondary" className="ml-1 text-[10px]">{fighterSessions.length}</Badge>}
               </TabsTrigger>
             )}
+            {canInviteCoaches && (
+              <TabsTrigger value="coaches" className="flex-1">Coaches</TabsTrigger>
+            )}
           </TabsList>
 
           {/* My Coach Sessions */}

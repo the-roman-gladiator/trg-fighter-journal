@@ -118,6 +118,32 @@ export default function Dashboard() {
     const pieData = Object.entries(typeCounts).map(([name, value]) => ({ name, value }));
     setClassTypeData(pieData);
 
+    // Discipline + Strategy breakdowns + latest notes (for desktop side panels)
+    const { data: deepSessions } = await supabase
+      .from('training_sessions')
+      .select('id, date, title, discipline, disciplines, strategy, class_type, notes, technique')
+      .eq('user_id', user.id)
+      .eq('session_type', 'Completed')
+      .order('date', { ascending: false })
+      .limit(200);
+
+    const discCounts: Record<string, number> = {};
+    const stratCounts: Record<string, number> = {};
+    (deepSessions || []).forEach((s: any) => {
+      const ds: string[] = (s.disciplines && s.disciplines.length > 0)
+        ? s.disciplines
+        : (s.discipline ? [s.discipline] : []);
+      ds.forEach((d) => { if (d) discCounts[d] = (discCounts[d] || 0) + 1; });
+      if (s.strategy) stratCounts[s.strategy] = (stratCounts[s.strategy] || 0) + 1;
+    });
+    setDisciplineBreakdown(
+      Object.entries(discCounts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value)
+    );
+    setStrategyBreakdown(
+      Object.entries(stratCounts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value)
+    );
+    setLatestNotes((deepSessions || []).slice(0, 8));
+
     // Fetch profile for journal box
     const { data: prof } = await supabase
       .from('profiles')

@@ -200,37 +200,57 @@ export default function Landing() {
       </section>
 
       {/* Who it is for */}
-      <section className="border-y border-border/40 bg-card/30">
-        <div className="mx-auto max-w-6xl px-4 py-12 md:py-20">
-          <div className="mb-10 text-center">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary">Who it's for</p>
-            <h2 className="text-3xl font-bold sm:text-4xl" style={{ fontFamily: 'Cinzel, serif' }}>
-              Built for you
+      <section className="relative border-y border-border/40 bg-gradient-to-b from-background via-card/20 to-background">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px"
+          style={{ background: 'linear-gradient(90deg, transparent, hsl(var(--primary) / 0.5), transparent)' }}
+        />
+        <div className="mx-auto max-w-6xl px-4 py-16 md:py-24">
+          <div className="mb-14 text-center">
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.4em] text-primary">Who it's for</p>
+            <h2
+              className="text-3xl font-bold tracking-wide sm:text-4xl md:text-5xl"
+              style={{ fontFamily: 'Cinzel, serif' }}
+            >
+              Built for You
             </h2>
+            <div className="mx-auto mt-5 h-px w-24 bg-gradient-to-r from-transparent via-primary to-transparent" />
           </div>
-          <div className="grid gap-5 md:grid-cols-3">
+
+          <div className="grid gap-12 md:grid-cols-3 md:gap-6">
             {[
-              { title: 'Fighters', items: ['MMA', 'Muay Thai', 'K1', 'Boxing'] },
-              { title: 'Competitors', items: ['BJJ', 'Grappling', 'Wrestling'] },
-              { title: 'Professionals', items: ['Coaches & Gyms', 'Fight Teams', 'Enterprises'] },
-            ].map((col) => (
-              <div
-                key={col.title}
-                className="rounded-xl border border-border/60 bg-card/60 p-6 transition-colors hover:border-primary/40"
-              >
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary">
-                    <Target className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-lg font-bold tracking-wide" style={{ fontFamily: 'Cinzel, serif' }}>
-                    {col.title}
-                  </h3>
+              { num: 'I', title: 'Fighters', items: ['MMA', 'Muay Thai', 'K1', 'Boxing'] },
+              { num: 'II', title: 'Competitors', items: ['BJJ', 'Grappling', 'Wrestling'] },
+              { num: 'III', title: 'Professionals', items: ['Coaches & Gyms', 'Fight Teams', 'Enterprises'] },
+            ].map((col, idx) => (
+              <div key={col.title} className="group relative px-2 text-center md:px-6">
+                {idx > 0 && (
+                  <div
+                    aria-hidden
+                    className="absolute left-0 top-2 hidden h-[calc(100%-1rem)] w-px bg-gradient-to-b from-transparent via-border to-transparent md:block"
+                  />
+                )}
+                <div
+                  className="mb-3 text-[11px] font-semibold tracking-[0.4em] text-primary/80"
+                  style={{ fontFamily: 'Cinzel, serif' }}
+                >
+                  {col.num}
                 </div>
-                <ul className="space-y-2">
+                <h3
+                  className="mb-1 text-2xl font-bold tracking-wide text-foreground"
+                  style={{ fontFamily: 'Cinzel, serif' }}
+                >
+                  {col.title}
+                </h3>
+                <div className="mx-auto mb-5 h-px w-10 bg-primary/60 transition-all duration-300 group-hover:w-16" />
+                <ul className="space-y-2.5">
                   {col.items.map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm text-foreground/90">
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                      <span className="font-medium">{item}</span>
+                    <li
+                      key={item}
+                      className="text-base font-medium text-foreground/85 transition-colors hover:text-primary"
+                    >
+                      {item}
                     </li>
                   ))}
                 </ul>

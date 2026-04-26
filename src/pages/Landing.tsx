@@ -205,26 +205,35 @@ export default function Landing() {
           <div className="mb-10 text-center">
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary">Who it's for</p>
             <h2 className="text-3xl font-bold sm:text-4xl" style={{ fontFamily: 'Cinzel, serif' }}>
-              Built for combat athletes
+              Built for you
             </h2>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-3">
             {[
-              'MMA fighters',
-              'Muay Thai and K1 athletes',
-              'BJJ and grappling competitors',
-              'Boxing and striking athletes',
-              'Coaches and fight teams',
-              'Strength & conditioning athletes connected to combat sports',
-            ].map((item) => (
+              { title: 'Fighters', items: ['MMA', 'Muay Thai', 'K1', 'Boxing'] },
+              { title: 'Competitors', items: ['BJJ', 'Grappling', 'Wrestling'] },
+              { title: 'Professionals', items: ['Coaches & Gyms', 'Fight Teams', 'Enterprises'] },
+            ].map((col) => (
               <div
-                key={item}
-                className="flex items-center gap-3 rounded-lg border border-border/60 bg-card/60 px-4 py-3 transition-colors hover:border-primary/40"
+                key={col.title}
+                className="rounded-xl border border-border/60 bg-card/60 p-6 transition-colors hover:border-primary/40"
               >
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary">
-                  <Target className="h-3.5 w-3.5" />
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary">
+                    <Target className="h-4 w-4" />
+                  </div>
+                  <h3 className="text-lg font-bold tracking-wide" style={{ fontFamily: 'Cinzel, serif' }}>
+                    {col.title}
+                  </h3>
                 </div>
-                <span className="text-sm font-medium">{item}</span>
+                <ul className="space-y-2">
+                  {col.items.map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-sm text-foreground/90">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                      <span className="font-medium">{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>

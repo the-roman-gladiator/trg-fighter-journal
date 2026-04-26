@@ -9,10 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Copy, Send, UserPlus, Mail, Check, X } from 'lucide-react';
+import { Copy, Send, UserPlus, Mail, Check, X, Lock } from 'lucide-react';
 import { format } from 'date-fns';
-
-const ALL_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
+import { useCoachAccess } from '@/hooks/useCoachAccess';
 
 type CoachLevel = 'head_coach' | 'main_coach' | 'level_2' | 'level_1';
 
@@ -49,20 +48,19 @@ export function CoachInvitations() {
   const [lastResult, setLastResult] = useState<{ code?: string; promoted?: boolean } | null>(null);
 
   const inviterLevel = profile?.coach_level as CoachLevel | undefined;
-  const isHead = inviterLevel === 'head_coach';
-  const isMain = inviterLevel === 'main_coach';
+  const {
+    isHeadCoach: isHead,
+    isMainCoach: isMain,
+    isLevel2,
+    delegationEnabled,
+    allowedNominationLevels,
+    assignableDisciplines,
+  } = useCoachAccess();
 
-  // Allowed levels this coach can invite
-  const allowedLevels: CoachLevel[] = isHead
-    ? ['head_coach', 'main_coach', 'level_2', 'level_1']
-    : isMain
-    ? ['level_2', 'level_1']
-    : [];
-
-  // Disciplines they can assign — head sees all, main sees own
-  const inviterDisciplines: string[] = isHead
-    ? ALL_DISCIPLINES
-    : ((profile as any)?.assigned_disciplines || []);
+  const allowedLevels = allowedNominationLevels;
+  const inviterDisciplines = assignableDisciplines;
+  // Show the "you're locked out by delegation toggle" notice for non-head coaches
+  const blockedByDelegation = !isHead && (isMain || isLevel2) && !delegationEnabled;
 
   useEffect(() => {
     fetchInvitations();
@@ -166,8 +164,18 @@ export function CoachInvitations() {
   if (allowedLevels.length === 0) {
     return (
       <Card>
-        <CardContent className="py-6 text-center text-sm text-muted-foreground">
-          You don't have permission to invite other coaches.
+        <CardContent className="py-6 text-center text-sm text-muted-foreground space-y-2">
+          {blockedByDelegation ? (
+            <>
+              <Lock className="h-5 w-5 mx-auto text-muted-foreground/60" />
+              <p>Coach nominations are currently restricted to the head coach.</p>
+              <p className="text-[11px] text-muted-foreground/70">
+                Ask your head coach to enable hierarchy delegation in their settings.
+              </p>
+            </>
+          ) : (
+            <p>You don't have permission to invite other coaches.</p>
+          )}
         </CardContent>
       </Card>
     );

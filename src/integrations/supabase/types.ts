@@ -836,6 +836,7 @@ export type Database = {
           email: string
           fitness_level: string | null
           fixed_motivation_id: string | null
+          hierarchy_delegation_enabled: boolean
           id: string
           invited_by: string | null
           level: Database["public"]["Enums"]["user_level"]
@@ -866,6 +867,7 @@ export type Database = {
           email: string
           fitness_level?: string | null
           fixed_motivation_id?: string | null
+          hierarchy_delegation_enabled?: boolean
           id: string
           invited_by?: string | null
           level?: Database["public"]["Enums"]["user_level"]
@@ -896,6 +898,7 @@ export type Database = {
           email?: string
           fitness_level?: string | null
           fixed_motivation_id?: string | null
+          hierarchy_delegation_enabled?: boolean
           id?: string
           invited_by?: string | null
           level?: Database["public"]["Enums"]["user_level"]
@@ -1992,6 +1995,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      coach_can_access_discipline: {
+        Args: { _discipline: string; _user_id: string }
+        Returns: boolean
+      }
+      delegated_nominations_enabled: { Args: never; Returns: boolean }
       get_coach_disciplines: { Args: { _user_id: string }; Returns: string[] }
       get_coach_level: {
         Args: { _user_id: string }

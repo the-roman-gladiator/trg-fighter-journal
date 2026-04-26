@@ -423,14 +423,13 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
     if (!initialSessionId || nodes.length === 0) return;
     const session = sessions.find(s => s.id === initialSessionId);
     if (!session) return;
-    const sid = session.id;
     const candidateIds = [
-      session.second_movement ? `follow:${sid}:${session.second_movement}` : null,
-      session.opponent_action ? `react:${sid}:${session.opponent_action}`  : null,
-      session.first_movement  ? `move:${sid}:${session.first_movement}`    : null,
-      session.technique       ? `tech:${sid}:${session.technique}`         : null,
-      session.strategy        ? `strat:${sid}:${session.strategy}`         : null,
-      session.discipline      ? `disc:${session.discipline}`               : null,
+      session.second_movement ? `move3:${session.second_movement}` : null,
+      session.opponent_action ? `move2:${session.opponent_action}` : null,
+      session.first_movement  ? `move1:${session.first_movement}`  : null,
+      session.technique       ? `tech:${session.technique}`        : null,
+      session.strategy        ? `tactic:${session.strategy}`       : null,
+      session.discipline      ? `disc:${session.discipline}`       : null,
     ].filter(Boolean) as string[];
     const bestNodeId = candidateIds.find(id => nodes.some(n => n.id === id)) || null;
     if (bestNodeId) setSelectedNodeId(bestNodeId);

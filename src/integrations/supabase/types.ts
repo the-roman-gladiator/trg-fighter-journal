@@ -346,6 +346,36 @@ export type Database = {
           },
         ]
       }
+      beta_requests: {
+        Row: {
+          created_at: string
+          email: string
+          gym_team: string | null
+          id: string
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          gym_team?: string | null
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          gym_team?: string | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       body_composition_classifications: {
         Row: {
           assessment_id: string

@@ -13,6 +13,7 @@ import {
   Target,
   Flame,
 } from 'lucide-react';
+import BetaRequestForm from '@/components/landing/BetaRequestForm';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -129,11 +130,14 @@ export default function Landing() {
                   Access is limited while we improve the experience, test the training logs, and refine the
                   Combat Pathway system.
                 </p>
-                <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-                  <Button onClick={enterApp}>Request Access</Button>
-                  <Button variant="outline" onClick={enterApp}>
-                    Sign In
-                  </Button>
+                <div className="mt-6 border-t border-border/40 pt-5">
+                  <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-foreground">
+                    Request access
+                  </h3>
+                  <p className="mb-4 text-xs text-muted-foreground">
+                    Tell us who you are and we'll be in touch when a spot opens.
+                  </p>
+                  <BetaRequestForm />
                 </div>
               </div>
             </div>

@@ -328,28 +328,83 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
     }
   }, [matchingSessionIds, focusedSessionId]);
 
-  // Compute full pathway for highlighting — session-scoped, optionally focused on one session
+  // Compute full pathway for highlighting — discipline-aware
   const pathwayNodeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();
 
     const selNode = nodes.find(n => n.id === selectedNodeId);
 
-    // Root node selected → highlight everything
+    // Root → highlight everything
     if (selNode?.is_root) return new Set(nodes.map(n => n.id));
 
-    // If a single session is focused, only show that session's chain
-    const sessionsToShow = focusedSessionId && matchingSessionIds.includes(focusedSessionId)
-      ? [focusedSessionId]
-      : matchingSessionIds;
+    // Find all sessions that contain the selected node
+    const matchingSessions = new Set<string>();
+    sessionIndex.forEach((chain, sid) => {
+      if (chain.includes(selectedNodeId)) matchingSessions.add(sid);
+    });
+
+    // If a single session is focused, restrict to only that session
+    const sessionsToWalk = focusedSessionId && matchingSessions.has(focusedSessionId)
+      ? new Set<string>([focusedSessionId])
+      : matchingSessions;
 
     const ids = new Set<string>([ROOT_ID, selectedNodeId]);
-    sessionsToShow.forEach(sid => {
+
+    // TACTIC clicked — highlight all sessions that used this tactic
+    // across ALL disciplines (tactics are universal)
+    if (selectedNodeId.startsWith('tactic:')) {
+      sessionsToWalk.forEach(sid => {
+        const chain = sessionIndex.get(sid) || [];
+        chain.forEach(nodeId => ids.add(nodeId));
+      });
+      return ids;
+    }
+
+    // DISCIPLINE clicked — highlight only sessions that include this discipline
+    if (selectedNodeId.startsWith('disc:')) {
+      const clickedDisc = selectedNodeId.replace('disc:', '');
+      sessionIndex.forEach((chain, sid) => {
+        if (focusedSessionId && matchingSessions.has(focusedSessionId) && sid !== focusedSessionId) return;
+        const discs = sessionDisciplines.get(sid) || [];
+        if (discs.includes(clickedDisc)) {
+          chain.forEach(nodeId => ids.add(nodeId));
+        }
+      });
+      return ids;
+    }
+
+    // TECHNIQUE / MOVEMENT clicked —
+    // highlight only sessions that contain this node, and only the disciplines
+    // saved in those sessions (no ghost discipline highlights)
+    if (
+      selectedNodeId.startsWith('tech:')  ||
+      selectedNodeId.startsWith('move1:') ||
+      selectedNodeId.startsWith('move2:') ||
+      selectedNodeId.startsWith('move3:')
+    ) {
+      sessionsToWalk.forEach(sid => {
+        const chain = sessionIndex.get(sid) || [];
+        const sessionDiscs = sessionDisciplines.get(sid) || [];
+        chain.forEach(nodeId => {
+          if (nodeId.startsWith('disc:')) {
+            const disc = nodeId.replace('disc:', '');
+            if (sessionDiscs.includes(disc)) ids.add(nodeId);
+          } else {
+            ids.add(nodeId);
+          }
+        });
+      });
+      return ids;
+    }
+
+    // Fallback — collect all matching session chains
+    sessionsToWalk.forEach(sid => {
       const chain = sessionIndex.get(sid) || [];
       chain.forEach(nodeId => ids.add(nodeId));
     });
 
     return ids;
-  }, [selectedNodeId, nodes, sessionIndex, focusedSessionId, matchingSessionIds]);
+  }, [selectedNodeId, nodes, sessionIndex, sessionDisciplines, focusedSessionId]);
 
   const childNodes = useMemo(() => {
     if (!selectedNodeId) return [];

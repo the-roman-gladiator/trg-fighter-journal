@@ -547,6 +547,7 @@ export default function CoachDashboard() {
           {/* Coach invitations */}
           {canInviteCoaches && (
             <TabsContent value="coaches" className="space-y-4 mt-4">
+              <HierarchySettings />
               <CoachInvitations />
             </TabsContent>
           )}

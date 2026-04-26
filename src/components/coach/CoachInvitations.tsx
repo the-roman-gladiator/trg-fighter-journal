@@ -164,8 +164,18 @@ export function CoachInvitations() {
   if (allowedLevels.length === 0) {
     return (
       <Card>
-        <CardContent className="py-6 text-center text-sm text-muted-foreground">
-          You don't have permission to invite other coaches.
+        <CardContent className="py-6 text-center text-sm text-muted-foreground space-y-2">
+          {blockedByDelegation ? (
+            <>
+              <Lock className="h-5 w-5 mx-auto text-muted-foreground/60" />
+              <p>Coach nominations are currently restricted to the head coach.</p>
+              <p className="text-[11px] text-muted-foreground/70">
+                Ask your head coach to enable hierarchy delegation in their settings.
+              </p>
+            </>
+          ) : (
+            <p>You don't have permission to invite other coaches.</p>
+          )}
         </CardContent>
       </Card>
     );

@@ -266,11 +266,11 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Floating actions — Library + AI Assistant */}
+      {/* Floating actions — Library (left on mobile) + AI Assistant (right) */}
       <button
         onClick={() => navigate('/library')}
         aria-label="Open Library"
-        className="fixed z-40 right-4 bottom-[calc(env(safe-area-inset-bottom)+76px)] md:bottom-8 md:right-8 flex items-center justify-center w-14 h-14 rounded-full bg-card/90 backdrop-blur-md border border-primary/50 text-primary hover:text-primary-foreground hover:bg-primary transition-all shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.5),0_0_0_1px_hsl(0_0%_100%/0.06)_inset] hover:shadow-[0_10px_32px_-4px_hsl(var(--primary)/0.7)] hover:scale-105"
+        className="fixed z-40 left-4 bottom-[calc(env(safe-area-inset-bottom)+76px)] md:left-auto md:right-8 md:bottom-8 flex items-center justify-center w-14 h-14 rounded-full bg-card/90 backdrop-blur-md border border-primary/50 text-primary hover:text-primary-foreground hover:bg-primary transition-all shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.5),0_0_0_1px_hsl(0_0%_100%/0.06)_inset] hover:shadow-[0_10px_32px_-4px_hsl(var(--primary)/0.7)] hover:scale-105"
       >
         <BookOpen className="h-6 w-6" />
         <span className="sr-only">Library</span>
@@ -278,7 +278,7 @@ export default function Dashboard() {
       <button
         onClick={() => navigate('/ai-assistant')}
         aria-label="Open Fighter Pathway AI"
-        className="fixed z-40 right-4 bottom-[calc(env(safe-area-inset-bottom)+144px)] md:bottom-[88px] md:right-8 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/40 backdrop-blur-md border border-primary/60 text-primary-foreground transition-all shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.7)] hover:shadow-[0_10px_36px_-4px_hsl(var(--primary)/0.85)] hover:scale-105"
+        className="fixed z-40 right-4 bottom-[calc(env(safe-area-inset-bottom)+76px)] md:bottom-[88px] md:right-8 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/40 backdrop-blur-md border border-primary/60 text-primary-foreground transition-all shadow-[0_8px_24px_-6px_hsl(var(--primary)/0.7)] hover:shadow-[0_10px_36px_-4px_hsl(var(--primary)/0.85)] hover:scale-105"
       >
         <Sparkles className="h-6 w-6" />
         <span className="sr-only">Fighter Pathway AI</span>

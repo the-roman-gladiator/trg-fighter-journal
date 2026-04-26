@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAppMode } from '@/hooks/useAppMode';
 import { ModeSwitcher } from '@/components/ModeSwitcher';
 import { format } from 'date-fns';
+import { CoachInvitations } from '@/components/coach/CoachInvitations';
 
 const ALL_FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
 
@@ -40,6 +41,8 @@ export default function CoachDashboard() {
   const [fighterProfiles, setFighterProfiles] = useState<Record<string, any>>({});
 
   const isHeadCoach = profile?.coach_level === 'head_coach';
+  const isMainCoach = profile?.coach_level === 'main_coach';
+  const canInviteCoaches = isHeadCoach || isMainCoach;
 
   const isCoach = !!profile?.coach_level;
 
@@ -281,6 +284,9 @@ export default function CoachDashboard() {
               <TabsTrigger value="sessions" className="flex-1">
                 Reviews {fighterSessions.length > 0 && <Badge variant="secondary" className="ml-1 text-[10px]">{fighterSessions.length}</Badge>}
               </TabsTrigger>
+            )}
+            {canInviteCoaches && (
+              <TabsTrigger value="coaches" className="flex-1">Coaches</TabsTrigger>
             )}
           </TabsList>
 
@@ -534,6 +540,13 @@ export default function CoachDashboard() {
               })
             )}
           </TabsContent>
+
+          {/* Coach invitations */}
+          {canInviteCoaches && (
+            <TabsContent value="coaches" className="space-y-4 mt-4">
+              <CoachInvitations />
+            </TabsContent>
+          )}
         </Tabs>
       </main>
     </div>

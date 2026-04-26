@@ -396,6 +396,54 @@ export type Database = {
           },
         ]
       }
+      coach_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          assigned_disciplines: string[]
+          coach_level: Database["public"]["Enums"]["coach_level"]
+          created_at: string
+          expires_at: string
+          id: string
+          invite_code: string
+          invited_by: string
+          invited_by_level: Database["public"]["Enums"]["coach_level"]
+          invited_email: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          assigned_disciplines?: string[]
+          coach_level: Database["public"]["Enums"]["coach_level"]
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invite_code?: string
+          invited_by: string
+          invited_by_level: Database["public"]["Enums"]["coach_level"]
+          invited_email: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          assigned_disciplines?: string[]
+          coach_level?: Database["public"]["Enums"]["coach_level"]
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invite_code?: string
+          invited_by?: string
+          invited_by_level?: Database["public"]["Enums"]["coach_level"]
+          invited_email?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       coach_sessions: {
         Row: {
           created_at: string
@@ -777,6 +825,7 @@ export type Database = {
           approval_status: Database["public"]["Enums"]["approval_status"] | null
           approved_by: string | null
           assigned_by_coach: boolean | null
+          assigned_disciplines: string[]
           coach_discipline: string | null
           coach_level: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled: boolean | null
@@ -788,6 +837,7 @@ export type Database = {
           fitness_level: string | null
           fixed_motivation_id: string | null
           id: string
+          invited_by: string | null
           level: Database["public"]["Enums"]["user_level"]
           middle_name: string | null
           my_statement: string | null
@@ -805,6 +855,7 @@ export type Database = {
             | null
           approved_by?: string | null
           assigned_by_coach?: boolean | null
+          assigned_disciplines?: string[]
           coach_discipline?: string | null
           coach_level?: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled?: boolean | null
@@ -816,6 +867,7 @@ export type Database = {
           fitness_level?: string | null
           fixed_motivation_id?: string | null
           id: string
+          invited_by?: string | null
           level?: Database["public"]["Enums"]["user_level"]
           middle_name?: string | null
           my_statement?: string | null
@@ -833,6 +885,7 @@ export type Database = {
             | null
           approved_by?: string | null
           assigned_by_coach?: boolean | null
+          assigned_disciplines?: string[]
           coach_discipline?: string | null
           coach_level?: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled?: boolean | null
@@ -844,6 +897,7 @@ export type Database = {
           fitness_level?: string | null
           fixed_motivation_id?: string | null
           id?: string
+          invited_by?: string | null
           level?: Database["public"]["Enums"]["user_level"]
           middle_name?: string | null
           my_statement?: string | null
@@ -1931,6 +1985,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_invite_coach_level: {
+        Args: {
+          _inviter: string
+          _target_level: Database["public"]["Enums"]["coach_level"]
+        }
+        Returns: boolean
+      }
+      get_coach_disciplines: { Args: { _user_id: string }; Returns: string[] }
+      get_coach_level: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["coach_level"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1940,6 +2006,15 @@ export type Database = {
       }
       is_head_coach: { Args: { _user_id: string }; Returns: boolean }
       is_pro_user: { Args: { _user_id: string }; Returns: boolean }
+      promote_existing_user_to_coach: {
+        Args: {
+          _coach_level: Database["public"]["Enums"]["coach_level"]
+          _disciplines: string[]
+          _email: string
+        }
+        Returns: Json
+      }
+      redeem_coach_invitation: { Args: { _code: string }; Returns: Json }
     }
     Enums: {
       app_role: "athlete" | "coach" | "admin"

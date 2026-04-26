@@ -12,7 +12,8 @@ import { Plus, User, Map, Swords, Shield, Network, GraduationCap, CalendarDays, 
 import { format, startOfWeek, startOfYear, subDays } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import fighterBg from '@/assets/dashboard-fighter-bg.jpg';
+import fighterBgDark from '@/assets/dashboard-fighter-bg.jpg';
+import fighterBgLight from '@/assets/dashboard-fighter-bg-light.png';
 
 const MARTIAL_ARTS = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
 

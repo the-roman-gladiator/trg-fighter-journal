@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAppMode } from '@/hooks/useAppMode';
 import { ModeSwitcher } from '@/components/ModeSwitcher';
 import { format } from 'date-fns';
+import { CoachInvitations } from '@/components/coach/CoachInvitations';
 
 const ALL_FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
 

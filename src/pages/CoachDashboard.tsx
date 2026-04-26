@@ -41,6 +41,8 @@ export default function CoachDashboard() {
   const [fighterProfiles, setFighterProfiles] = useState<Record<string, any>>({});
 
   const isHeadCoach = profile?.coach_level === 'head_coach';
+  const isMainCoach = profile?.coach_level === 'main_coach';
+  const canInviteCoaches = isHeadCoach || isMainCoach;
 
   const isCoach = !!profile?.coach_level;
 

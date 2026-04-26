@@ -315,7 +315,99 @@ export default function Dashboard() {
         <span className="sr-only">Fighter Pathway AI</span>
       </button>
 
-      <main className="container mx-auto px-4 py-5 max-w-lg space-y-5 pb-28 relative z-10">
+      <main className="container mx-auto px-4 py-5 max-w-lg lg:max-w-7xl lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] lg:gap-6 lg:items-start space-y-5 lg:space-y-0 pb-28 relative z-10">
+        {/* DESKTOP LEFT — Quick Stats Panel */}
+        <aside className="hidden lg:block space-y-4 sticky top-4">
+          <Card className="border-border bg-card">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Swords className="h-4 w-4 text-primary" />
+                <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">Disciplines</p>
+              </div>
+              {disciplineBreakdown.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No sessions logged yet.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {disciplineBreakdown.map((d) => {
+                    const max = disciplineBreakdown[0]?.value || 1;
+                    const pct = (d.value / max) * 100;
+                    return (
+                      <li key={d.name}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="font-medium text-foreground truncate pr-2">{d.name}</span>
+                          <span className="text-muted-foreground">{d.value}</span>
+                        </div>
+                        <div className="h-1.5 bg-muted/40 rounded-full overflow-hidden">
+                          <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border bg-card">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Target className="h-4 w-4 text-primary" />
+                <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">Type of Class</p>
+              </div>
+              {classTypeData.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No class types recorded.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {classTypeData.sort((a, b) => b.value - a.value).map((c) => (
+                    <li key={c.name} className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: CLASS_TYPE_COLORS[c.name] || 'hsl(var(--muted-foreground))' }}
+                        />
+                        <span className="font-medium text-foreground truncate">{c.name}</span>
+                      </div>
+                      <span className="text-muted-foreground tabular-nums">{c.value}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border bg-card">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Shield className="h-4 w-4 text-primary" />
+                <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">Tactics</p>
+              </div>
+              {strategyBreakdown.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No tactics tracked yet.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {strategyBreakdown.map((s) => {
+                    const max = strategyBreakdown[0]?.value || 1;
+                    const pct = (s.value / max) * 100;
+                    return (
+                      <li key={s.name}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="font-medium text-foreground truncate pr-2">{s.name}</span>
+                          <span className="text-muted-foreground">{s.value}</span>
+                        </div>
+                        <div className="h-1.5 bg-muted/40 rounded-full overflow-hidden">
+                          <div className="h-full bg-primary/70 rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </aside>
+
+        {/* CENTER — original mobile content */}
+        <div className="space-y-5 min-w-0">
         {/* Dynamic Date + Title with Nickname */}
         <div>
           <p className="text-xs text-muted-foreground tracking-wide">

@@ -271,8 +271,8 @@ export default function Dashboard() {
                 className="leading-[0.95] tracking-[0.01em] text-[40px] sm:text-[52px] font-bold"
                 style={{ fontFamily: 'Cinzel, serif' }}
               >
-                <span className="block text-foreground">FIGHTER</span>
-                <span className="journal-title block text-primary drop-shadow-[0_2px_8px_hsl(var(--primary)/0.4)]">JOURNAL</span>
+                <span className="block text-foreground">Fighter</span>
+                <span className="journal-title block text-primary drop-shadow-[0_2px_8px_hsl(var(--primary)/0.4)]">Journal</span>
               </h1>
               <p className="mt-2 text-[11px] tracking-[0.18em] uppercase text-muted-foreground font-medium">
                 Track. Improve. Win.

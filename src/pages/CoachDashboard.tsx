@@ -14,6 +14,7 @@ import { ModeSwitcher } from '@/components/ModeSwitcher';
 import { format } from 'date-fns';
 import { CoachInvitations } from '@/components/coach/CoachInvitations';
 import { HierarchySettings } from '@/components/coach/HierarchySettings';
+import { CoachRoster } from '@/components/coach/CoachRoster';
 import { useCoachAccess } from '@/hooks/useCoachAccess';
 
 const ALL_FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
@@ -548,6 +549,7 @@ export default function CoachDashboard() {
           {canInviteCoaches && (
             <TabsContent value="coaches" className="space-y-4 mt-4">
               <HierarchySettings />
+              <CoachRoster />
               <CoachInvitations />
             </TabsContent>
           )}

@@ -75,7 +75,7 @@ export default function Landing() {
               Fighter <span className="bg-gradient-to-b from-primary to-[hsl(352_84%_32%)] bg-clip-text text-transparent">Journal</span>
             </h1>
             <p className="mt-5 text-lg font-medium text-foreground/90 sm:text-xl">
-              Track your training. Build your pathway. Fight with purpose.
+              Track your training. Build your pathway. Win with purpose.
             </p>
             <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
               A private beta training journal for combat athletes who want to understand their performance,

@@ -540,6 +540,13 @@ export default function CoachDashboard() {
               })
             )}
           </TabsContent>
+
+          {/* Coach invitations */}
+          {canInviteCoaches && (
+            <TabsContent value="coaches" className="space-y-4 mt-4">
+              <CoachInvitations />
+            </TabsContent>
+          )}
         </Tabs>
       </main>
     </div>

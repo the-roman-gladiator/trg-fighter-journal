@@ -4,9 +4,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Zap, GitBranch, ZoomIn, ZoomOut, Crosshair } from 'lucide-react';
+import { ArrowLeft, Zap, GitBranch, ZoomIn, ZoomOut, Crosshair, Box, Square } from 'lucide-react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { MapCanvas, MapCanvasHandle } from './MapCanvas';
+import { MapCanvas3D } from './MapCanvas3D';
 import { PathwayPanel } from './PathwayPanel';
 
 export interface PathwayNode {
@@ -75,6 +76,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [focusedSessionId, setFocusedSessionId] = useState<string | null>(null);
   const [chainsOpen, setChainsOpen] = useState(false);
+  const [view3D, setView3D] = useState(false);
   const isMobile = useIsMobile();
   const mapRef = useRef<MapCanvasHandle>(null);
 

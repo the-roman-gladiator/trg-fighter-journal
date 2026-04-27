@@ -224,21 +224,47 @@ function Node3D({
   );
 }
 
-/* ---------- Edge ---------- */
+/* ---------- Edge ----------
+   Highlighted edges pulse via material.opacity in useFrame (no React re-render). */
 function Edge3D({
   start,
   end,
   state,
+  pulsePhase,
 }: {
   start: [number, number, number];
   end: [number, number, number];
   state: 'highlighted' | 'dimmed' | 'normal';
+  pulsePhase: number;
 }) {
-  const opacity = state === 'dimmed' ? 0.05 : state === 'highlighted' ? 0.95 : 0.28;
+  const lineRef = useRef<any>(null);
+
+  const baseOpacity = state === 'dimmed' ? 0.05 : state === 'highlighted' ? 0.85 : 0.28;
   const color = state === 'highlighted' ? '#67e8f9' : '#0ea5e9';
-  const lineWidth = state === 'highlighted' ? 2.4 : 1;
+  const lineWidth = state === 'highlighted' ? 2.6 : 1;
+
+  useFrame(({ clock }) => {
+    if (!lineRef.current) return;
+    const mat = lineRef.current.material;
+    if (!mat) return;
+    if (state === 'highlighted') {
+      const t = clock.getElapsedTime();
+      // Strong, smooth pulse — single sin call per edge per frame
+      mat.opacity = 0.55 + (Math.sin(t * 4 + pulsePhase) * 0.5 + 0.5) * 0.45;
+    } else if (mat.opacity !== baseOpacity) {
+      mat.opacity = baseOpacity;
+    }
+  });
+
   return (
-    <Line points={[start, end]} color={color} lineWidth={lineWidth} transparent opacity={opacity} />
+    <Line
+      ref={lineRef}
+      points={[start, end]}
+      color={color}
+      lineWidth={lineWidth}
+      transparent
+      opacity={baseOpacity}
+    />
   );
 }
 

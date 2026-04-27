@@ -823,6 +823,18 @@ export default function AIFighterAssistant() {
               </ScrollArea>
             </DialogContent>
           </Dialog>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleExportPDF}
+            disabled={chat.length === 0 || !isPro}
+            title={isPro ? 'Export conversation as PDF' : 'Pro accounts only'}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Export PDF
+            {!isPro && <Lock className="h-3 w-3 ml-1 opacity-70" />}
+          </Button>
         </div>
 
         {/* Chat */}

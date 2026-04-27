@@ -296,9 +296,9 @@ export default function AIFighterAssistant() {
             <Sparkles className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Fighter Pathway AI</h1>
+            <h1 className="text-xl font-bold tracking-tight">Gladius</h1>
             <p className="text-xs text-muted-foreground">
-              Pro AI assistant • Analyse notes, generate pathways
+              Your fighter AI support • Analyse notes, generate pathways
             </p>
           </div>
           <Badge variant="outline" className="ml-auto border-primary/40 text-primary">

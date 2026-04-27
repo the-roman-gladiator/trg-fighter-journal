@@ -224,21 +224,47 @@ function Node3D({
   );
 }
 
-/* ---------- Edge ---------- */
+/* ---------- Edge ----------
+   Highlighted edges pulse via material.opacity in useFrame (no React re-render). */
 function Edge3D({
   start,
   end,
   state,
+  pulsePhase,
 }: {
   start: [number, number, number];
   end: [number, number, number];
   state: 'highlighted' | 'dimmed' | 'normal';
+  pulsePhase: number;
 }) {
-  const opacity = state === 'dimmed' ? 0.05 : state === 'highlighted' ? 0.95 : 0.28;
+  const lineRef = useRef<any>(null);
+
+  const baseOpacity = state === 'dimmed' ? 0.05 : state === 'highlighted' ? 0.85 : 0.28;
   const color = state === 'highlighted' ? '#67e8f9' : '#0ea5e9';
-  const lineWidth = state === 'highlighted' ? 2.4 : 1;
+  const lineWidth = state === 'highlighted' ? 2.6 : 1;
+
+  useFrame(({ clock }) => {
+    if (!lineRef.current) return;
+    const mat = lineRef.current.material;
+    if (!mat) return;
+    if (state === 'highlighted') {
+      const t = clock.getElapsedTime();
+      // Strong, smooth pulse — single sin call per edge per frame
+      mat.opacity = 0.55 + (Math.sin(t * 4 + pulsePhase) * 0.5 + 0.5) * 0.45;
+    } else if (mat.opacity !== baseOpacity) {
+      mat.opacity = baseOpacity;
+    }
+  });
+
   return (
-    <Line points={[start, end]} color={color} lineWidth={lineWidth} transparent opacity={opacity} />
+    <Line
+      ref={lineRef}
+      points={[start, end]}
+      color={color}
+      lineWidth={lineWidth}
+      transparent
+      opacity={baseOpacity}
+    />
   );
 }
 
@@ -302,6 +328,58 @@ function useOrbitPositions(nodes: PathwayNode[]) {
   return positions;
 }
 
+/* ---------- Camera fly-to rig ---------- */
+function CameraRig({
+  targetRef,
+  controlsRef,
+}: {
+  targetRef: React.MutableRefObject<THREE.Vector3 | null>;
+  controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
+}) {
+  const animTarget = useRef<THREE.Vector3 | null>(null);
+  const animCamPos = useRef<THREE.Vector3 | null>(null);
+  const startTarget = useRef(new THREE.Vector3());
+  const startCamPos = useRef(new THREE.Vector3());
+  const startTime = useRef(0);
+  const DURATION = 0.8;
+
+  useFrame((state) => {
+    const desired = targetRef.current;
+    const controls = controlsRef.current;
+    const cam = state.camera;
+    if (!controls) return;
+
+    // Detect a new fly-to request
+    if (desired && (!animTarget.current || !animTarget.current.equals(desired))) {
+      animTarget.current = desired.clone();
+      // Keep current viewing direction & distance, just shift focus
+      const offset = cam.position.clone().sub(controls.target);
+      const distance = Math.min(Math.max(offset.length() * 0.55, 6), 14);
+      offset.setLength(distance);
+      animCamPos.current = desired.clone().add(offset);
+      startTarget.current.copy(controls.target);
+      startCamPos.current.copy(cam.position);
+      startTime.current = state.clock.getElapsedTime();
+    }
+
+    if (animTarget.current && animCamPos.current) {
+      const t = Math.min((state.clock.getElapsedTime() - startTime.current) / DURATION, 1);
+      // easeInOutCubic
+      const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      controls.target.lerpVectors(startTarget.current, animTarget.current, e);
+      cam.position.lerpVectors(startCamPos.current, animCamPos.current, e);
+      controls.update();
+      if (t >= 1) {
+        animTarget.current = null;
+        animCamPos.current = null;
+        targetRef.current = null;
+      }
+    }
+  });
+
+  return null;
+}
+
 /* ---------- Scene ---------- */
 function Scene({
   nodes,
@@ -312,10 +390,12 @@ function Scene({
   hoveredId,
   setHoveredId,
   controlsRef,
+  flyToTargetRef,
 }: MapCanvas3DProps & {
   hoveredId: string | null;
   setHoveredId: (id: string | null) => void;
   controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
+  flyToTargetRef: React.MutableRefObject<THREE.Vector3 | null>;
 }) {
   const positionsRef = useOrbitPositions(nodes);
   const [, force] = useState(0);
@@ -323,6 +403,28 @@ function Scene({
   // Re-render every frame so React-rendered nodes/edges follow orbiting positions
   useFrame(() => {
     force((n) => (n + 1) % 1000000);
+  });
+
+  // Stable pulse phase per edge id — keeps glow pulse smooth without re-renders
+  const edgePhase = useMemo(() => {
+    const m = new Map<string, number>();
+    let i = 0;
+    for (const e of edges) {
+      m.set(e.id, (i++ * 0.7) % (Math.PI * 2));
+    }
+    return m;
+  }, [edges]);
+
+  // Continuously update fly-to target so the camera tracks an orbiting selected node
+  useFrame(() => {
+    if (!selectedNodeId) return;
+    const pos = positionsRef.current.get(selectedNodeId);
+    if (!pos) return;
+    if (!flyToTargetRef.current) {
+      flyToTargetRef.current = new THREE.Vector3(pos[0], pos[1], pos[2]);
+    } else {
+      flyToTargetRef.current.set(pos[0], pos[1], pos[2]);
+    }
   });
 
   const highlightSet = pathwayNodeIdsOverride;
@@ -400,7 +502,15 @@ function Scene({
             highlightSet!.has(edge.source_node_id) && highlightSet!.has(edge.target_node_id);
           state = inPath ? 'highlighted' : 'dimmed';
         }
-        return <Edge3D key={edge.id} start={s} end={t} state={state} />;
+        return (
+          <Edge3D
+            key={edge.id}
+            start={s}
+            end={t}
+            state={state}
+            pulsePhase={edgePhase.get(edge.id) ?? 0}
+          />
+        );
       })}
 
       {/* Nodes */}
@@ -435,6 +545,7 @@ function Scene({
 /* ---------- Canvas wrapper ---------- */
 export function MapCanvas3D(props: MapCanvas3DProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
+  const flyToTargetRef = useRef<THREE.Vector3 | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -442,6 +553,13 @@ export function MapCanvas3D(props: MapCanvas3DProps) {
       controlsRef.current.enabled = true;
     }
   }, [hoveredId]);
+
+  // When selection clears, return camera focus to the center (root star)
+  useEffect(() => {
+    if (!props.selectedNodeId) {
+      flyToTargetRef.current = new THREE.Vector3(0, 0, 0);
+    }
+  }, [props.selectedNodeId]);
 
   return (
     <div className="absolute inset-0" style={{ touchAction: 'none' }}>
@@ -464,7 +582,9 @@ export function MapCanvas3D(props: MapCanvas3DProps) {
             hoveredId={hoveredId}
             setHoveredId={setHoveredId}
             controlsRef={controlsRef}
+            flyToTargetRef={flyToTargetRef}
           />
+          <CameraRig targetRef={flyToTargetRef} controlsRef={controlsRef} />
         </Suspense>
         <OrbitControls
           ref={controlsRef as any}
@@ -476,8 +596,27 @@ export function MapCanvas3D(props: MapCanvas3DProps) {
           autoRotate={false}
           dampingFactor={0.12}
           rotateSpeed={0.7}
+          panSpeed={0.9}
+          screenSpacePanning
+          mouseButtons={{
+            LEFT: THREE.MOUSE.ROTATE,
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: THREE.MOUSE.PAN,
+          }}
+          touches={{
+            ONE: THREE.TOUCH.ROTATE,
+            TWO: THREE.TOUCH.DOLLY_PAN,
+          }}
         />
       </Canvas>
+
+      {/* Controls hint overlay */}
+      <div className="pointer-events-none absolute bottom-3 left-3 right-3 flex justify-center">
+        <div className="px-3 py-1.5 rounded-full bg-black/55 border border-cyan-400/25 backdrop-blur-md text-[10px] text-cyan-100/80 font-medium tracking-wide">
+          <span className="hidden sm:inline">Drag = rotate · Right-drag = pan · Scroll = zoom · Tap node = focus</span>
+          <span className="sm:hidden">1 finger = rotate · 2 fingers = pan / zoom · Tap = focus</span>
+        </div>
+      </div>
     </div>
   );
 }

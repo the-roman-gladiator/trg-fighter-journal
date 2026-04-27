@@ -1418,51 +1418,6 @@ export type Database = {
         }
         Relationships: []
       }
-      technique_archive: {
-        Row: {
-          class_type: string | null
-          created_at: string
-          disciplines: string[]
-          id: string
-          neural_pathway_data: Json | null
-          notes: string | null
-          owner_user_id: string
-          source_session_id: string | null
-          strategy: string | null
-          tags: string[]
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          class_type?: string | null
-          created_at?: string
-          disciplines?: string[]
-          id?: string
-          neural_pathway_data?: Json | null
-          notes?: string | null
-          owner_user_id: string
-          source_session_id?: string | null
-          strategy?: string | null
-          tags?: string[]
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          class_type?: string | null
-          created_at?: string
-          disciplines?: string[]
-          id?: string
-          neural_pathway_data?: Json | null
-          notes?: string | null
-          owner_user_id?: string
-          source_session_id?: string | null
-          strategy?: string | null
-          tags?: string[]
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       technique_chains: {
         Row: {
           continuation_finish: string

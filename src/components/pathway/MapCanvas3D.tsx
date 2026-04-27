@@ -13,20 +13,21 @@ interface MapCanvas3DProps {
   pathwayNodeIdsOverride?: Set<string>;
 }
 
-const NODE_COLORS: Record<string, { core: string; glow: string }> = {
-  root: { core: '#ffffff', glow: '#fde68a' },
-  discipline: { core: '#E63946', glow: '#ff5d6c' },
-  strategy: { core: '#FF7F11', glow: '#ffa64d' },
-  technique: { core: '#2A9D8F', glow: '#4fc3b4' },
-  movement1: { core: '#4CC9F0', glow: '#7fdcf5' },
-  movement2: { core: '#F72585', glow: '#ff5cae' },
-  movement3: { core: '#7FBA00', glow: '#a8d639' },
-  movement: { core: '#4CC9F0', glow: '#7fdcf5' },
-  reaction: { core: '#F72585', glow: '#ff5cae' },
-  followup: { core: '#7FBA00', glow: '#a8d639' },
-  tactic: { core: '#FF7F11', glow: '#ffa64d' },
-  action: { core: '#2A9D8F', glow: '#4fc3b4' },
-  default: { core: '#4CC9F0', glow: '#7fdcf5' },
+// Futuristic palette: deep saturated cores + neon rim/glow accents
+const NODE_COLORS: Record<string, { core: string; glow: string; rim: string }> = {
+  root:       { core: '#fff8d6', glow: '#fbbf24', rim: '#fde68a' },
+  discipline: { core: '#7a0a18', glow: '#ff2d4a', rim: '#ff6b7a' },
+  strategy:   { core: '#7a3a00', glow: '#ff8a00', rim: '#ffb24d' },
+  tactic:     { core: '#7a3a00', glow: '#ff8a00', rim: '#ffb24d' },
+  technique:  { core: '#053b35', glow: '#10d9b8', rim: '#5ef0d4' },
+  action:     { core: '#053b35', glow: '#10d9b8', rim: '#5ef0d4' },
+  movement1:  { core: '#062a4a', glow: '#22d3ee', rim: '#7df1ff' },
+  movement:   { core: '#062a4a', glow: '#22d3ee', rim: '#7df1ff' },
+  movement2:  { core: '#3b0a2a', glow: '#ff2d92', rim: '#ff7ac6' },
+  reaction:   { core: '#3b0a2a', glow: '#ff2d92', rim: '#ff7ac6' },
+  movement3:  { core: '#1f3a05', glow: '#a3e635', rim: '#d4ff7a' },
+  followup:   { core: '#1f3a05', glow: '#a3e635', rim: '#d4ff7a' },
+  default:    { core: '#062a4a', glow: '#22d3ee', rim: '#7df1ff' },
 };
 
 function getNodeColor(type: string, colorTag: string | null) {

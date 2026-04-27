@@ -63,13 +63,13 @@ async function flush() {
   const batch = queue.slice(0, MAX_BATCH);
   try {
     const rows = batch.map((e) => ({
-      user_id: e.user_id,
+      user_id: e.user_id ?? undefined,
       session_id: e.session_id,
       event_name: e.event_name,
-      event_category: e.event_category,
-      properties: e.properties,
+      event_category: e.event_category ?? undefined,
+      properties: e.properties as never,
       route: e.route,
-      app_mode: e.app_mode,
+      app_mode: e.app_mode ?? undefined,
       user_agent: e.user_agent,
     }));
     const { error } = await supabase.from('analytics_events').insert(rows);

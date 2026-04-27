@@ -147,8 +147,8 @@ function Node3D({
 
   const opacity = isDimmed ? 0.22 : 1;
   const active = isSelected || isHighlighted || isHovered;
-  // Subtle emissive — keeps the metal looking lit, never neon
-  const emissiveIntensity = active ? 0.25 : node.is_root ? 0.18 : 0.08;
+  // Brighter emissive so spheres read clearly on dark bg, still not neon
+  const emissiveIntensity = active ? 0.7 : node.is_root ? 0.55 : 0.4;
 
   return (
     <group position={position}>
@@ -174,19 +174,19 @@ function Node3D({
         <meshBasicMaterial transparent opacity={0} depthWrite={false} depthTest={false} />
       </mesh>
 
-      {/* Tight, soft halo — just enough lift off the dark background */}
+      {/* Soft halo — wider and brighter for visibility on dark bg */}
       <mesh ref={haloRef}>
-        <sphereGeometry args={[baseRadius * 1.45, 24, 24]} />
+        <sphereGeometry args={[baseRadius * 1.9, 24, 24]} />
         <meshBasicMaterial
           color={colors.glow}
           transparent
-          opacity={opacity * (active ? 0.18 : 0.07)}
+          opacity={opacity * (active ? 0.3 : 0.18)}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
       </mesh>
 
-      {/* Solid metallic sphere — full color body, polished metal finish */}
+      {/* Solid lighter metallic sphere — bright body, soft metal finish */}
       <mesh ref={coreRef}>
         <sphereGeometry args={[baseRadius, 48, 48]} />
         <meshStandardMaterial
@@ -195,8 +195,8 @@ function Node3D({
           emissiveIntensity={emissiveIntensity}
           transparent
           opacity={opacity}
-          roughness={0.35}
-          metalness={0.95}
+          roughness={0.5}
+          metalness={0.55}
         />
       </mesh>
 
@@ -478,7 +478,7 @@ function Scene({
 
   return (
     <group>
-      <ambientLight intensity={0.3} />
+      <ambientLight intensity={0.7} />
       {/* Central "star" light at the My Training root */}
       <pointLight position={[0, 0, 0]} intensity={2.2} color="#fde68a" distance={20} decay={1.5} />
       <pointLight position={[10, 8, 10]} intensity={0.5} color="#60a5fa" />

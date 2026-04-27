@@ -34,7 +34,10 @@ import Award from "./pages/Award";
 import TechniqueArchive from "./pages/TechniqueArchive";
 import AIFighterAssistant from "./pages/AIFighterAssistant";
 import NotFound from "./pages/NotFound";
+import AdminAnalytics from "./pages/AdminAnalytics";
 import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
+import { useAnalytics } from "./hooks/useAnalytics";
+import { ErrorBoundary, GlobalErrorListener } from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +49,7 @@ function RootRoute() {
 
 function AppShell() {
   useBrowserNotifications();
+  useAnalytics();
   return (
     <div className="h-[100dvh] flex flex-col overflow-hidden bg-background">
       <main className="flex-1 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))]">
@@ -78,6 +82,8 @@ function AppShell() {
         <Route path="/reflection" element={<Reflection />} />
         <Route path="/award" element={<Award />} />
         <Route path="/ai-assistant" element={<AIFighterAssistant />} />
+        <Route path="/admin/analytics" element={<AdminAnalytics />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       </main>
       <BottomNav />
@@ -86,21 +92,24 @@ function AppShell() {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <UserSettingsProvider>
-            <AppModeProvider>
-              <AppShell />
-            </AppModeProvider>
-          </UserSettingsProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <UserSettingsProvider>
+              <AppModeProvider>
+                <GlobalErrorListener />
+                <AppShell />
+              </AppModeProvider>
+            </UserSettingsProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

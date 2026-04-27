@@ -1,116 +1,124 @@
-## Goal
-Make TRG Fighter Journal installable to the home screen on iPhone and Android as **Combat Athlete Journal**, opening in standalone mode at the production domain — without touching design, routing, auth, Supabase, or any feature code.
+# 🚀 Launch-Readiness Data Plan
 
-## Approach: Manifest-only (no service worker)
-Per Lovable's PWA guidance, **service workers cause stale builds and break navigation inside the editor preview iframe**. Since you only need installability (not offline support), the recommended approach is:
+Goal: by next weekend, every meaningful user action — AI conversations, sessions, errors, feature usage — is captured server-side so you can learn what users actually need.
 
-- ✅ Web app manifest + icons + iOS meta tags
-- ❌ No `vite-plugin-pwa`, no `workbox`, no service worker
+## 📊 Current State — what's already stored well
 
-This gives you a real installable app (standalone, home-screen icon, splash) on both platforms, with **zero risk** to the existing app, preview, or auth flow.
+✅ Training sessions, technique chains, strength workouts, cardio
+✅ AI **analysis results** (`ai_fighter_notes`) — structured outputs persisted
+✅ Pathway nodes/edges, reflections, fighter & coach profiles
+✅ Subscriptions, support tickets, beta requests
+✅ User custom lists, notification settings
 
----
+## ❌ Critical gaps before launch
 
-## Files to create
-
-### 1. `public/manifest.webmanifest`
-The web app manifest. Key fields:
-- `name`: `Combat Athlete Journal`
-- `short_name`: `Athlete Journal`
-- `start_url`: `/` (relative — opens whichever domain installed it, including the production domain `trg-fighter-journal.lovable.app` or future custom domain)
-- `scope`: `/`
-- `display`: `standalone`
-- `orientation`: `portrait`
-- `background_color`: `#0B0B0B` (matches your dark theme bg)
-- `theme_color`: `#B11226` (your TRG primary red)
-- `icons`: references to the icons below (192, 512, plus a 512 maskable)
-
-### 2. App icons in `public/`
-Generated from the existing favicon / TRG branding:
-- `public/icon-192.png` (192×192, standard)
-- `public/icon-512.png` (512×512, standard)
-- `public/icon-maskable-512.png` (512×512, with safe-zone padding for Android adaptive icons)
-- `public/apple-touch-icon.png` (180×180, required for iOS home-screen icon and splash)
-
-These will be generated programmatically from a TRG-branded source so the home-screen icon matches your design (dark bg + red accent). If you'd prefer to upload your own logo, say the word and I'll use that instead.
-
-### 3. iOS splash screens (optional but recommended)
-A small set of `apple-touch-startup-image` PNGs in `public/splash/` for the most common iPhone sizes (e.g. iPhone 14/15/Pro/Pro Max, SE). iOS does not generate splashes from the manifest — they must be explicit `<link>` tags. Background `#0B0B0B` with the TRG mark centered.
-
-If you prefer to skip splashes initially, iOS will fall back to a plain white screen briefly — installability still works.
+| Gap | Impact |
+|---|---|
+| **AI chat conversations live only in `localStorage`** | Lost on device change/clear. Can't study what users actually ask Gladius. |
+| **No event/analytics table** | Can't answer "which features are used", "where do users drop off". |
+| **No error log table** | Edge function errors only visible in Supabase logs (ephemeral). |
+| **No user feedback / NPS / thumbs up-down on AI replies** | No quality signal on Gladius answers. |
+| **No session view of Pathway / Library / Trends usage** | Don't know if features matter. |
+| **No onboarding completion tracking** | Can't measure activation funnel. |
+| **No admin analytics dashboard** | You'd be querying SQL by hand at launch. |
 
 ---
 
-## Files to modify
+## 🗄️ Phase 1 — New tables (migration)
 
-### `index.html` (only additions — no removals)
-Add inside `<head>`:
-- `<link rel="manifest" href="/manifest.webmanifest">`
-- `<meta name="theme-color" content="#B11226">`
-- `<meta name="mobile-web-app-capable" content="yes">`
-- `<meta name="apple-mobile-web-app-capable" content="yes">`
-- `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`
-- `<meta name="apple-mobile-web-app-title" content="Athlete Journal">`
-- `<link rel="apple-touch-icon" href="/apple-touch-icon.png">`
-- The `apple-touch-startup-image` `<link>` tags for the splash screens
+### 1. `ai_conversations` + `ai_messages` (replace localStorage)
+- `ai_conversations`: `id, user_id, title, model, created_at, updated_at, message_count, last_message_at, archived`
+- `ai_messages`: `id, conversation_id, user_id, role (user/assistant/system), content, mode (chat/analyse), token_count, latency_ms, finish_reason, error, linked_ai_note_id, created_at`
+- RLS: user manages own; admin reads all.
+- Edge function logs every prompt + completion (with token counts) so you can audit cost & quality.
 
-The existing `<title>`, description, OG tags, favicon, and root div are left untouched.
+### 2. `ai_message_feedback`
+- `id, message_id, user_id, rating (thumbs_up/thumbs_down), reason, comment, created_at`
+- Add 👍 / 👎 buttons on every Gladius reply.
 
-### Nothing else changes
-- ❌ No edits to `vite.config.ts`
-- ❌ No new dependencies
-- ❌ No edits to `src/main.tsx`, `App.tsx`, routes, hooks, Supabase client, or any component
-- ❌ No service worker registration anywhere
+### 3. `analytics_events` (the one big one)
+- `id, user_id (nullable for anon), session_id (browser session), event_name, event_category, properties jsonb, route, app_mode, user_agent, created_at`
+- Indexed on `(user_id, created_at)`, `(event_name, created_at)`.
+- Captured events:
+  - `auth_signup`, `auth_login`, `auth_logout`
+  - `onboarding_started`, `onboarding_step_completed`, `onboarding_finished`
+  - `session_created`, `session_completed`, `session_deleted` (discipline in props)
+  - `pathway_node_added`, `pathway_node_opened`
+  - `library_search`, `library_filter_applied`
+  - `ai_chat_opened`, `ai_message_sent`, `ai_analysis_run`, `ai_pdf_exported`, `ai_chat_stopped`
+  - `mode_switched` (athlete/fighter/coach)
+  - `subscription_upgrade_clicked`, `subscription_started`
+  - `feature_blocked_paywall` (which feature was attempted)
+  - `coach_invite_sent`, `coach_invite_redeemed`
+  - `notification_enabled` / `disabled`
+- Insert via small `useAnalytics()` hook (`logEvent(name, props)`).
 
----
+### 4. `error_logs`
+- `id, user_id, level (error/warn/info), source (client/edge), route, message, stack, context jsonb, user_agent, created_at`
+- Wired into a global React error boundary + `window.onerror` + edge function `catch` blocks.
 
-## What this delivers
+### 5. `user_activity_summary` (materialized rollup, refreshed daily)
+- Per-user: last_active, total_sessions, total_ai_messages, days_active_7d/30d, current_streak, primary_discipline.
+- Powers the admin dashboard fast.
 
-| Capability | iPhone (Safari) | Android (Chrome) |
-|---|---|---|
-| Add to Home Screen | ✅ Share → Add to Home Screen | ✅ Auto install banner / menu → Install app |
-| Custom app name "Athlete Journal" | ✅ | ✅ |
-| Standalone (no browser chrome) | ✅ | ✅ |
-| Themed status bar / address bar | ✅ (translucent) | ✅ (`#B11226`) |
-| Home-screen icon | ✅ apple-touch-icon | ✅ adaptive maskable icon |
-| Splash screen | ✅ (via startup-image links) | ✅ (auto from manifest) |
-| Opens production domain | ✅ Whatever URL was used to install (e.g. `trg-fighter-journal.lovable.app`) |
-
-## What this does NOT do
-- No offline mode (would need a service worker — explicitly avoided per Lovable guidance)
-- No push notifications via service worker (your existing `useBrowserNotifications` hook continues to work as-is in the browser)
-- No effect on Lovable's editor preview (because no SW is registered)
-
----
-
-## How to test after deploy
-
-**Important:** Installability only works on the **published** URL (`https://trg-fighter-journal.lovable.app`) over HTTPS — not in the in-editor preview iframe. After I push the changes you'll need to click **Publish → Update** to make them live.
-
-### iPhone (iOS 16+, Safari)
-1. Open `https://trg-fighter-journal.lovable.app` in **Safari** (not Chrome — iOS install only works from Safari).
-2. Tap the **Share** button (square with arrow).
-3. Scroll down → **Add to Home Screen**.
-4. Confirm the title shows as **Athlete Journal** → tap **Add**.
-5. Tap the new icon on the home screen — app opens fullscreen with no Safari UI.
-
-### Android (Chrome)
-1. Open `https://trg-fighter-journal.lovable.app` in **Chrome**.
-2. Either tap the **Install** banner that appears, or open the **⋮ menu → Install app** (or "Add to Home Screen").
-3. Confirm name **Combat Athlete Journal** → **Install**.
-4. Launch from home screen — opens standalone with red themed status bar and a splash screen.
-
-### Verifying it's a proper PWA (desktop Chrome)
-1. Open the published URL in Chrome desktop.
-2. DevTools → **Application** tab → **Manifest** — should show name, icons, theme color, no errors.
-3. Address bar shows an **install icon** (⊕) on the right — click to install.
+### 6. `feature_flags` (optional, recommended)
+- `key, enabled, rollout_percentage, description` — lets you kill/ship features at launch without redeploy.
 
 ---
 
-## Risk assessment
-- **Auth / Supabase**: Untouched. No service worker means no request interception, so OAuth redirects and Supabase API calls behave identically to today.
-- **Routing**: Untouched. React Router continues to work; Lovable hosting's SPA fallback handles deep links as it does now.
-- **Existing pages / design**: Zero modifications to any `src/` file.
-- **Editor preview**: No change — manifest links are inert in the preview iframe.
+## 🔧 Phase 2 — Wiring
 
-After approval I'll create the manifest, generate the icon set, add the meta tags to `index.html`, and confirm everything renders in DevTools before handing off.
+1. **Edge function update** (`ai-fighter-assistant`):
+   - On request: insert `ai_conversations` row if new, insert user `ai_messages` row.
+   - On stream finish (or analyse return): insert assistant `ai_messages` row with token counts, latency, finish_reason.
+   - On error: insert into `error_logs`.
+
+2. **Client `AIFighterAssistant.tsx`**:
+   - Replace `localStorage` history with `ai_conversations` query.
+   - Add 👍/👎 under each assistant reply → `ai_message_feedback`.
+   - Keep localStorage as offline cache only.
+
+3. **`useAnalytics()` hook + `<AnalyticsProvider>`**:
+   - Auto-logs `route_changed` on every navigation.
+   - Exposes `logEvent(name, props)` used everywhere relevant.
+   - Batches inserts (every 5s or 10 events) to avoid request spam.
+
+4. **Global ErrorBoundary** + `window.addEventListener('error' | 'unhandledrejection')` → `error_logs`.
+
+5. **Admin dashboard page** (`/admin/analytics`, gated by `has_role('admin')`):
+   - DAU/WAU/MAU
+   - New signups per day
+   - AI messages per day + avg latency + thumbs-up rate
+   - Top events (most-used features)
+   - Funnel: signup → onboarding → first session → first AI chat → upgrade to Pro
+   - Recent errors
+   - Subscription mix (free/basic/pro)
+
+---
+
+## 🔒 Privacy & retention
+
+- All tables RLS-protected: users see only their own rows; only `admin` role sees aggregates.
+- AI message content stored — add a short notice in the AI page footer: *"Conversations are stored to improve the assistant."*
+- Add a "Delete my data" button on Profile (deletes conversations, events, archive).
+- Auto-purge `analytics_events` & `error_logs` older than 180 days via scheduled function (optional after launch).
+
+---
+
+## 📋 Build order (fits a week)
+
+1. **Day 1** — Migration: `ai_conversations`, `ai_messages`, `ai_message_feedback`, `analytics_events`, `error_logs`. RLS + indexes.
+2. **Day 2** — Update edge function to persist chats + Pro-aware. Migrate chat UI from localStorage → DB; add feedback buttons.
+3. **Day 3** — `useAnalytics()` hook + global ErrorBoundary. Instrument top 15 events listed above.
+4. **Day 4** — Admin analytics dashboard at `/admin/analytics` (read-only charts using `recharts`).
+5. **Day 5** — Privacy notice + "Delete my data" + final QA. Optional: feature_flags table + simple admin toggle.
+6. **Day 6–7** — Beta-user smoke test, fix gaps, launch.
+
+---
+
+## ❓ Two quick decisions before I build
+
+1. **AI chat content storage** — store full message text server-side (recommended, enables quality work + PDF export across devices) or store metadata only (more private, but you lose the ability to learn from actual prompts)?
+2. **Admin dashboard scope for launch** — full charts page (DAU, funnels, AI quality) or minimal "recent activity + counts" page now and full charts post-launch?
+
+Once you confirm, I'll switch to default mode and start with the Phase 1 migration.

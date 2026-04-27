@@ -26,6 +26,8 @@ DISCIPLINE RULES (enforce when generating neural pathways):
 When the user asks for ANALYSIS of a training note, you MUST call the analyse_training_note tool.
 When the user asks a general question, respond conversationally with markdown.`;
 
+const MODEL = "google/gemini-2.5-flash";
+
 const ANALYSE_TOOL = {
   type: "function",
   function: {
@@ -107,14 +109,35 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+  // Helper: persist an error_logs row using the service-role client.
+  const logError = async (
+    userId: string | null,
+    message: string,
+    context: Record<string, unknown> = {},
+  ) => {
+    try {
+      const admin = createClient(supabaseUrl, supabaseServiceKey);
+      await admin.from("error_logs").insert({
+        user_id: userId,
+        level: "error",
+        source: "edge",
+        route: "/functions/v1/ai-fighter-assistant",
+        message: String(message).slice(0, 4000),
+        context,
+      });
+    } catch { /* never throw */ }
+  };
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return jsonResponse({ error: "Missing authorization" }, 401);
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const lovableKey = Deno.env.get("LOVABLE_API_KEY");
     if (!lovableKey) {
       return jsonResponse({ error: "AI gateway not configured" }, 500);
@@ -128,9 +151,10 @@ Deno.serve(async (req) => {
     if (userErr || !userData.user) {
       return jsonResponse({ error: "Not authenticated" }, 401);
     }
+    const userId = userData.user.id;
 
     const { data: isPro, error: proErr } = await supabase.rpc("is_pro_user", {
-      _user_id: userData.user.id,
+      _user_id: userId,
     });
     if (proErr) {
       console.error("is_pro_user error:", proErr);
@@ -143,14 +167,65 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { messages, mode, lastTokenId } = await req.json();
+    const { messages, mode, lastTokenId, conversationId } = await req.json();
     if (!Array.isArray(messages) || messages.length === 0) {
       return jsonResponse({ error: "messages array required" }, 400);
     }
 
     const isAnalyse = mode === "analyse";
+
+    // -- Persist the latest user message + ensure conversation exists ----
+    let convId: string | null = conversationId ?? null;
+    const isReconnect = typeof lastTokenId === "number" && lastTokenId >= 0;
+
+    if (!isReconnect) {
+      const lastUserMsg = [...messages]
+        .reverse()
+        .find((m) => m.role === "user");
+      if (lastUserMsg) {
+        if (!convId) {
+          const title = String(lastUserMsg.content).slice(0, 60);
+          const { data: convRow, error: convErr } = await supabase
+            .from("ai_conversations")
+            .insert({
+              user_id: userId,
+              title,
+              model: MODEL,
+              message_count: 0,
+              last_message_at: new Date().toISOString(),
+            })
+            .select("id")
+            .single();
+          if (convErr) {
+            await logError(userId, `conv insert: ${convErr.message}`);
+          } else {
+            convId = convRow.id;
+          }
+        }
+        if (convId) {
+          await supabase.from("ai_messages").insert({
+            conversation_id: convId,
+            user_id: userId,
+            role: "user",
+            content: String(lastUserMsg.content).slice(0, 50_000),
+            mode: isAnalyse ? "analyse" : "chat",
+          });
+          await supabase
+            .from("ai_conversations")
+            .update({
+              last_message_at: new Date().toISOString(),
+              message_count: messages.filter((m) =>
+                ["user", "assistant"].includes(m.role)
+              ).length,
+            })
+            .eq("id", convId);
+        }
+      }
+    }
+
+    const startedAt = Date.now();
     const body: Record<string, unknown> = {
-      model: "google/gemini-2.5-flash",
+      model: MODEL,
       messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
     };
 
@@ -179,6 +254,7 @@ Deno.serve(async (req) => {
     if (!aiResp.ok) {
       const errText = await aiResp.text();
       console.error("AI gateway error:", aiResp.status, errText);
+      await logError(userId, `gateway ${aiResp.status}`, { errText });
       if (aiResp.status === 429) {
         return jsonResponse(
           { error: "Rate limit reached. Please wait a moment and try again." },
@@ -197,10 +273,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "AI gateway error" }, 500);
     }
 
-    // For chat mode: re-frame the upstream SSE so each event carries an
-    // incremental tokenId. On reconnect, the client sends lastTokenId and
-    // we skip events <= that id, so resume happens at the exact token index
-    // without re-sending the whole assistant text in messages.
+    // ---- CHAT (streaming) ----
     if (!isAnalyse) {
       const skipUntil = typeof lastTokenId === "number" ? lastTokenId : -1;
       const upstream = aiResp.body!;
@@ -209,9 +282,19 @@ Deno.serve(async (req) => {
 
       let tokenId = 0;
       let buffer = "";
+      let assistantText = "";
+      let finishReason: string | null = null;
 
       const transformed = new ReadableStream({
         async start(controller) {
+          // Send conversation id as an initial event so the client can stash it.
+          if (convId) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ meta: { conversationId: convId } })}\n\n`,
+              ),
+            );
+          }
           const reader = upstream.getReader();
           try {
             while (true) {
@@ -219,7 +302,6 @@ Deno.serve(async (req) => {
               if (done) break;
               buffer += decoder.decode(value, { stream: true });
 
-              // Process complete SSE event blocks (separated by blank line).
               while (true) {
                 const a = buffer.indexOf("\n\n");
                 const b = buffer.indexOf("\r\n\r\n");
@@ -236,7 +318,6 @@ Deno.serve(async (req) => {
                 const block = buffer.slice(0, sepIdx);
                 buffer = buffer.slice(sepIdx + sepLen);
 
-                // Extract data payload.
                 const dataLines: string[] = [];
                 for (let raw of block.split("\n")) {
                   if (raw.endsWith("\r")) raw = raw.slice(0, -1);
@@ -253,14 +334,26 @@ Deno.serve(async (req) => {
                   continue;
                 }
 
-                // Assign next tokenId, skip if client already has it.
                 const id = tokenId++;
-                if (id <= skipUntil) continue;
+                if (id <= skipUntil) {
+                  // Still accumulate so DB write has full text.
+                  try {
+                    const p = JSON.parse(payload);
+                    const d = p.choices?.[0]?.delta?.content;
+                    if (typeof d === "string") assistantText += d;
+                    const f = p.choices?.[0]?.finish_reason;
+                    if (f && f !== "null") finishReason = f;
+                  } catch { /* ignore */ }
+                  continue;
+                }
 
-                // Re-emit with id field embedded in the payload.
                 try {
                   const parsed = JSON.parse(payload);
                   parsed.tokenId = id;
+                  const delta = parsed.choices?.[0]?.delta?.content;
+                  if (typeof delta === "string") assistantText += delta;
+                  const f = parsed.choices?.[0]?.finish_reason;
+                  if (f && f !== "null") finishReason = f;
                   controller.enqueue(
                     encoder.encode(`data: ${JSON.stringify(parsed)}\n\n`),
                   );
@@ -271,8 +364,27 @@ Deno.serve(async (req) => {
             }
           } catch (e) {
             console.error("stream transform error:", e);
+            await logError(userId, `stream error: ${String(e)}`);
           } finally {
             controller.close();
+
+            // Persist assistant message after stream completes.
+            if (convId && assistantText && !isReconnect) {
+              try {
+                const admin = createClient(supabaseUrl, supabaseServiceKey);
+                await admin.from("ai_messages").insert({
+                  conversation_id: convId,
+                  user_id: userId,
+                  role: "assistant",
+                  content: assistantText.slice(0, 50_000),
+                  mode: "chat",
+                  latency_ms: Date.now() - startedAt,
+                  finish_reason: finishReason,
+                });
+              } catch (e) {
+                console.error("assistant persist error:", e);
+              }
+            }
           }
         },
       });
@@ -288,22 +400,36 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ---- ANALYSE (tool call) ----
     const data = await aiResp.json();
     const choice = data.choices?.[0];
-
     const toolCall = choice?.message?.tool_calls?.[0];
     if (!toolCall) {
+      await logError(userId, "no tool call returned");
       return jsonResponse({ error: "AI did not return structured analysis" }, 500);
     }
     try {
       const analysis = JSON.parse(toolCall.function.arguments);
-      return jsonResponse({ analysis });
+      if (convId) {
+        await supabase.from("ai_messages").insert({
+          conversation_id: convId,
+          user_id: userId,
+          role: "assistant",
+          content: JSON.stringify(analysis).slice(0, 50_000),
+          mode: "analyse",
+          latency_ms: Date.now() - startedAt,
+          finish_reason: choice?.finish_reason ?? null,
+        });
+      }
+      return jsonResponse({ analysis, conversationId: convId });
     } catch (e) {
       console.error("JSON parse error:", e);
+      await logError(userId, `analyse parse: ${String(e)}`);
       return jsonResponse({ error: "Failed to parse AI analysis" }, 500);
     }
   } catch (e) {
     console.error("ai-fighter-assistant error:", e);
+    await logError(null, e instanceof Error ? e.message : String(e));
     return jsonResponse(
       { error: e instanceof Error ? e.message : "Unknown error" },
       500,

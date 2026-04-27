@@ -23,7 +23,7 @@ import { CustomListManager } from '@/components/profile/CustomListManager';
 import { NotificationsSection } from '@/components/profile/NotificationsSection';
 import { SupportSection } from '@/components/profile/SupportSection';
 import { DeleteMyDataSection } from '@/components/profile/DeleteMyDataSection';
-import { RedeemCoachCode } from '@/components/coach/RedeemCoachCode';
+
 import { useAutosave } from '@/hooks/useAutosave';
 import { AutosaveStatus } from '@/components/AutosaveStatus';
 

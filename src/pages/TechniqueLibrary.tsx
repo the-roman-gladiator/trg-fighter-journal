@@ -127,7 +127,7 @@ export default function TechniqueLibrary() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
+      <main className="container mx-auto px-4 py-4 max-w-lg space-y-4 lg:max-w-xl lg:ml-auto lg:mr-0 lg:min-h-[calc(100vh-3.5rem)] lg:flex lg:flex-col lg:justify-end">
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

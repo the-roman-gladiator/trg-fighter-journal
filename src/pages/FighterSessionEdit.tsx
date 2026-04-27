@@ -212,7 +212,7 @@ export default function FighterSessionEdit() {
                 <Select value={tactic} onValueChange={setTactic}>
                   <SelectTrigger><SelectValue placeholder="Select tactic" /></SelectTrigger>
                   <SelectContent>
-                    {TACTICS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    {getAllowedTactics(discipline).map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <p className="text-[11px] text-muted-foreground mt-1">

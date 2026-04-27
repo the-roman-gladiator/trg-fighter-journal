@@ -497,6 +497,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
             reconnectMode={false}
             onNodeClick={handleCanvasClick}
             onNodeDrag={handleNodeDrag}
+            pathwayNodeIdsOverride={pathwayNodeIds}
           />
 
           {/* Map Controls */}

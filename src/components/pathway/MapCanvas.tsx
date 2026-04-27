@@ -15,6 +15,10 @@ interface MapCanvasProps {
   reconnectMode: boolean;
   onNodeClick: (nodeId: string | null) => void;
   onNodeDrag: (nodeId: string, x: number, y: number) => void;
+  /** Optional: precomputed set of node IDs to highlight. When provided,
+   *  overrides the default ancestor/descendant walker (which is wrong for
+   *  graphs with global nodes shared across disciplines). */
+  pathwayNodeIdsOverride?: Set<string>;
 }
 
 const NODE_COLORS: Record<string, { core: string; glow: string }> = {
@@ -73,7 +77,7 @@ function getFullPathway(nodeId: string, edges: PathwayEdge[]): Set<string> {
   return ids;
 }
 
-export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeClick, onNodeDrag }, ref) {
+export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeClick, onNodeDrag, pathwayNodeIdsOverride }, ref) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: 800, h: 600 });
   const [isPanning, setIsPanning] = useState(false);
@@ -118,11 +122,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
     recenter: () => centerOnNodes(),
   }), [centerOnNodes]);
 
-  // Full pathway highlighting
+  // Full pathway highlighting — prefer the explicit override (which is
+  // discipline-aware in FuturisticMap) over the naive edge walker.
   const pathwayNodeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();
+    if (pathwayNodeIdsOverride) return pathwayNodeIdsOverride;
     return getFullPathway(selectedNodeId, edges);
-  }, [selectedNodeId, edges]);
+  }, [selectedNodeId, edges, pathwayNodeIdsOverride]);
 
   const pathwayEdgeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();

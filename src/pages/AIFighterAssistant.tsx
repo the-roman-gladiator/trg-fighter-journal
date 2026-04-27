@@ -51,7 +51,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
-import gladiusIcon from '@/assets/gladius-icon.png';
+import { GladiusIcon } from '@/components/GladiusIcon';
 
 interface NeuralNode {
   id: number;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { logEvent } from '@/hooks/useAnalytics';
+import { Turnstile } from '@/components/Turnstile';
+
+const STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+function validateStrongPassword(pw: string): string | null {
+  if (pw.length < 8) return 'Password must be at least 8 characters.';
+  if (!/[a-z]/.test(pw)) return 'Password must contain a lowercase letter.';
+  if (!/[A-Z]/.test(pw)) return 'Password must contain an uppercase letter.';
+  if (!/\d/.test(pw)) return 'Password must contain a number.';
+  if (!STRONG_PASSWORD.test(pw)) return 'Password does not meet requirements.';
+  return null;
+}
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -19,8 +30,21 @@ export default function Auth() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>('');
+  const [captchaToken, setCaptchaToken] = useState<string>('');
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Fetch Turnstile site key when entering signup mode
+  useEffect(() => {
+    if (mode !== 'signup' || turnstileSiteKey) return;
+    supabase.functions.invoke('turnstile-config').then(({ data }) => {
+      if (data?.siteKey) setTurnstileSiteKey(data.siteKey);
+    });
+  }, [mode, turnstileSiteKey]);
+
+  const handleVerify = useCallback((token: string) => setCaptchaToken(token), []);
+  const handleExpire = useCallback(() => setCaptchaToken(''), []);
 
   useEffect(() => {
     // Check URL params for mode=reset (from recovery link redirect)
@@ -102,6 +126,20 @@ export default function Auth() {
         toast({ title: 'Welcome back!', description: 'Successfully logged in.' });
         navigate('/');
       } else {
+        const pwError = validateStrongPassword(password);
+        if (pwError) throw new Error(pwError);
+        if (!captchaToken) throw new Error('Please complete the security check.');
+
+        // Server-side verify Turnstile token before creating account
+        const { data: verify, error: verifyErr } = await supabase.functions.invoke(
+          'verify-turnstile',
+          { body: { token: captchaToken } }
+        );
+        if (verifyErr || !verify?.success) {
+          setCaptchaToken('');
+          throw new Error('Security check failed. Please try again.');
+        }
+
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -114,6 +152,7 @@ export default function Auth() {
         logEvent('auth_signup', { method: 'password' }, 'auth');
         toast({ title: 'Account created!', description: 'You can now log in.' });
         setMode('login');
+        setCaptchaToken('');
       }
     } catch (error: any) {
       toast({
@@ -168,12 +207,26 @@ export default function Auth() {
             <div>
               <Label htmlFor="password">Password</Label>
               <div className="relative mt-1">
-                <Input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="pr-10" />
+                <Input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={mode === 'signup' ? 8 : 6} className="pr-10" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {mode === 'signup' && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Min 8 characters, with uppercase, lowercase, and a number.
+                </p>
+              )}
             </div>
+          )}
+
+          {mode === 'signup' && turnstileSiteKey && (
+            <Turnstile
+              siteKey={turnstileSiteKey}
+              onVerify={handleVerify}
+              onExpire={handleExpire}
+              onError={handleExpire}
+            />
           )}
 
           {mode === 'reset' && (

@@ -3,8 +3,8 @@ export type SessionType = 'Planned' | 'Completed';
 export type Discipline = 'MMA' | 'Muay Thai' | 'K1' | 'Wrestling' | 'Grappling' | 'BJJ' | 'Strength Training' | 'Cardio Activity';
 export type MartialArtsDiscipline = 'MMA' | 'Muay Thai' | 'K1' | 'Wrestling' | 'Grappling' | 'BJJ';
 export type Feeling = 'Fresh' | 'Normal' | 'Tired' | 'Injured' | 'On Fire';
-export type TacticalGoal = 'Attacking' | 'Defending' | 'Countering' | 'Intercepting' | 'Transiction' | 'Control';
-export type Strategy = 'Attacking' | 'Defending' | 'Countering' | 'Intercepting' | 'Transiction' | 'Control';
+export type TacticalGoal = 'Attacking' | 'Defending' | 'Countering' | 'Intercepting' | 'Transition' | 'Control';
+export type Strategy = 'Attacking' | 'Defending' | 'Countering' | 'Intercepting' | 'Transition' | 'Control';
 export type WorkoutMode = 'manual' | 'template' | 'qr';
 export type CardioType = 'Running' | 'Walking' | 'Bike' | 'Rowing' | 'AssaultBike' | 'Swimming' | 'StairClimber' | 'Hiking' | 'JumpRope' | 'Other';
 

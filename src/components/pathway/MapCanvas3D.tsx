@@ -147,7 +147,8 @@ function Node3D({
 
   const opacity = isDimmed ? 0.22 : 1;
   const active = isSelected || isHighlighted || isHovered;
-  const emissiveIntensity = active ? 0.6 : node.is_root ? 0.5 : 0.25;
+  // Subtle emissive — keeps the metal looking lit, never neon
+  const emissiveIntensity = active ? 0.25 : node.is_root ? 0.18 : 0.08;
 
   return (
     <group position={position}>
@@ -173,13 +174,13 @@ function Node3D({
         <meshBasicMaterial transparent opacity={0} depthWrite={false} depthTest={false} />
       </mesh>
 
-      {/* Outer atmospheric glow halo */}
+      {/* Tight, soft halo — just enough lift off the dark background */}
       <mesh ref={haloRef}>
-        <sphereGeometry args={[baseRadius * 2.2, 24, 24]} />
+        <sphereGeometry args={[baseRadius * 1.45, 24, 24]} />
         <meshBasicMaterial
           color={colors.glow}
           transparent
-          opacity={opacity * (active ? 0.32 : 0.14)}
+          opacity={opacity * (active ? 0.18 : 0.07)}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
@@ -194,8 +195,8 @@ function Node3D({
           emissiveIntensity={emissiveIntensity}
           transparent
           opacity={opacity}
-          roughness={0.25}
-          metalness={1}
+          roughness={0.35}
+          metalness={0.95}
         />
       </mesh>
 

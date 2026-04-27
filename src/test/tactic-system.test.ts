@@ -14,7 +14,7 @@ const REQUIRED_TACTICS = [
   "Defending",
   "Countering",
   "Intercepting",
-  "Transiction",
+  "Transition",
   "Control",
 ] as const;
 
@@ -38,15 +38,16 @@ function expectExactSet(actual: readonly string[], label: string) {
 }
 
 describe("Tactic system — exactly 6 categories everywhere", () => {
-  it("uses the canonical 'Transiction' spelling (not 'Transitions')", () => {
-    expect(REQUIRED_TACTICS).toContain("Transiction");
+  it("uses the canonical 'Transition' spelling (not 'Transitions' or 'Transiction')", () => {
+    expect(REQUIRED_TACTICS).toContain("Transition");
     expect(REQUIRED_TACTICS as readonly string[]).not.toContain("Transitions");
+    expect(REQUIRED_TACTICS as readonly string[]).not.toContain("Transiction");
   });
 
-  it("keeps Transiction and Control as separate categories", () => {
-    expect(REQUIRED_SET.has("Transiction")).toBe(true);
+  it("keeps Transition and Control as separate categories", () => {
+    expect(REQUIRED_SET.has("Transition")).toBe(true);
     expect(REQUIRED_SET.has("Control")).toBe(true);
-    expect("Transiction").not.toEqual("Control");
+    expect("Transition").not.toEqual("Control");
   });
 
   describe("config/dropdownOptions.ts", () => {

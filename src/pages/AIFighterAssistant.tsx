@@ -142,78 +142,198 @@ export default function AIFighterAssistant() {
       }
 
       // Chat mode — stream SSE token-by-token so words appear as they arrive.
+      // Robust to slow networks: idle-timeout, mid-stream reconnect, and
+      // proper SSE event-framing (handles multi-line data + CRLF).
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-fighter-assistant`;
       const session = (await supabase.auth.getSession()).data.session;
       const token =
         session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      const resp = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-        body: JSON.stringify({ messages: newMessages, mode }),
-      });
-
-      if (!resp.ok || !resp.body) {
-        let msg = 'AI request failed';
-        try {
-          const j = await resp.json();
-          if (j?.error) msg = j.error;
-        } catch { /* noop */ }
-        throw new Error(msg);
-      }
-
       // Insert empty assistant bubble we'll fill as tokens arrive.
       setChat([...newMessages, { role: 'assistant', content: '' }]);
-      // Hide the "Thinking…" row as soon as the stream opens.
-      setIsThinking(false);
 
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
+      // Throttle React updates to one per animation frame to avoid jank
+      // when many tiny tokens arrive on slow devices.
       let acc = '';
-      let done = false;
+      let pendingFlush: number | null = null;
+      const flushToUI = () => {
+        pendingFlush = null;
+        setChat((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role !== 'assistant') return prev;
+          if (last.content === acc) return prev;
+          return prev.map((m, i) =>
+            i === prev.length - 1 ? { ...m, content: acc } : m,
+          );
+        });
+      };
+      const scheduleFlush = () => {
+        if (pendingFlush != null) return;
+        pendingFlush =
+          typeof requestAnimationFrame !== 'undefined'
+            ? requestAnimationFrame(flushToUI)
+            : (setTimeout(flushToUI, 16) as unknown as number);
+      };
 
-      while (!done) {
-        const { value, done: rDone } = await reader.read();
-        if (rDone) break;
-        buffer += decoder.decode(value, { stream: true });
+      const IDLE_TIMEOUT_MS = 25_000;
+      const MAX_RECONNECTS = 2;
+      let reconnectsLeft = MAX_RECONNECTS;
+      let streamCompleted = false;
+      let firstByteSeen = false;
 
-        let nl: number;
-        while ((nl = buffer.indexOf('\n')) !== -1) {
-          let line = buffer.slice(0, nl);
-          buffer = buffer.slice(nl + 1);
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (!line || line.startsWith(':')) continue;
-          if (!line.startsWith('data: ')) continue;
-          const json = line.slice(6).trim();
-          if (json === '[DONE]') {
-            done = true;
-            break;
-          }
-          try {
-            const parsed = JSON.parse(json);
-            const delta = parsed.choices?.[0]?.delta?.content as
-              | string
-              | undefined;
-            if (delta) {
-              acc += delta;
-              setChat((prev) => {
-                const last = prev[prev.length - 1];
-                if (last?.role !== 'assistant') return prev;
-                return prev.map((m, i) =>
-                  i === prev.length - 1 ? { ...m, content: acc } : m,
-                );
-              });
-            }
-          } catch {
-            buffer = line + '\n' + buffer;
-            break;
-          }
+      // Parse a single SSE event block ("data: ...\n[data: ...\n]") into a
+      // joined data payload, per https://html.spec.whatwg.org/#server-sent-events
+      const parseEventBlock = (block: string): string | null => {
+        const dataLines: string[] = [];
+        for (let raw of block.split('\n')) {
+          if (raw.endsWith('\r')) raw = raw.slice(0, -1);
+          if (!raw || raw.startsWith(':')) continue;
+          if (!raw.startsWith('data:')) continue;
+          // Spec: a single optional space after the colon is stripped.
+          const v = raw.slice(5);
+          dataLines.push(v.startsWith(' ') ? v.slice(1) : v);
         }
+        return dataLines.length ? dataLines.join('\n') : null;
+      };
+
+      while (!streamCompleted) {
+        const controller = new AbortController();
+        let idleTimer: ReturnType<typeof setTimeout> | null = null;
+        const armIdleTimer = () => {
+          if (idleTimer) clearTimeout(idleTimer);
+          idleTimer = setTimeout(() => controller.abort(), IDLE_TIMEOUT_MS);
+        };
+
+        try {
+          const resp = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Accept: 'text/event-stream',
+            },
+            body: JSON.stringify({
+              // On reconnect, pass what we already have so the model can
+              // continue smoothly from where it left off.
+              messages: acc
+                ? [
+                    ...newMessages,
+                    { role: 'assistant', content: acc },
+                    {
+                      role: 'user',
+                      content:
+                        'Continue your previous reply from exactly where it stopped. Do not repeat anything.',
+                    },
+                  ]
+                : newMessages,
+              mode,
+            }),
+            signal: controller.signal,
+          });
+
+          if (!resp.ok || !resp.body) {
+            let msg = 'AI request failed';
+            try {
+              const j = await resp.json();
+              if (j?.error) msg = j.error;
+            } catch { /* noop */ }
+            // 429/402/auth — don't retry.
+            throw new Error(msg);
+          }
+
+          // Hide "Thinking…" the moment the connection opens.
+          setIsThinking(false);
+
+          const reader = resp.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          armIdleTimer();
+
+          while (true) {
+            const { value, done: rDone } = await reader.read();
+            if (rDone) break;
+            firstByteSeen = true;
+            armIdleTimer();
+            buffer += decoder.decode(value, { stream: true });
+
+            // SSE events are separated by a blank line. Support \n\n and \r\n\r\n.
+            let sepIdx: number;
+            while (
+              (sepIdx = (() => {
+                const a = buffer.indexOf('\n\n');
+                const b = buffer.indexOf('\r\n\r\n');
+                if (a === -1) return b;
+                if (b === -1) return a;
+                return Math.min(a, b);
+              })()) !== -1
+            ) {
+              const sepLen = buffer.startsWith('\r\n\r\n', sepIdx) ? 4 : 2;
+              const block = buffer.slice(0, sepIdx);
+              buffer = buffer.slice(sepIdx + sepLen);
+
+              const payload = parseEventBlock(block);
+              if (payload == null) continue;
+              if (payload === '[DONE]') {
+                streamCompleted = true;
+                break;
+              }
+              try {
+                const parsed = JSON.parse(payload);
+                const delta = parsed.choices?.[0]?.delta?.content as
+                  | string
+                  | undefined;
+                if (delta) {
+                  acc += delta;
+                  scheduleFlush();
+                }
+                const finish = parsed.choices?.[0]?.finish_reason;
+                if (finish && finish !== 'null') {
+                  // Server signaled completion without a [DONE] sentinel.
+                  streamCompleted = true;
+                  break;
+                }
+              } catch {
+                // Malformed JSON — drop this event and keep reading.
+              }
+            }
+
+            if (streamCompleted) break;
+          }
+
+          if (idleTimer) clearTimeout(idleTimer);
+
+          // If we got here without [DONE], treat it as a clean EOF and stop.
+          streamCompleted = true;
+        } catch (err) {
+          if (idleTimer) clearTimeout(idleTimer);
+          const aborted = (err as any)?.name === 'AbortError';
+          const networkish =
+            aborted ||
+            err instanceof TypeError ||
+            /network|fetch|stream/i.test(
+              err instanceof Error ? err.message : String(err),
+            );
+
+          // Only retry transient network/idle issues, and only after we've
+          // actually opened a stream (avoid hammering on hard auth errors).
+          if (networkish && reconnectsLeft > 0 && firstByteSeen) {
+            reconnectsLeft -= 1;
+            // Brief backoff before reconnecting.
+            await new Promise((r) => setTimeout(r, 600));
+            continue;
+          }
+          throw err;
+        }
+      }
+
+      // Final flush so no trailing tokens are stuck in rAF.
+      if (pendingFlush != null) {
+        if (typeof cancelAnimationFrame !== 'undefined')
+          cancelAnimationFrame(pendingFlush);
+        flushToUI();
+      } else {
+        flushToUI();
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Something went wrong';

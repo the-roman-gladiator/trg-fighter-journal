@@ -13,13 +13,21 @@ import { ArrowLeft, Search, ExternalLink, BookOpen, Image as ImageIcon } from 'l
 interface TechniqueItem {
   id: string;
   discipline: string;
-  category: string;
+  tactic: string;
   name_en: string;
   name_original: string | null;
   image_url: string | null;
   youtube_search_query: string | null;
+  notes: string | null;
+  level: string;
   sort_order: number;
 }
+
+const LEVEL_COLORS: Record<string, string> = {
+  Beginner: 'bg-emerald-900/30 text-emerald-300 border-emerald-800/40',
+  Intermediate: 'bg-amber-900/30 text-amber-300 border-amber-800/40',
+  Advance: 'bg-rose-900/30 text-rose-300 border-rose-800/40',
+};
 
 const DISCIPLINE_COLORS: Record<string, string> = {
   'MMA': 'bg-red-900/30 text-red-400 border-red-800/40',

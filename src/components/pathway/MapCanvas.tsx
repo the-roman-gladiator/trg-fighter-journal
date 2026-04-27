@@ -1,6 +1,5 @@
 import { useRef, useState, useCallback, useEffect, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { PathwayNode, PathwayEdge } from './FuturisticMap';
-import neuralBgVideo from '@/assets/neural-pathway-bg.mp4';
 
 export interface MapCanvasHandle {
   zoomIn: () => void;

@@ -30,7 +30,6 @@ import {
   Network,
   ListPlus,
   Lock,
-  Bot,
   User as UserIcon,
   Send,
   Edit3,
@@ -43,6 +42,8 @@ import {
   FileText,
   Plus,
   Trash2,
+  ThumbsUp,
+  ThumbsDown,
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import ReactMarkdown from 'react-markdown';
@@ -52,6 +53,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { GladiusIcon } from '@/components/GladiusIcon';
+import { logEvent } from '@/hooks/useAnalytics';
 
 interface NeuralNode {
   id: number;
@@ -77,16 +79,19 @@ interface Analysis {
   advanced_variation: string;
 }
 
+// Server-backed message. id is the row id in ai_messages once persisted.
 interface ChatMessage {
+  id?: string;
   role: 'user' | 'assistant';
   content: string;
+  created_at?: string;
 }
 
 interface SavedConversation {
   id: string;
-  title: string;
-  updatedAt: number;
-  messages: ChatMessage[];
+  title: string | null;
+  updated_at: string;
+  message_count: number;
 }
 
 interface ImportableNote {
@@ -106,28 +111,6 @@ const NODE_COLORS: Record<NeuralNode['type'], string> = {
   exit: 'bg-orange-500/15 text-orange-300 border-orange-500/40',
 };
 
-const STORAGE_KEY = 'gladius:conversations';
-const MAX_SAVED = 30;
-
-function loadConversations(userId: string): SavedConversation[] {
-  try {
-    const raw = localStorage.getItem(`${STORAGE_KEY}:${userId}`);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
-}
-function saveConversations(userId: string, list: SavedConversation[]) {
-  try {
-    localStorage.setItem(
-      `${STORAGE_KEY}:${userId}`,
-      JSON.stringify(list.slice(0, MAX_SAVED)),
-    );
-  } catch { /* noop */ }
-}
-
 export default function AIFighterAssistant() {
   const { user, loading: authLoading } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
@@ -146,6 +129,7 @@ export default function AIFighterAssistant() {
   const [importOpen, setImportOpen] = useState(false);
   const [importable, setImportable] = useState<ImportableNote[]>([]);
   const [loadingImports, setLoadingImports] = useState(false);
+  const [feedback, setFeedback] = useState<Record<string, 'thumbs_up' | 'thumbs_down'>>({});
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -159,32 +143,28 @@ export default function AIFighterAssistant() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chat, isThinking]);
 
-  // Hydrate saved conversations
+  // Track AI page open (Pro only — non-pro will hit LockedScreen)
   useEffect(() => {
-    if (user) setConversations(loadConversations(user.id));
-  }, [user]);
+    if (user && isPro) logEvent('ai_chat_opened', {}, 'ai');
+  }, [user, isPro]);
 
-  // Persist current chat as the active conversation
+  // Load conversations from server
+  const refreshConversations = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('ai_conversations')
+      .select('id, title, updated_at, message_count')
+      .eq('user_id', user.id)
+      .eq('archived', false)
+      .order('updated_at', { ascending: false })
+      .limit(50);
+    if (!error && data) setConversations(data as SavedConversation[]);
+  };
+
   useEffect(() => {
-    if (!user || chat.length === 0 || isStreaming) return;
-    const id = activeConvId ?? crypto.randomUUID();
-    const title =
-      chat.find((m) => m.role === 'user')?.content.slice(0, 60) ?? 'New chat';
-    const next: SavedConversation = {
-      id,
-      title,
-      updatedAt: Date.now(),
-      messages: chat,
-    };
-    setConversations((prev) => {
-      const without = prev.filter((c) => c.id !== id);
-      const updated = [next, ...without].slice(0, MAX_SAVED);
-      saveConversations(user.id, updated);
-      return updated;
-    });
-    if (!activeConvId) setActiveConvId(id);
+    if (user && isPro) void refreshConversations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chat, isStreaming, user]);
+  }, [user, isPro]);
 
   if (authLoading || subLoading) {
     return (
@@ -202,6 +182,7 @@ export default function AIFighterAssistant() {
     abortRef.current?.abort();
     setIsThinking(false);
     setIsStreaming(false);
+    logEvent('ai_chat_stopped', { conversation_id: activeConvId }, 'ai');
     toast.message('Generation stopped');
   };
 
@@ -213,22 +194,84 @@ export default function AIFighterAssistant() {
     setInput('');
   };
 
-  const handleLoadConversation = (c: SavedConversation) => {
+  const handleLoadConversation = async (c: SavedConversation) => {
     if (isStreaming) handleStop();
-    setChat(c.messages);
+    const { data, error } = await supabase
+      .from('ai_messages')
+      .select('id, role, content, created_at')
+      .eq('conversation_id', c.id)
+      .in('role', ['user', 'assistant'])
+      .order('created_at', { ascending: true });
+    if (error) {
+      toast.error('Failed to load conversation');
+      return;
+    }
+    setChat((data ?? []) as ChatMessage[]);
     setActiveConvId(c.id);
     setAnalysis(null);
     setHistoryOpen(false);
+
+    // Hydrate any existing feedback for these messages
+    const ids = (data ?? []).map((m) => m.id);
+    if (ids.length > 0) {
+      const { data: fb } = await supabase
+        .from('ai_message_feedback')
+        .select('message_id, rating')
+        .in('message_id', ids)
+        .eq('user_id', user.id);
+      if (fb) {
+        const map: Record<string, 'thumbs_up' | 'thumbs_down'> = {};
+        fb.forEach((f) => {
+          map[f.message_id] = f.rating as 'thumbs_up' | 'thumbs_down';
+        });
+        setFeedback(map);
+      }
+    }
+    logEvent('ai_conversation_opened', { conversation_id: c.id }, 'ai');
   };
 
-  const handleDeleteConversation = (id: string) => {
-    if (!user) return;
-    setConversations((prev) => {
-      const updated = prev.filter((c) => c.id !== id);
-      saveConversations(user.id, updated);
-      return updated;
-    });
+  const handleDeleteConversation = async (id: string) => {
+    const { error } = await supabase
+      .from('ai_conversations')
+      .delete()
+      .eq('id', id);
+    if (error) {
+      toast.error('Failed to delete');
+      return;
+    }
+    setConversations((prev) => prev.filter((c) => c.id !== id));
     if (activeConvId === id) handleNewChat();
+    logEvent('ai_conversation_deleted', { conversation_id: id }, 'ai');
+  };
+
+  const handleFeedback = async (
+    messageId: string | undefined,
+    rating: 'thumbs_up' | 'thumbs_down',
+  ) => {
+    if (!messageId) {
+      toast.message('Reply still saving — try again in a moment');
+      return;
+    }
+    setFeedback((prev) => ({ ...prev, [messageId]: rating }));
+    const { error } = await supabase.from('ai_message_feedback').upsert(
+      {
+        message_id: messageId,
+        user_id: user.id,
+        rating,
+      },
+      { onConflict: 'message_id,user_id' },
+    );
+    if (error) {
+      toast.error('Could not save feedback');
+      setFeedback((prev) => {
+        const next = { ...prev };
+        delete next[messageId];
+        return next;
+      });
+      return;
+    }
+    logEvent('ai_message_feedback', { rating, message_id: messageId }, 'ai');
+    toast.success(rating === 'thumbs_up' ? 'Thanks for the 👍' : 'Thanks — we\'ll improve');
   };
 
   const handleExportPDF = () => {
@@ -273,7 +316,6 @@ export default function AIFighterAssistant() {
         }
       };
 
-      // Header
       doc.setFillColor(177, 18, 38);
       doc.rect(0, 0, pageWidth, 64, 'F');
       doc.setTextColor(255, 255, 255);
@@ -285,7 +327,6 @@ export default function AIFighterAssistant() {
       doc.text(new Date().toLocaleString(), margin, 54);
       y = 96;
 
-      // Conversation
       writeLines('Conversation', { size: 14, style: 'bold' });
       y += 4;
 
@@ -297,7 +338,6 @@ export default function AIFighterAssistant() {
         y += 8;
       });
 
-      // Analysis
       if (analysis) {
         ensureSpace(40);
         y += 8;
@@ -339,7 +379,6 @@ export default function AIFighterAssistant() {
         }
       }
 
-      // Footer page numbers
       const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -356,6 +395,7 @@ export default function AIFighterAssistant() {
 
       const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
       doc.save(`gladius-chat-${stamp}.pdf`);
+      logEvent('ai_pdf_exported', { messages: chat.length }, 'ai');
       toast.success('PDF exported');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to export PDF');
@@ -398,8 +438,13 @@ export default function AIFighterAssistant() {
       : `${header}\n${body}`;
     setInput(text);
     setImportOpen(false);
+    logEvent('ai_note_imported', { session_id: n.id }, 'ai');
     toast.success('Note imported into prompt');
   };
+
+  // Build message payload sent to the edge function (just role+content).
+  const buildPayload = (msgs: ChatMessage[]) =>
+    msgs.map((m) => ({ role: m.role, content: m.content }));
 
   const callAI = async (mode: 'chat' | 'analyse', userText: string) => {
     const newMessages: ChatMessage[] = [
@@ -409,12 +454,14 @@ export default function AIFighterAssistant() {
     setChat(newMessages);
     setIsThinking(true);
     stopRequestedRef.current = false;
+    logEvent(mode === 'chat' ? 'ai_message_sent' : 'ai_analysis_run',
+      { conversation_id: activeConvId, length: userText.length }, 'ai');
 
     try {
       if (mode === 'analyse') {
         const { data, error } = await supabase.functions.invoke(
           'ai-fighter-assistant',
-          { body: { messages: newMessages, mode } },
+          { body: { messages: buildPayload(newMessages), mode, conversationId: activeConvId } },
         );
         if (error) {
           const ctx = (error as any).context;
@@ -424,6 +471,9 @@ export default function AIFighterAssistant() {
             if (body?.error) msg = body.error;
           } catch { /* noop */ }
           throw new Error(msg);
+        }
+        if (data?.conversationId && !activeConvId) {
+          setActiveConvId(data.conversationId);
         }
         if (data?.analysis) {
           setAnalysis(data.analysis as Analysis);
@@ -436,11 +486,11 @@ export default function AIFighterAssistant() {
             },
           ]);
           toast.success('Note analysed');
+          await refreshConversations();
         }
         return;
       }
 
-      // Chat mode — SSE stream with server-side token cursor.
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-fighter-assistant`;
       const session = (await supabase.auth.getSession()).data.session;
       const token =
@@ -449,8 +499,9 @@ export default function AIFighterAssistant() {
       setChat([...newMessages, { role: 'assistant', content: '' }]);
 
       let acc = '';
-      let lastTokenId = -1; // Server-side cursor; resume continues from here.
+      let lastTokenId = -1;
       let pendingFlush: number | null = null;
+      let streamConvId: string | null = activeConvId;
 
       const flushToUI = () => {
         pendingFlush = null;
@@ -509,13 +560,11 @@ export default function AIFighterAssistant() {
               apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
               Accept: 'text/event-stream',
             },
-            // Server-side cursor: send the *original* messages plus the
-            // last token id we received. Server replays the upstream stream
-            // and skips tokens we already have — no need to re-send acc.
             body: JSON.stringify({
-              messages: newMessages,
+              messages: buildPayload(newMessages),
               mode,
               lastTokenId,
+              conversationId: streamConvId,
             }),
             signal: controller.signal,
           });
@@ -565,6 +614,12 @@ export default function AIFighterAssistant() {
               }
               try {
                 const parsed = JSON.parse(payload);
+                // Conversation id meta event from the server
+                if (parsed.meta?.conversationId) {
+                  streamConvId = parsed.meta.conversationId;
+                  if (!activeConvId) setActiveConvId(parsed.meta.conversationId);
+                  continue;
+                }
                 if (typeof parsed.tokenId === 'number') {
                   lastTokenId = parsed.tokenId;
                 }
@@ -589,7 +644,6 @@ export default function AIFighterAssistant() {
           streamCompleted = true;
         } catch (err) {
           if (idleTimer) clearTimeout(idleTimer);
-          // User-initiated stop short-circuits all retries.
           if (stopRequestedRef.current) {
             streamCompleted = true;
             break;
@@ -615,6 +669,28 @@ export default function AIFighterAssistant() {
           cancelAnimationFrame(pendingFlush);
       }
       flushToUI();
+
+      // After stream completes, fetch the persisted assistant message id so
+      // feedback buttons can reference it.
+      if (streamConvId && acc) {
+        const { data: latest } = await supabase
+          .from('ai_messages')
+          .select('id, role, content, created_at')
+          .eq('conversation_id', streamConvId)
+          .eq('role', 'assistant')
+          .order('created_at', { ascending: false })
+          .limit(1);
+        if (latest && latest[0]) {
+          setChat((prev) => {
+            const idx = prev.length - 1;
+            if (idx < 0) return prev;
+            return prev.map((m, i) =>
+              i === idx ? { ...m, id: latest[0].id, created_at: latest[0].created_at } : m,
+            );
+          });
+        }
+        await refreshConversations();
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Something went wrong';
       toast.error(msg);
@@ -674,6 +750,7 @@ export default function AIFighterAssistant() {
         save_type: saveType,
       });
       if (error) throw error;
+      logEvent('ai_note_saved', { save_type: saveType }, 'ai');
       toast.success(
         saveType === 'fighter_note'
           ? 'Saved to Fighter Notes'
@@ -749,10 +826,12 @@ export default function AIFighterAssistant() {
                           className="flex-1 text-left min-w-0"
                           onClick={() => handleLoadConversation(c)}
                         >
-                          <p className="text-sm font-medium truncate">{c.title}</p>
+                          <p className="text-sm font-medium truncate">
+                            {c.title ?? 'Untitled chat'}
+                          </p>
                           <p className="text-[11px] text-muted-foreground">
-                            {new Date(c.updatedAt).toLocaleString()} ·{' '}
-                            {c.messages.length} msg
+                            {new Date(c.updated_at).toLocaleString()} ·{' '}
+                            {c.message_count} msg
                           </p>
                         </button>
                         <Button
@@ -851,7 +930,12 @@ export default function AIFighterAssistant() {
                 </div>
               )}
               {chat.map((m, i) => (
-                <ChatBubble key={i} role={m.role} content={m.content} />
+                <ChatBubble
+                  key={m.id ?? i}
+                  message={m}
+                  feedback={m.id ? feedback[m.id] : undefined}
+                  onFeedback={(rating) => handleFeedback(m.id, rating)}
+                />
               ))}
               {isThinking && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -903,6 +987,10 @@ export default function AIFighterAssistant() {
             </div>
           </CardContent>
         </Card>
+
+        <p className="text-[11px] text-muted-foreground text-center px-2">
+          Conversations are stored securely so you can revisit them across devices and help us improve Gladius.
+        </p>
 
         {/* Analysis cards */}
         {analysis && (
@@ -1041,8 +1129,16 @@ export default function AIFighterAssistant() {
   );
 }
 
-function ChatBubble({ role, content }: { role: 'user' | 'assistant'; content: string }) {
-  const isUser = role === 'user';
+function ChatBubble({
+  message,
+  feedback,
+  onFeedback,
+}: {
+  message: ChatMessage;
+  feedback?: 'thumbs_up' | 'thumbs_down';
+  onFeedback: (rating: 'thumbs_up' | 'thumbs_down') => void;
+}) {
+  const isUser = message.role === 'user';
   return (
     <div className={cn('flex gap-2', isUser && 'flex-row-reverse')}>
       <div
@@ -1059,19 +1155,49 @@ function ChatBubble({ role, content }: { role: 'user' | 'assistant'; content: st
           <GladiusIcon className="h-6 w-6 object-contain" />
         )}
       </div>
-      <div
-        className={cn(
-          'rounded-lg px-3 py-2 text-sm max-w-[85%] whitespace-pre-wrap',
-          isUser
-            ? 'bg-primary/10 text-foreground border border-primary/20'
-            : 'bg-muted/50 text-foreground border border-border/50',
-        )}
-      >
-        {isUser ? (
-          content
-        ) : (
-          <div className="prose prose-sm prose-invert max-w-none [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1">
-            <ReactMarkdown>{content}</ReactMarkdown>
+      <div className={cn('max-w-[85%] flex flex-col', isUser && 'items-end')}>
+        <div
+          className={cn(
+            'rounded-lg px-3 py-2 text-sm whitespace-pre-wrap',
+            isUser
+              ? 'bg-primary/10 text-foreground border border-primary/20'
+              : 'bg-muted/50 text-foreground border border-border/50',
+          )}
+        >
+          {isUser ? (
+            message.content
+          ) : (
+            <div className="prose prose-sm prose-invert max-w-none [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
+          )}
+        </div>
+        {!isUser && message.content && (
+          <div className="flex items-center gap-1 mt-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn(
+                'h-6 w-6',
+                feedback === 'thumbs_up' && 'text-primary bg-primary/10',
+              )}
+              onClick={() => onFeedback('thumbs_up')}
+              title="Helpful"
+            >
+              <ThumbsUp className="h-3 w-3" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn(
+                'h-6 w-6',
+                feedback === 'thumbs_down' && 'text-destructive bg-destructive/10',
+              )}
+              onClick={() => onFeedback('thumbs_down')}
+              title="Not helpful"
+            >
+              <ThumbsDown className="h-3 w-3" />
+            </Button>
           </div>
         )}
       </div>
@@ -1110,6 +1236,9 @@ function Field({
 
 function LockedScreen() {
   const navigate = useNavigate();
+  useEffect(() => {
+    logEvent('feature_blocked_paywall', { feature: 'ai_assistant' }, 'paywall');
+  }, []);
   return (
     <div className="min-h-full flex items-center justify-center p-6">
       <Card className="max-w-md w-full border-primary/30 bg-card/60 backdrop-blur">
@@ -1128,7 +1257,13 @@ function LockedScreen() {
               fighter notes.
             </p>
           </div>
-          <Button className="w-full" onClick={() => navigate('/profile')}>
+          <Button
+            className="w-full"
+            onClick={() => {
+              logEvent('subscription_upgrade_clicked', { source: 'ai_paywall' }, 'paywall');
+              navigate('/profile');
+            }}
+          >
             <Sparkles className="h-4 w-4" />
             Upgrade to Pro
           </Button>

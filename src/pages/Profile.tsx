@@ -613,9 +613,6 @@ export default function Profile() {
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Redeem coach invite code */}
-          <RedeemCoachCode />
-
           {/* Support (collapsible) — must be the last section */}
           <Collapsible open={supportOpen} onOpenChange={setSupportOpen}>
             <CollapsibleTrigger asChild>

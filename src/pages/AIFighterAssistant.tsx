@@ -692,8 +692,15 @@ export default function AIFighterAssistant() {
       <div className="max-w-3xl mx-auto p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center gap-3 pt-2">
-          <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary to-primary/40 flex items-center justify-center shadow-lg shadow-primary/30">
-            <Sparkles className="h-5 w-5 text-primary-foreground" />
+          <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-background to-primary/10 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/30 overflow-hidden">
+            <img
+              src={gladiusIcon}
+              alt="Gladius AI"
+              width={512}
+              height={512}
+              loading="lazy"
+              className="h-9 w-9 object-contain"
+            />
           </div>
           <div className="min-w-0">
             <h1 className="text-xl font-bold tracking-tight">Gladius</h1>

@@ -13,6 +13,7 @@ import {
   getDefenderReactions,
   getContinuationFinishes,
 } from '@/config/dropdownOptions';
+import { getAllowedTactics } from '@/lib/disciplineTactics';
 
 interface TechniqueChainFormProps {
   defaultDiscipline: Discipline;

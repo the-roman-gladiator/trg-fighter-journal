@@ -40,9 +40,11 @@ import {
   Square,
   History,
   FileDown,
+  FileText,
   Plus,
   Trash2,
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';

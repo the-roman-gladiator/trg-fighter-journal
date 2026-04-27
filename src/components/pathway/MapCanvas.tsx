@@ -122,11 +122,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
     recenter: () => centerOnNodes(),
   }), [centerOnNodes]);
 
-  // Full pathway highlighting
+  // Full pathway highlighting — prefer the explicit override (which is
+  // discipline-aware in FuturisticMap) over the naive edge walker.
   const pathwayNodeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();
+    if (pathwayNodeIdsOverride) return pathwayNodeIdsOverride;
     return getFullPathway(selectedNodeId, edges);
-  }, [selectedNodeId, edges]);
+  }, [selectedNodeId, edges, pathwayNodeIdsOverride]);
 
   const pathwayEdgeIds = useMemo(() => {
     if (!selectedNodeId) return new Set<string>();

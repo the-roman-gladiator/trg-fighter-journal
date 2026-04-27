@@ -478,7 +478,7 @@ function Scene({
 
   return (
     <group>
-      <ambientLight intensity={0.3} />
+      <ambientLight intensity={0.7} />
       {/* Central "star" light at the My Training root */}
       <pointLight position={[0, 0, 0]} intensity={2.2} color="#fde68a" distance={20} decay={1.5} />
       <pointLight position={[10, 8, 10]} intensity={0.5} color="#60a5fa" />

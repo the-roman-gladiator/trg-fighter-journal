@@ -47,7 +47,7 @@ export const techniquesByDiscipline: Record<MartialArtsDiscipline, string[]> = {
     'Anaconda', "D'Arce", 'Leg Lock Entry', 'Heel Hook', 'Straight Ankle Lock',
     // Submission Defences
     'Posture Up', 'Hand Fight', 'Hide the Arm', 'Tuck Chin',
-    'Ground and Pound', 'Ground & Pound',
+    'Ground & Pound',
   ],
   'Muay Thai': [
     'Jab', 'Cross', 'Hook', 'Uppercut', 'Double Jab',

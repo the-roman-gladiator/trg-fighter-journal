@@ -491,40 +491,71 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
       <div className="flex-1 flex overflow-hidden relative">
         {/* Map Canvas */}
         <div className="flex-1 relative">
-          <MapCanvas
-            ref={mapRef}
-            nodes={nodes}
-            edges={edges}
-            selectedNodeId={selectedNodeId}
-            reconnectMode={false}
-            onNodeClick={handleCanvasClick}
-            onNodeDrag={handleNodeDrag}
-            pathwayNodeIdsOverride={pathwayNodeIds}
-          />
+          {view3D ? (
+            <MapCanvas3D
+              nodes={nodes}
+              edges={edges}
+              selectedNodeId={selectedNodeId}
+              onNodeClick={handleCanvasClick}
+              pathwayNodeIdsOverride={pathwayNodeIds}
+            />
+          ) : (
+            <MapCanvas
+              ref={mapRef}
+              nodes={nodes}
+              edges={edges}
+              selectedNodeId={selectedNodeId}
+              reconnectMode={false}
+              onNodeClick={handleCanvasClick}
+              onNodeDrag={handleNodeDrag}
+              pathwayNodeIdsOverride={pathwayNodeIds}
+            />
+          )}
 
           {/* Map Controls */}
           <div className="absolute top-3 right-3 z-10 flex flex-col gap-1.5">
             <button
-              onClick={() => mapRef.current?.zoomIn()}
-              className="w-9 h-9 rounded-lg bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow-lg"
-              aria-label="Zoom in"
+              onClick={() => setView3D((v) => !v)}
+              className={`w-9 h-9 rounded-lg backdrop-blur-md flex items-center justify-center transition-colors shadow-lg border ${
+                view3D
+                  ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-200'
+                  : 'bg-card/80 border-border/60 text-foreground hover:bg-card'
+              }`}
+              aria-label={view3D ? 'Switch to 2D view' : 'Switch to 3D view'}
+              title={view3D ? 'Switch to 2D' : 'Switch to 3D'}
             >
-              <ZoomIn className="h-4 w-4" />
+              {view3D ? <Square className="h-4 w-4" /> : <Box className="h-4 w-4" />}
             </button>
-            <button
-              onClick={() => mapRef.current?.zoomOut()}
-              className="w-9 h-9 rounded-lg bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow-lg"
-              aria-label="Zoom out"
-            >
-              <ZoomOut className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => mapRef.current?.recenter()}
-              className="w-9 h-9 rounded-lg bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow-lg"
-              aria-label="Recenter"
-            >
-              <Crosshair className="h-4 w-4" />
-            </button>
+            {!view3D && (
+              <>
+                <button
+                  onClick={() => mapRef.current?.zoomIn()}
+                  className="w-9 h-9 rounded-lg bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow-lg"
+                  aria-label="Zoom in"
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => mapRef.current?.zoomOut()}
+                  className="w-9 h-9 rounded-lg bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow-lg"
+                  aria-label="Zoom out"
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => mapRef.current?.recenter()}
+                  className="w-9 h-9 rounded-lg bg-card/80 border border-border/60 backdrop-blur-md flex items-center justify-center text-foreground hover:bg-card transition-colors shadow-lg"
+                  aria-label="Recenter"
+                >
+                  <Crosshair className="h-4 w-4" />
+                </button>
+              </>
+            )}
+            {view3D && (
+              <div className="px-1.5 py-1 rounded-md bg-card/80 border border-border/60 backdrop-blur-md text-[9px] text-muted-foreground text-center leading-tight max-w-[72px]">
+                Drag to rotate · Pinch to zoom
+              </div>
+            )}
           </div>
 
           {/* Session Filter — only when selected node spans multiple sessions */}

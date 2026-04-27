@@ -42,11 +42,17 @@ export function TechniqueChainForm({
   const defenderReactions = getDefenderReactions(discipline, subType);
   const continuationFinishes = getContinuationFinishes(discipline, subType);
 
+  const allowedTactics = getAllowedTactics(discipline);
+
   useEffect(() => {
     setSubType('');
     setStartingAction('');
     setDefenderReaction('');
     setContinuationFinish('');
+    // Reset tactical goal if not allowed for the new discipline (e.g. K1 + Control)
+    if (!allowedTactics.includes(tacticalGoal)) {
+      setTacticalGoal(allowedTactics[0] as TacticalGoal);
+    }
   }, [discipline]);
 
   useEffect(() => {

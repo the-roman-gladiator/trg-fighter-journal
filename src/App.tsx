@@ -35,6 +35,7 @@ import TechniqueArchive from "./pages/TechniqueArchive";
 import AIFighterAssistant from "./pages/AIFighterAssistant";
 import NotFound from "./pages/NotFound";
 import AdminAnalytics from "./pages/AdminAnalytics";
+import AdminDashboard from "./pages/AdminDashboard";
 import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
 import { useAnalytics } from "./hooks/useAnalytics";
 import { ErrorBoundary, GlobalErrorListener } from "./components/ErrorBoundary";
@@ -82,6 +83,7 @@ function AppShell() {
         <Route path="/reflection" element={<Reflection />} />
         <Route path="/award" element={<Award />} />
         <Route path="/ai-assistant" element={<AIFighterAssistant />} />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/analytics" element={<AdminAnalytics />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -39,27 +39,11 @@ const ANALYSE_TOOL = {
           type: "string",
           enum: ["MMA", "Muay Thai", "K1", "Wrestling", "BJJ", "Grappling"],
         },
-        tactic: {
-          type: "string",
-          description:
-            "Tactical category: Attacking, Defending, Countering, Intercepting, Transitions, or Control.",
-        },
-        technique: {
-          type: "string",
-          description: "The primary technique demonstrated.",
-        },
-        movement_1: {
-          type: "string",
-          description: "How did the fighter start? First movement / setup.",
-        },
-        movement_2: {
-          type: "string",
-          description: "Opponent's reaction.",
-        },
-        movement_3: {
-          type: "string",
-          description: "What did the fighter capitalize with? Finish / follow-up.",
-        },
+        tactic: { type: "string" },
+        technique: { type: "string" },
+        movement_1: { type: "string" },
+        movement_2: { type: "string" },
+        movement_3: { type: "string" },
         neural_nodes: {
           type: "array",
           items: {
@@ -96,18 +80,9 @@ const ANALYSE_TOOL = {
             additionalProperties: false,
           },
         },
-        coach_explanation: {
-          type: "string",
-          description: "Why this works and when to use it (2-4 sentences).",
-        },
-        mistakes_to_avoid: {
-          type: "array",
-          items: { type: "string" },
-        },
-        advanced_variation: {
-          type: "string",
-          description: "An advanced variation or progression.",
-        },
+        coach_explanation: { type: "string" },
+        mistakes_to_avoid: { type: "array", items: { type: "string" } },
+        advanced_variation: { type: "string" },
       },
       required: [
         "discipline",
@@ -149,13 +124,11 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Verify user
     const { data: userData, error: userErr } = await supabase.auth.getUser();
     if (userErr || !userData.user) {
       return jsonResponse({ error: "Not authenticated" }, 401);
     }
 
-    // Pro gating
     const { data: isPro, error: proErr } = await supabase.rpc("is_pro_user", {
       _user_id: userData.user.id,
     });
@@ -170,14 +143,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { messages, mode } = await req.json();
+    const { messages, mode, lastTokenId } = await req.json();
     if (!Array.isArray(messages) || messages.length === 0) {
       return jsonResponse({ error: "messages array required" }, 400);
     }
 
     const isAnalyse = mode === "analyse";
     const body: Record<string, unknown> = {
-      // Fast model for snappy chat. Analyse mode also benefits.
       model: "google/gemini-2.5-flash",
       messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
     };
@@ -189,7 +161,6 @@ Deno.serve(async (req) => {
         function: { name: "analyse_training_note" },
       };
     } else {
-      // Stream chat replies token-by-token so users see words as they arrive.
       body.stream = true;
     }
 
@@ -226,14 +197,93 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "AI gateway error" }, 500);
     }
 
-    // For chat mode, pipe the SSE stream straight back to the client.
+    // For chat mode: re-frame the upstream SSE so each event carries an
+    // incremental tokenId. On reconnect, the client sends lastTokenId and
+    // we skip events <= that id, so resume happens at the exact token index
+    // without re-sending the whole assistant text in messages.
     if (!isAnalyse) {
-      return new Response(aiResp.body, {
+      const skipUntil = typeof lastTokenId === "number" ? lastTokenId : -1;
+      const upstream = aiResp.body!;
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+
+      let tokenId = 0;
+      let buffer = "";
+
+      const transformed = new ReadableStream({
+        async start(controller) {
+          const reader = upstream.getReader();
+          try {
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
+
+              // Process complete SSE event blocks (separated by blank line).
+              while (true) {
+                const a = buffer.indexOf("\n\n");
+                const b = buffer.indexOf("\r\n\r\n");
+                let sepIdx = -1;
+                let sepLen = 2;
+                if (a !== -1 && (b === -1 || a < b)) {
+                  sepIdx = a;
+                  sepLen = 2;
+                } else if (b !== -1) {
+                  sepIdx = b;
+                  sepLen = 4;
+                }
+                if (sepIdx === -1) break;
+                const block = buffer.slice(0, sepIdx);
+                buffer = buffer.slice(sepIdx + sepLen);
+
+                // Extract data payload.
+                const dataLines: string[] = [];
+                for (let raw of block.split("\n")) {
+                  if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+                  if (!raw || raw.startsWith(":")) continue;
+                  if (!raw.startsWith("data:")) continue;
+                  const v = raw.slice(5);
+                  dataLines.push(v.startsWith(" ") ? v.slice(1) : v);
+                }
+                if (!dataLines.length) continue;
+                const payload = dataLines.join("\n");
+
+                if (payload === "[DONE]") {
+                  controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                  continue;
+                }
+
+                // Assign next tokenId, skip if client already has it.
+                const id = tokenId++;
+                if (id <= skipUntil) continue;
+
+                // Re-emit with id field embedded in the payload.
+                try {
+                  const parsed = JSON.parse(payload);
+                  parsed.tokenId = id;
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify(parsed)}\n\n`),
+                  );
+                } catch {
+                  controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+                }
+              }
+            }
+          } catch (e) {
+            console.error("stream transform error:", e);
+          } finally {
+            controller.close();
+          }
+        },
+      });
+
+      return new Response(transformed, {
         headers: {
           ...corsHeaders,
           "Content-Type": "text/event-stream",
           "Cache-Control": "no-cache",
           "Connection": "keep-alive",
+          "X-Accel-Buffering": "no",
         },
       });
     }
@@ -241,23 +291,17 @@ Deno.serve(async (req) => {
     const data = await aiResp.json();
     const choice = data.choices?.[0];
 
-    if (isAnalyse) {
-      const toolCall = choice?.message?.tool_calls?.[0];
-      if (!toolCall) {
-        return jsonResponse({ error: "AI did not return structured analysis" }, 500);
-      }
-      try {
-        const analysis = JSON.parse(toolCall.function.arguments);
-        return jsonResponse({ analysis });
-      } catch (e) {
-        console.error("JSON parse error:", e);
-        return jsonResponse({ error: "Failed to parse AI analysis" }, 500);
-      }
+    const toolCall = choice?.message?.tool_calls?.[0];
+    if (!toolCall) {
+      return jsonResponse({ error: "AI did not return structured analysis" }, 500);
     }
-
-    return jsonResponse({
-      reply: choice?.message?.content ?? "",
-    });
+    try {
+      const analysis = JSON.parse(toolCall.function.arguments);
+      return jsonResponse({ analysis });
+    } catch (e) {
+      console.error("JSON parse error:", e);
+      return jsonResponse({ error: "Failed to parse AI analysis" }, 500);
+    }
   } catch (e) {
     console.error("ai-fighter-assistant error:", e);
     return jsonResponse(

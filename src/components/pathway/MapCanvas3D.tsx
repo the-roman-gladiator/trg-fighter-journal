@@ -545,6 +545,7 @@ function Scene({
 /* ---------- Canvas wrapper ---------- */
 export function MapCanvas3D(props: MapCanvas3DProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
+  const flyToTargetRef = useRef<THREE.Vector3 | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -552,6 +553,13 @@ export function MapCanvas3D(props: MapCanvas3DProps) {
       controlsRef.current.enabled = true;
     }
   }, [hoveredId]);
+
+  // When selection clears, return camera focus to the center (root star)
+  useEffect(() => {
+    if (!props.selectedNodeId) {
+      flyToTargetRef.current = new THREE.Vector3(0, 0, 0);
+    }
+  }, [props.selectedNodeId]);
 
   return (
     <div className="absolute inset-0" style={{ touchAction: 'none' }}>
@@ -574,7 +582,9 @@ export function MapCanvas3D(props: MapCanvas3DProps) {
             hoveredId={hoveredId}
             setHoveredId={setHoveredId}
             controlsRef={controlsRef}
+            flyToTargetRef={flyToTargetRef}
           />
+          <CameraRig targetRef={flyToTargetRef} controlsRef={controlsRef} />
         </Suspense>
         <OrbitControls
           ref={controlsRef as any}
@@ -586,8 +596,27 @@ export function MapCanvas3D(props: MapCanvas3DProps) {
           autoRotate={false}
           dampingFactor={0.12}
           rotateSpeed={0.7}
+          panSpeed={0.9}
+          screenSpacePanning
+          mouseButtons={{
+            LEFT: THREE.MOUSE.ROTATE,
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: THREE.MOUSE.PAN,
+          }}
+          touches={{
+            ONE: THREE.TOUCH.ROTATE,
+            TWO: THREE.TOUCH.DOLLY_PAN,
+          }}
         />
       </Canvas>
+
+      {/* Controls hint overlay */}
+      <div className="pointer-events-none absolute bottom-3 left-3 right-3 flex justify-center">
+        <div className="px-3 py-1.5 rounded-full bg-black/55 border border-cyan-400/25 backdrop-blur-md text-[10px] text-cyan-100/80 font-medium tracking-wide">
+          <span className="hidden sm:inline">Drag = rotate · Right-drag = pan · Scroll = zoom · Tap node = focus</span>
+          <span className="sm:hidden">1 finger = rotate · 2 fingers = pan / zoom · Tap = focus</span>
+        </div>
+      </div>
     </div>
   );
 }

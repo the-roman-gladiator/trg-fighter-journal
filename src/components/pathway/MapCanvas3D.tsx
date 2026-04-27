@@ -328,6 +328,58 @@ function useOrbitPositions(nodes: PathwayNode[]) {
   return positions;
 }
 
+/* ---------- Camera fly-to rig ---------- */
+function CameraRig({
+  targetRef,
+  controlsRef,
+}: {
+  targetRef: React.MutableRefObject<THREE.Vector3 | null>;
+  controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
+}) {
+  const animTarget = useRef<THREE.Vector3 | null>(null);
+  const animCamPos = useRef<THREE.Vector3 | null>(null);
+  const startTarget = useRef(new THREE.Vector3());
+  const startCamPos = useRef(new THREE.Vector3());
+  const startTime = useRef(0);
+  const DURATION = 0.8;
+
+  useFrame((state) => {
+    const desired = targetRef.current;
+    const controls = controlsRef.current;
+    const cam = state.camera;
+    if (!controls) return;
+
+    // Detect a new fly-to request
+    if (desired && (!animTarget.current || !animTarget.current.equals(desired))) {
+      animTarget.current = desired.clone();
+      // Keep current viewing direction & distance, just shift focus
+      const offset = cam.position.clone().sub(controls.target);
+      const distance = Math.min(Math.max(offset.length() * 0.55, 6), 14);
+      offset.setLength(distance);
+      animCamPos.current = desired.clone().add(offset);
+      startTarget.current.copy(controls.target);
+      startCamPos.current.copy(cam.position);
+      startTime.current = state.clock.getElapsedTime();
+    }
+
+    if (animTarget.current && animCamPos.current) {
+      const t = Math.min((state.clock.getElapsedTime() - startTime.current) / DURATION, 1);
+      // easeInOutCubic
+      const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      controls.target.lerpVectors(startTarget.current, animTarget.current, e);
+      cam.position.lerpVectors(startCamPos.current, animCamPos.current, e);
+      controls.update();
+      if (t >= 1) {
+        animTarget.current = null;
+        animCamPos.current = null;
+        targetRef.current = null;
+      }
+    }
+  });
+
+  return null;
+}
+
 /* ---------- Scene ---------- */
 function Scene({
   nodes,
@@ -338,10 +390,12 @@ function Scene({
   hoveredId,
   setHoveredId,
   controlsRef,
+  flyToTargetRef,
 }: MapCanvas3DProps & {
   hoveredId: string | null;
   setHoveredId: (id: string | null) => void;
   controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
+  flyToTargetRef: React.MutableRefObject<THREE.Vector3 | null>;
 }) {
   const positionsRef = useOrbitPositions(nodes);
   const [, force] = useState(0);
@@ -349,6 +403,28 @@ function Scene({
   // Re-render every frame so React-rendered nodes/edges follow orbiting positions
   useFrame(() => {
     force((n) => (n + 1) % 1000000);
+  });
+
+  // Stable pulse phase per edge id — keeps glow pulse smooth without re-renders
+  const edgePhase = useMemo(() => {
+    const m = new Map<string, number>();
+    let i = 0;
+    for (const e of edges) {
+      m.set(e.id, (i++ * 0.7) % (Math.PI * 2));
+    }
+    return m;
+  }, [edges]);
+
+  // Continuously update fly-to target so the camera tracks an orbiting selected node
+  useFrame(() => {
+    if (!selectedNodeId) return;
+    const pos = positionsRef.current.get(selectedNodeId);
+    if (!pos) return;
+    if (!flyToTargetRef.current) {
+      flyToTargetRef.current = new THREE.Vector3(pos[0], pos[1], pos[2]);
+    } else {
+      flyToTargetRef.current.set(pos[0], pos[1], pos[2]);
+    }
   });
 
   const highlightSet = pathwayNodeIdsOverride;

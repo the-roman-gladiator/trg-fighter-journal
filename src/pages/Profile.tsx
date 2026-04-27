@@ -499,13 +499,6 @@ export default function Profile() {
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Technique Archive shortcut */}
-          <Button type="button" variant="outline" className="w-full justify-between" onClick={() => navigate('/archive')}>
-            <span className="flex items-center gap-2">
-              <BookMarked className="h-4 w-4" /> My Technique Archive
-            </span>
-            <ChevronDown className="h-4 w-4 -rotate-90" />
-          </Button>
 
           {/* Notifications (collapsible) */}
           <Collapsible open={notificationsOpen} onOpenChange={setNotificationsOpen}>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { logEvent } from '@/hooks/useAnalytics';
+import { Turnstile } from '@/components/Turnstile';
+
+const STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+function validateStrongPassword(pw: string): string | null {
+  if (pw.length < 8) return 'Password must be at least 8 characters.';
+  if (!/[a-z]/.test(pw)) return 'Password must contain a lowercase letter.';
+  if (!/[A-Z]/.test(pw)) return 'Password must contain an uppercase letter.';
+  if (!/\d/.test(pw)) return 'Password must contain a number.';
+  if (!STRONG_PASSWORD.test(pw)) return 'Password does not meet requirements.';
+  return null;
+}
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -19,8 +30,21 @@ export default function Auth() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>('');
+  const [captchaToken, setCaptchaToken] = useState<string>('');
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Fetch Turnstile site key when entering signup mode
+  useEffect(() => {
+    if (mode !== 'signup' || turnstileSiteKey) return;
+    supabase.functions.invoke('turnstile-config').then(({ data }) => {
+      if (data?.siteKey) setTurnstileSiteKey(data.siteKey);
+    });
+  }, [mode, turnstileSiteKey]);
+
+  const handleVerify = useCallback((token: string) => setCaptchaToken(token), []);
+  const handleExpire = useCallback(() => setCaptchaToken(''), []);
 
   useEffect(() => {
     // Check URL params for mode=reset (from recovery link redirect)

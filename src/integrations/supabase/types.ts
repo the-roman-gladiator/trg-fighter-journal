@@ -2330,9 +2330,16 @@ export type Database = {
         | "Transitions"
         | "Control"
         | "Transiction"
+        | "Transition"
       subscription_status: "active" | "cancelled" | "expired" | "trial"
       subscription_tier: "free" | "fighter" | "coach" | "pro" | "pro_coach"
-      tactical_goal: "Attacking" | "Defending" | "Countering" | "Intercepting"
+      tactical_goal:
+        | "Attacking"
+        | "Defending"
+        | "Countering"
+        | "Intercepting"
+        | "Transition"
+        | "Control"
       user_level: "Beginner" | "Intermediate" | "Advanced" | "Pro"
       workout_mode: "manual" | "template" | "qr"
     }
@@ -2497,10 +2504,18 @@ export const Constants = {
         "Transitions",
         "Control",
         "Transiction",
+        "Transition",
       ],
       subscription_status: ["active", "cancelled", "expired", "trial"],
       subscription_tier: ["free", "fighter", "coach", "pro", "pro_coach"],
-      tactical_goal: ["Attacking", "Defending", "Countering", "Intercepting"],
+      tactical_goal: [
+        "Attacking",
+        "Defending",
+        "Countering",
+        "Intercepting",
+        "Transition",
+        "Control",
+      ],
       user_level: ["Beginner", "Intermediate", "Advanced", "Pro"],
       workout_mode: ["manual", "template", "qr"],
     },

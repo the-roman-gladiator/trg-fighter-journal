@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Shield } from 'lucide-react';
+import { getAllowedTactics } from '@/lib/disciplineTactics';
 
-const TACTICS = ['Attack', 'Defend', 'Counter', 'Intercept', 'Transition', 'Control'] as const;
+
 const OPPONENT_SCENARIOS = [
   'Pressure fighter', 'Counter striker', 'Wrestler', 'Grappler',
   'Aggressive starter', 'Defensive fighter', 'Southpaw', 'Orthodox',
@@ -58,6 +59,13 @@ export default function FighterSessionEdit() {
       setDiscipline(approvedDiscs[0]);
     }
   }, [approvedDiscs]);
+
+  // Clear tactic when discipline changes if it's no longer allowed (e.g. switching to K1 with Control selected)
+  useEffect(() => {
+    if (tactic && !getAllowedTactics(discipline).includes(tactic as any)) {
+      setTactic('');
+    }
+  }, [discipline, tactic]);
 
   const fetchSession = async () => {
     if (!id) return;
@@ -211,7 +219,7 @@ export default function FighterSessionEdit() {
                 <Select value={tactic} onValueChange={setTactic}>
                   <SelectTrigger><SelectValue placeholder="Select tactic" /></SelectTrigger>
                   <SelectContent>
-                    {TACTICS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    {getAllowedTactics(discipline).map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <p className="text-[11px] text-muted-foreground mt-1">

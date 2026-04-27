@@ -13,6 +13,7 @@ import {
   getDefenderReactions,
   getContinuationFinishes,
 } from '@/config/dropdownOptions';
+import { getAllowedTactics } from '@/lib/disciplineTactics';
 
 interface TechniqueChainFormProps {
   defaultDiscipline: Discipline;
@@ -41,11 +42,17 @@ export function TechniqueChainForm({
   const defenderReactions = getDefenderReactions(discipline, subType);
   const continuationFinishes = getContinuationFinishes(discipline, subType);
 
+  const allowedTactics = getAllowedTactics(discipline);
+
   useEffect(() => {
     setSubType('');
     setStartingAction('');
     setDefenderReaction('');
     setContinuationFinish('');
+    // Reset tactical goal if not allowed for the new discipline (e.g. K1 + Control)
+    if (!allowedTactics.includes(tacticalGoal)) {
+      setTacticalGoal(allowedTactics[0] as TacticalGoal);
+    }
   }, [discipline]);
 
   useEffect(() => {
@@ -103,7 +110,7 @@ export function TechniqueChainForm({
             <Select value={tacticalGoal} onValueChange={(v: string) => setTacticalGoal(v as TacticalGoal)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {tacticalGoals.map((tg) => (<SelectItem key={tg} value={tg}>{tg}</SelectItem>))}
+                {allowedTactics.map((tg) => (<SelectItem key={tg} value={tg}>{tg}</SelectItem>))}
               </SelectContent>
             </Select>
           </div>

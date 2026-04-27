@@ -1,7 +1,7 @@
 import { useRef, useMemo, useState, useEffect, Suspense, useCallback } from 'react';
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
 import { OrbitControls, Line, Html, Stars } from '@react-three/drei';
-import type { OrbitControls as OrbitControlsImpl } from 'three/examples/jsm/controls/OrbitControls';
+type OrbitControlsImpl = { target: THREE.Vector3; enabled: boolean; update: () => void };
 import * as THREE from 'three';
 import { PathwayNode, PathwayEdge } from './FuturisticMap';
 

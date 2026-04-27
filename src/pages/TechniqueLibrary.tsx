@@ -190,7 +190,7 @@ export default function TechniqueLibrary() {
           <div className="text-center text-muted-foreground py-12">No techniques found</div>
         ) : (
           <div className="space-y-6">
-            {Array.from(grouped.entries()).map(([discipline, catMap]) => (
+            {Array.from(grouped.entries()).map(([discipline, tacMap]) => (
               <div key={discipline} className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className={`text-xs font-semibold ${DISCIPLINE_COLORS[discipline] || ''}`}>
@@ -198,10 +198,10 @@ export default function TechniqueLibrary() {
                   </Badge>
                 </div>
 
-                {Array.from(catMap.entries()).map(([category, items]) => (
-                  <div key={`${discipline}-${category}`} className="space-y-1.5">
+                {Array.from(tacMap.entries()).map(([tactic, items]) => (
+                  <div key={`${discipline}-${tactic}`} className="space-y-1.5">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest pl-1">
-                      {category}
+                      {tactic}
                     </h3>
                     {items.map(tech => {
                       rowNumber++;
@@ -223,11 +223,19 @@ export default function TechniqueLibrary() {
                                 )}
                               </div>
 
-                              {/* Names */}
+                              {/* Names + level */}
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-foreground leading-tight">{tech.name_en}</p>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <p className="text-sm font-semibold text-foreground leading-tight">{tech.name_en}</p>
+                                  <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 leading-none ${LEVEL_COLORS[tech.level] || ''}`}>
+                                    {tech.level}
+                                  </Badge>
+                                </div>
                                 {tech.name_original && (
                                   <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{tech.name_original}</p>
+                                )}
+                                {tech.notes && (
+                                  <p className="text-[10px] text-muted-foreground/80 mt-0.5 leading-tight italic">{tech.notes}</p>
                                 )}
                               </div>
 

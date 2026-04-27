@@ -163,7 +163,7 @@ export default function MyPathway() {
   };
 
   const disciplines = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
-  const strategies = ['Attacking', 'Defending', 'Countering', 'Intercepting', 'Transiction', 'Control'];
+  const strategies = ['Attacking', 'Defending', 'Countering', 'Intercepting', 'Transition', 'Control'];
 
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>;
 

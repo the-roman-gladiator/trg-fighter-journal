@@ -1054,11 +1054,24 @@ function ChatBubble({ role, content }: { role: 'user' | 'assistant'; content: st
     <div className={cn('flex gap-2', isUser && 'flex-row-reverse')}>
       <div
         className={cn(
-          'h-7 w-7 rounded-full flex items-center justify-center shrink-0',
-          isUser ? 'bg-primary/20 text-primary' : 'bg-secondary text-secondary-foreground',
+          'h-7 w-7 rounded-full flex items-center justify-center shrink-0 overflow-hidden',
+          isUser
+            ? 'bg-primary/20 text-primary'
+            : 'bg-background border border-primary/30',
         )}
       >
-        {isUser ? <UserIcon className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
+        {isUser ? (
+          <UserIcon className="h-3.5 w-3.5" />
+        ) : (
+          <img
+            src={gladiusIcon}
+            alt="Gladius"
+            width={512}
+            height={512}
+            loading="lazy"
+            className="h-6 w-6 object-contain"
+          />
+        )}
       </div>
       <div
         className={cn(

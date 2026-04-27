@@ -18,6 +18,7 @@ import { Brain, Heart, Zap, Swords } from 'lucide-react';
 import { useUserLists, DEFAULT_CLASS_TYPES, DEFAULT_EMOTIONS, DEFAULT_MINDSETS } from '@/hooks/useUserLists';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useFighterProfile } from '@/hooks/useFighterProfile';
+import { logEvent } from '@/hooks/useAnalytics';
 
 interface SessionFormProps {
   sessionId?: string;
@@ -229,10 +230,19 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         sessionData.coach_session_id = null;
         const { error } = await supabase.from('training_sessions').update(sessionData).eq('id', sessionId);
         if (error) throw error;
+        logEvent('session_updated', {
+          discipline: sessionData.discipline,
+          session_type: sessionData.session_type,
+        }, 'session');
       } else {
         const { data, error } = await supabase.from('training_sessions').insert([sessionData]).select().single();
         if (error) throw error;
         savedSessionId = data.id;
+        logEvent('session_created', {
+          discipline: sessionData.discipline,
+          session_type: sessionData.session_type,
+          has_chains: false,
+        }, 'session');
       }
 
       // Build auto-tags from all fields (one tag per selected discipline)

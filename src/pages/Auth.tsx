@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { logEvent } from '@/hooks/useAnalytics';
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -97,6 +98,7 @@ export default function Auth() {
       } else if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        logEvent('auth_login', { method: 'password' }, 'auth');
         toast({ title: 'Welcome back!', description: 'Successfully logged in.' });
         navigate('/');
       } else {
@@ -109,6 +111,7 @@ export default function Auth() {
           },
         });
         if (error) throw error;
+        logEvent('auth_signup', { method: 'password' }, 'auth');
         toast({ title: 'Account created!', description: 'You can now log in.' });
         setMode('login');
       }

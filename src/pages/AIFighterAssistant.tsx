@@ -313,7 +313,9 @@ export default function AIFighterAssistant() {
               {chat.length === 0 && (
                 <div className="text-center py-6 text-sm text-muted-foreground">
                   <Bot className="h-8 w-8 mx-auto mb-2 text-primary/60" />
-                  Write a training note or ask anything about combat sports.
+                  Hi, I'm <span className="text-primary font-semibold">Gladius</span> — your fighter AI support.
+                  <br />
+                  Drop a training note or ask me anything about combat sports.
                 </div>
               )}
               {chat.map((m, i) => (

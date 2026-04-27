@@ -1,6 +1,7 @@
 import { useAppMode, AppMode } from '@/hooks/useAppMode';
 import { Button } from '@/components/ui/button';
 import { Swords, GraduationCap, Shield } from 'lucide-react';
+import { logEvent } from '@/hooks/useAnalytics';
 
 const MODE_CONFIG: Record<AppMode, { label: string; icon: React.ReactNode }> = {
   athlete: { label: 'Athlete', icon: <GraduationCap className="h-3.5 w-3.5" /> },
@@ -26,7 +27,10 @@ export function ModeSwitcher() {
             className={`text-xs gap-1.5 h-7 px-2.5 ${
               isActive ? '' : 'text-muted-foreground hover:text-foreground'
             }`}
-            onClick={() => setMode(m)}
+            onClick={() => {
+              if (mode !== m) logEvent('mode_switched', { from: mode, to: m });
+              setMode(m);
+            }}
           >
             {config.icon}
             {config.label}

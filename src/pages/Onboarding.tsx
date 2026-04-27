@@ -16,6 +16,7 @@ import {
   classify, getTrainingPrescriptions, getReassessmentWeeks, getClassificationMessage,
   type Sex, type ClassificationResult, type TrainingPrescription
 } from '@/lib/classificationEngine';
+import { logEvent } from '@/hooks/useAnalytics';
 
 const DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'BJJ', 'Grappling'] as const;
 const STEPS = ['Discipline', 'Fitness Test', 'Body Composition', 'Results'];
@@ -47,6 +48,15 @@ export default function Onboarding() {
   useEffect(() => {
     if (!user) navigate('/auth');
   }, [user, navigate]);
+
+  useEffect(() => {
+    logEvent('onboarding_started', {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    logEvent('onboarding_step_completed', { step, step_name: STEPS[step] });
+  }, [step]);
 
   const canProceed = () => {
     switch (step) {
@@ -124,6 +134,12 @@ export default function Onboarding() {
       // 4. Update profile discipline
       await supabase.from('profiles').update({ discipline }).eq('id', user.id);
 
+      logEvent('onboarding_finished', {
+        discipline,
+        classification: result.finalClass,
+        sex,
+        age,
+      });
       toast({ title: 'Assessment Complete!', description: 'Your training pathway has been assigned.' });
       navigate('/');
     } catch (err: any) {

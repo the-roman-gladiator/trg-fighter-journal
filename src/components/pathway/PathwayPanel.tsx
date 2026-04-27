@@ -64,7 +64,13 @@ const TYPE_COLORS: Record<string, string> = {
   action: '#2A9D8F',
 };
 
-function PathwayChainsList({ sessions }: { sessions: any[] }) {
+function PathwayChainsList({
+  sessions,
+  onSelectNode,
+}: {
+  sessions: any[];
+  onSelectNode?: (id: string) => void;
+}) {
   const navigate = useNavigate();
 
   const chains = useMemo(() => {
@@ -91,6 +97,17 @@ function PathwayChainsList({ sessions }: { sessions: any[] }) {
     return Array.from(map.values()).sort((a, b) => b.count - a.count);
   }, [sessions]);
 
+  // Pick the deepest available node id for a chain so highlighting walks
+  // back through the full ancestry.
+  const chainNodeId = (chain: PathwayChain): string | null => {
+    if (chain.thirdMovement)    return `move3:${chain.thirdMovement}`;
+    if (chain.opponentReaction) return `move2:${chain.opponentReaction}`;
+    if (chain.firstMovement)    return `move1:${chain.firstMovement}`;
+    if (chain.technique)        return `tech:${chain.technique}`;
+    if (chain.strategy)         return `tactic:${chain.strategy}`;
+    return null;
+  };
+
   if (chains.length === 0) {
     return (
       <div className="text-center py-6">
@@ -107,52 +124,64 @@ function PathwayChainsList({ sessions }: { sessions: any[] }) {
         Movement Chains ({chains.length})
       </p>
       <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-        {chains.map((chain, i) => (
-          <div key={i} className="p-2.5 rounded-lg bg-cyan-500/5 border border-cyan-500/10">
-            <div className="flex justify-between items-start mb-1.5">
-              <div className="flex gap-1 flex-wrap">
-                {chain.strategy && <Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-400/80">{chain.strategy}</Badge>}
-                {chain.technique && <Badge variant="outline" className="text-[9px] border-purple-500/30 text-purple-400/80">{chain.technique}</Badge>}
+        {chains.map((chain, i) => {
+          const nodeId = chainNodeId(chain);
+          const clickable = !!(nodeId && onSelectNode);
+          return (
+            <div
+              key={i}
+              role={clickable ? 'button' : undefined}
+              tabIndex={clickable ? 0 : undefined}
+              onClick={clickable ? () => onSelectNode!(nodeId!) : undefined}
+              onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectNode!(nodeId!); } } : undefined}
+              className={`p-2.5 rounded-lg bg-cyan-500/5 border border-cyan-500/10 transition-colors ${clickable ? 'cursor-pointer hover:bg-cyan-500/10 hover:border-cyan-500/30' : ''}`}
+              title={clickable ? 'Highlight this pathway on the map' : undefined}
+            >
+              <div className="flex justify-between items-start mb-1.5">
+                <div className="flex gap-1 flex-wrap">
+                  {chain.strategy && <Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-400/80">{chain.strategy}</Badge>}
+                  {chain.technique && <Badge variant="outline" className="text-[9px] border-purple-500/30 text-purple-400/80">{chain.technique}</Badge>}
+                </div>
+                <Badge className="text-[9px] bg-cyan-500/20 text-cyan-300 border-none">{chain.count}×</Badge>
               </div>
-              <Badge className="text-[9px] bg-cyan-500/20 text-cyan-300 border-none">{chain.count}×</Badge>
+              <div className="space-y-0.5">
+                {chain.firstMovement && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/15 rounded px-1 py-0.5">1st</span>
+                    <span className="text-[10px] text-cyan-100/70">{chain.firstMovement}</span>
+                  </div>
+                )}
+                {chain.opponentReaction && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-bold text-rose-400 bg-rose-500/15 rounded px-1 py-0.5">2nd</span>
+                    <span className="text-[10px] text-cyan-100/70">{chain.opponentReaction}</span>
+                  </div>
+                )}
+                {chain.thirdMovement && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-bold text-blue-400 bg-blue-500/15 rounded px-1 py-0.5">3rd</span>
+                    <span className="text-[10px] text-cyan-100/70">{chain.thirdMovement}</span>
+                  </div>
+                )}
+              </div>
+              {/* Session date links — open the full session record */}
+              <div className="mt-1.5 pt-1.5 border-t border-cyan-900/20 flex gap-1 flex-wrap">
+                {chain.sessions.slice(0, 3).map(s => (
+                  <button
+                    key={s.id}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/session/${s.id}`); }}
+                    className="text-[9px] text-cyan-500/50 hover:text-cyan-300 transition-colors"
+                  >
+                    {format(new Date(s.date), 'MMM d')}
+                  </button>
+                ))}
+                {chain.sessions.length > 3 && (
+                  <span className="text-[9px] text-cyan-500/30">+{chain.sessions.length - 3}</span>
+                )}
+              </div>
             </div>
-            <div className="space-y-0.5">
-              {chain.firstMovement && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/15 rounded px-1 py-0.5">1st</span>
-                  <span className="text-[10px] text-cyan-100/70">{chain.firstMovement}</span>
-                </div>
-              )}
-              {chain.opponentReaction && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] font-bold text-rose-400 bg-rose-500/15 rounded px-1 py-0.5">2nd</span>
-                  <span className="text-[10px] text-cyan-100/70">{chain.opponentReaction}</span>
-                </div>
-              )}
-              {chain.thirdMovement && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] font-bold text-blue-400 bg-blue-500/15 rounded px-1 py-0.5">3rd</span>
-                  <span className="text-[10px] text-cyan-100/70">{chain.thirdMovement}</span>
-                </div>
-              )}
-            </div>
-            {/* Session date links */}
-            <div className="mt-1.5 pt-1.5 border-t border-cyan-900/20 flex gap-1 flex-wrap">
-              {chain.sessions.slice(0, 3).map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => navigate(`/session/${s.id}`)}
-                  className="text-[9px] text-cyan-500/50 hover:text-cyan-300 transition-colors"
-                >
-                  {format(new Date(s.date), 'MMM d')}
-                </button>
-              ))}
-              {chain.sessions.length > 3 && (
-                <span className="text-[9px] text-cyan-500/30">+{chain.sessions.length - 3}</span>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

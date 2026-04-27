@@ -2262,6 +2262,7 @@ export type Database = {
         Returns: boolean
       }
       delegated_nominations_enabled: { Args: never; Returns: boolean }
+      delete_my_personal_data: { Args: never; Returns: Json }
       get_coach_disciplines: { Args: { _user_id: string }; Returns: string[] }
       get_coach_level: {
         Args: { _user_id: string }

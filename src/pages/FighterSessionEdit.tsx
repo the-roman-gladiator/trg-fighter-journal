@@ -60,6 +60,13 @@ export default function FighterSessionEdit() {
     }
   }, [approvedDiscs]);
 
+  // Clear tactic when discipline changes if it's no longer allowed (e.g. switching to K1 with Control selected)
+  useEffect(() => {
+    if (tactic && !getAllowedTactics(discipline).includes(tactic as any)) {
+      setTactic('');
+    }
+  }, [discipline, tactic]);
+
   const fetchSession = async () => {
     if (!id) return;
     const { data, error } = await supabase

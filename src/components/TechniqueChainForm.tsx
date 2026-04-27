@@ -110,7 +110,7 @@ export function TechniqueChainForm({
             <Select value={tacticalGoal} onValueChange={(v: string) => setTacticalGoal(v as TacticalGoal)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {tacticalGoals.map((tg) => (<SelectItem key={tg} value={tg}>{tg}</SelectItem>))}
+                {allowedTactics.map((tg) => (<SelectItem key={tg} value={tg}>{tg}</SelectItem>))}
               </SelectContent>
             </Select>
           </div>

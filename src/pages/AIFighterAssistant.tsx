@@ -40,9 +40,11 @@ import {
   Square,
   History,
   FileDown,
+  FileText,
   Plus,
   Trash2,
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -226,6 +228,137 @@ export default function AIFighterAssistant() {
       return updated;
     });
     if (activeConvId === id) handleNewChat();
+  };
+
+  const handleExportPDF = () => {
+    if (!isPro) {
+      toast.error('PDF export is available for Pro accounts only');
+      return;
+    }
+    if (chat.length === 0) {
+      toast.message('Nothing to export yet');
+      return;
+    }
+
+    try {
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 48;
+      const maxWidth = pageWidth - margin * 2;
+      let y = margin;
+
+      const ensureSpace = (needed: number) => {
+        if (y + needed > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+      };
+
+      const writeLines = (
+        text: string,
+        opts: { size?: number; style?: 'normal' | 'bold' | 'italic'; color?: [number, number, number] } = {},
+      ) => {
+        const { size = 11, style = 'normal', color = [30, 30, 30] } = opts;
+        doc.setFont('helvetica', style);
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const lines = doc.splitTextToSize(text || '', maxWidth);
+        const lineHeight = size * 1.35;
+        for (const line of lines) {
+          ensureSpace(lineHeight);
+          doc.text(line, margin, y);
+          y += lineHeight;
+        }
+      };
+
+      // Header
+      doc.setFillColor(177, 18, 38);
+      doc.rect(0, 0, pageWidth, 64, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(20);
+      doc.text('Gladius — Conversation Export', margin, 38);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text(new Date().toLocaleString(), margin, 54);
+      y = 96;
+
+      // Conversation
+      writeLines('Conversation', { size: 14, style: 'bold' });
+      y += 4;
+
+      chat.forEach((m) => {
+        const label = m.role === 'user' ? 'You' : 'Gladius';
+        const color: [number, number, number] = m.role === 'user' ? [80, 80, 80] : [177, 18, 38];
+        writeLines(label, { size: 11, style: 'bold', color });
+        writeLines(m.content || '(empty)', { size: 11 });
+        y += 8;
+      });
+
+      // Analysis
+      if (analysis) {
+        ensureSpace(40);
+        y += 8;
+        writeLines('Technical Analysis', { size: 14, style: 'bold' });
+        y += 4;
+        const fields: Array<[string, string | undefined]> = [
+          ['Discipline', analysis.discipline],
+          ['Tactic', analysis.tactic],
+          ['Technique', analysis.technique],
+          ['Movement 1', analysis.movement_1],
+          ['Movement 2', analysis.movement_2],
+          ['Movement 3', analysis.movement_3],
+          ['Coach Explanation', analysis.coach_explanation],
+          ['Advanced Variation', analysis.advanced_variation],
+        ];
+        for (const [k, v] of fields) {
+          if (!v) continue;
+          writeLines(k, { size: 11, style: 'bold', color: [177, 18, 38] });
+          writeLines(v, { size: 11 });
+          y += 4;
+        }
+        if (analysis.mistakes_to_avoid?.length) {
+          writeLines('Mistakes to Avoid', { size: 11, style: 'bold', color: [177, 18, 38] });
+          analysis.mistakes_to_avoid.forEach((m) => writeLines(`• ${m}`, { size: 11 }));
+          y += 4;
+        }
+        if (analysis.neural_nodes?.length) {
+          writeLines('Neural Pathway Nodes', { size: 11, style: 'bold', color: [177, 18, 38] });
+          analysis.neural_nodes.forEach((n) =>
+            writeLines(`${n.id}. [${n.type}] ${n.label}`, { size: 11 }),
+          );
+          y += 4;
+        }
+        if (analysis.neural_connections?.length) {
+          writeLines('Neural Connections', { size: 11, style: 'bold', color: [177, 18, 38] });
+          analysis.neural_connections.forEach((c) =>
+            writeLines(`${c.from} → ${c.to}: ${c.rule}`, { size: 11 }),
+          );
+        }
+      }
+
+      // Footer page numbers
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(140, 140, 140);
+        doc.text(
+          `Gladius • Page ${i} of ${pageCount}`,
+          pageWidth / 2,
+          pageHeight - 20,
+          { align: 'center' },
+        );
+      }
+
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      doc.save(`gladius-chat-${stamp}.pdf`);
+      toast.success('PDF exported');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to export PDF');
+    }
   };
 
   const openImport = async () => {
@@ -690,6 +823,18 @@ export default function AIFighterAssistant() {
               </ScrollArea>
             </DialogContent>
           </Dialog>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleExportPDF}
+            disabled={chat.length === 0 || !isPro}
+            title={isPro ? 'Export conversation as PDF' : 'Pro accounts only'}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Export PDF
+            {!isPro && <Lock className="h-3 w-3 ml-1 opacity-70" />}
+          </Button>
         </div>
 
         {/* Chat */}

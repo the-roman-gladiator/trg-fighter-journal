@@ -624,14 +624,13 @@ export default function Profile() {
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="mt-3">
+              <div className="mt-3 space-y-3">
                 <SupportSection />
+                {/* Privacy: delete personal AI + analytics data */}
+                <DeleteMyDataSection />
               </div>
             </CollapsibleContent>
           </Collapsible>
-
-          {/* Privacy: delete personal AI + analytics data */}
-          <DeleteMyDataSection />
 
           {isAdmin && (
             <Card className="border-primary/40">

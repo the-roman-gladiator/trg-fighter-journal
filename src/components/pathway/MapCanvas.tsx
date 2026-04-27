@@ -15,6 +15,10 @@ interface MapCanvasProps {
   reconnectMode: boolean;
   onNodeClick: (nodeId: string | null) => void;
   onNodeDrag: (nodeId: string, x: number, y: number) => void;
+  /** Optional: precomputed set of node IDs to highlight. When provided,
+   *  overrides the default ancestor/descendant walker (which is wrong for
+   *  graphs with global nodes shared across disciplines). */
+  pathwayNodeIdsOverride?: Set<string>;
 }
 
 const NODE_COLORS: Record<string, { core: string; glow: string }> = {

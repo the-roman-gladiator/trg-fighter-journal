@@ -31,9 +31,10 @@ const STRATEGY_COLORS: Record<string, string> = {
   Defending: '#3B82F6',
   Countering: '#F59E0B',
   Intercepting: '#A855F7',
-  Transiction: '#10B981',
-  // Legacy spelling fallback for any old aggregated data
+  Transition: '#10B981',
+  // Legacy spelling fallbacks for any old aggregated data
   Transitions: '#10B981',
+  Transiction: '#10B981',
   Control: '#6366F1',
 };
 

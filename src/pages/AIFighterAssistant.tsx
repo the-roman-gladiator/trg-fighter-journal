@@ -694,14 +694,7 @@ export default function AIFighterAssistant() {
         {/* Header */}
         <div className="flex items-center gap-3 pt-2">
           <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-background to-primary/10 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/30 overflow-hidden">
-            <img
-              src={gladiusIcon}
-              alt="Gladius AI"
-              width={512}
-              height={512}
-              loading="lazy"
-              className="h-9 w-9 object-contain"
-            />
+            <GladiusIcon alt="Gladius AI" className="h-9 w-9 object-contain" />
           </div>
           <div className="min-w-0">
             <h1 className="text-xl font-bold tracking-tight">Gladius</h1>
@@ -851,14 +844,7 @@ export default function AIFighterAssistant() {
             <div className="max-h-[40vh] min-h-[120px] overflow-y-auto space-y-3 pr-1">
               {chat.length === 0 && (
                 <div className="text-center py-6 text-sm text-muted-foreground">
-                  <img
-                    src={gladiusIcon}
-                    alt="Gladius"
-                    width={512}
-                    height={512}
-                    loading="lazy"
-                    className="h-10 w-10 mx-auto mb-2 object-contain"
-                  />
+                  <GladiusIcon className="h-10 w-10 mx-auto mb-2 object-contain" />
                   Hi, I'm <span className="text-primary font-semibold">Gladius</span> — your fighter AI support.
                   <br />
                   Drop a training note or ask me anything about combat sports.
@@ -1070,14 +1056,7 @@ function ChatBubble({ role, content }: { role: 'user' | 'assistant'; content: st
         {isUser ? (
           <UserIcon className="h-3.5 w-3.5" />
         ) : (
-          <img
-            src={gladiusIcon}
-            alt="Gladius"
-            width={512}
-            height={512}
-            loading="lazy"
-            className="h-6 w-6 object-contain"
-          />
+          <GladiusIcon className="h-6 w-6 object-contain" />
         )}
       </div>
       <div

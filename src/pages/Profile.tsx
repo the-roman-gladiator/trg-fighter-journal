@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote, Library, BookMarked, Bell, LifeBuoy, Shield } from 'lucide-react';
+import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote, Library, Bell, LifeBuoy, Shield } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { AccountType, FitnessLevel } from '@/types/training';
 import { disciplines } from '@/config/dropdownOptions';
@@ -499,13 +499,6 @@ export default function Profile() {
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Technique Archive shortcut */}
-          <Button type="button" variant="outline" className="w-full justify-between" onClick={() => navigate('/archive')}>
-            <span className="flex items-center gap-2">
-              <BookMarked className="h-4 w-4" /> My Technique Archive
-            </span>
-            <ChevronDown className="h-4 w-4 -rotate-90" />
-          </Button>
 
           {/* Notifications (collapsible) */}
           <Collapsible open={notificationsOpen} onOpenChange={setNotificationsOpen}>

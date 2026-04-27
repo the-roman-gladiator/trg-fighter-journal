@@ -21,6 +21,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CustomListManager } from '@/components/profile/CustomListManager';
 import { NotificationsSection } from '@/components/profile/NotificationsSection';
 import { SupportSection } from '@/components/profile/SupportSection';
+import { DeleteMyDataSection } from '@/components/profile/DeleteMyDataSection';
 import { RedeemCoachCode } from '@/components/coach/RedeemCoachCode';
 import { useAutosave } from '@/hooks/useAutosave';
 import { AutosaveStatus } from '@/components/AutosaveStatus';
@@ -636,6 +637,9 @@ export default function Profile() {
               </div>
             </CollapsibleContent>
           </Collapsible>
+
+          {/* Privacy: delete personal AI + analytics data */}
+          <DeleteMyDataSection />
 
           <p className="text-[10px] text-center text-muted-foreground">
             Changes save automatically as you type.

@@ -9,6 +9,7 @@ import { LifeBuoy, FileText, BookOpen, Send, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { logEvent } from '@/hooks/useAnalytics';
 
 const TERMS_URL = 'https://theromangladiators.com.au/trgapptncstrg#trgapptcs';
 const TUTORIAL_URL = 'https://theromangladiators.com.au/trgapptncstrg#trg-app-tutorial';
@@ -35,6 +36,7 @@ export function SupportSection() {
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
+      logEvent('support_ticket_submitted', { category });
       toast({ title: 'Ticket submitted', description: 'We\'ll review it shortly.' });
       setSubject(''); setMessage(''); setCategory('general');
     }

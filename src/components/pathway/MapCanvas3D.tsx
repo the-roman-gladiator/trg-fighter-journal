@@ -31,8 +31,9 @@ const NODE_COLORS: Record<string, { core: string; glow: string; rim: string }> =
 };
 
 function getNodeColor(type: string, colorTag: string | null) {
-  if (colorTag) return { core: colorTag, glow: colorTag };
-  return NODE_COLORS[type] || NODE_COLORS.default;
+  const base = NODE_COLORS[type] || NODE_COLORS.default;
+  if (colorTag) return { core: base.core, glow: colorTag, rim: colorTag };
+  return base;
 }
 
 // Orbit ring per layer (distance from the central "My Training" star)

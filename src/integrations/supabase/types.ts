@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string
+          details: Json
+          id: string
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
       ai_conversations: {
         Row: {
           archived: boolean
@@ -1109,6 +1139,7 @@ export type Database = {
           strength_level: string | null
           strength_program_start_date: string | null
           surname: string | null
+          suspended: boolean
           updated_at: string
         }
         Insert: {
@@ -1140,6 +1171,7 @@ export type Database = {
           strength_level?: string | null
           strength_program_start_date?: string | null
           surname?: string | null
+          suspended?: boolean
           updated_at?: string
         }
         Update: {
@@ -1171,6 +1203,7 @@ export type Database = {
           strength_level?: string | null
           strength_program_start_date?: string | null
           surname?: string | null
+          suspended?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -2250,6 +2283,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_decide_fighter_profile: {
+        Args: { _approve: boolean; _profile_id: string }
+        Returns: Json
+      }
+      admin_set_account_tier: {
+        Args: { _target: string; _tier: string }
+        Returns: Json
+      }
+      admin_set_user_role: {
+        Args: {
+          _grant: boolean
+          _role: Database["public"]["Enums"]["app_role"]
+          _target: string
+        }
+        Returns: Json
+      }
+      admin_set_user_suspended: {
+        Args: { _suspended: boolean; _target: string }
+        Returns: Json
+      }
       can_invite_coach_level: {
         Args: {
           _inviter: string

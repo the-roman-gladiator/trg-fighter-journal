@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote, Library, BookMarked, Bell, LifeBuoy } from 'lucide-react';
+import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote, Library, BookMarked, Bell, LifeBuoy, Shield } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
 import { AccountType, FitnessLevel } from '@/types/training';
 import { disciplines } from '@/config/dropdownOptions';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -42,6 +43,7 @@ const FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling
 
 export default function Profile() {
   const { user, profile, refreshProfile } = useAuth();
+  const { isAdmin } = useSubscription();
   const { settings, updateSettings } = useUserSettings();
   const { fighterProfile, requestFighterAccess, refreshFighterProfile } = useFighterProfile();
   const navigate = useNavigate();
@@ -640,6 +642,21 @@ export default function Profile() {
 
           {/* Privacy: delete personal AI + analytics data */}
           <DeleteMyDataSection />
+
+          {isAdmin && (
+            <Card className="border-primary/40">
+              <CardContent className="p-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-semibold text-sm">Admin Dashboard</p>
+                    <p className="text-xs text-muted-foreground">Manage users, approvals & issues</p>
+                  </div>
+                </div>
+                <Button size="sm" onClick={() => navigate('/admin')}>Open</Button>
+              </CardContent>
+            </Card>
+          )}
 
           <p className="text-[10px] text-center text-muted-foreground">
             Changes save automatically as you type.

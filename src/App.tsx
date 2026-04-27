@@ -31,7 +31,7 @@ import Records from "./pages/Records";
 import Trends from "./pages/Trends";
 import Reflection from "./pages/Reflection";
 import Award from "./pages/Award";
-import TechniqueArchive from "./pages/TechniqueArchive";
+
 import AIFighterAssistant from "./pages/AIFighterAssistant";
 import NotFound from "./pages/NotFound";
 import AdminAnalytics from "./pages/AdminAnalytics";
@@ -97,7 +97,7 @@ function AppShell() {
         <Route path="/coach/session/new" element={<CoachSessionEdit />} />
         <Route path="/coach/session/:id/edit" element={<CoachSessionEdit />} />
         <Route path="/library" element={<TechniqueLibrary />} />
-        <Route path="/archive" element={<TechniqueArchive />} />
+        
         <Route path="/records" element={<Records />} />
         <Route path="/trends" element={<Trends />} />
         <Route path="/reflection" element={<Reflection />} />

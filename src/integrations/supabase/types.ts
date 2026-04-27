@@ -2329,6 +2329,7 @@ export type Database = {
         | "Intercepting"
         | "Transitions"
         | "Control"
+        | "Transiction"
       subscription_status: "active" | "cancelled" | "expired" | "trial"
       subscription_tier: "free" | "fighter" | "coach" | "pro" | "pro_coach"
       tactical_goal: "Attacking" | "Defending" | "Countering" | "Intercepting"
@@ -2495,6 +2496,7 @@ export const Constants = {
         "Intercepting",
         "Transitions",
         "Control",
+        "Transiction",
       ],
       subscription_status: ["active", "cancelled", "expired", "trial"],
       subscription_tier: ["free", "fighter", "coach", "pro", "pro_coach"],

@@ -83,7 +83,7 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
     setLoading(true);
     const { data } = await supabase
       .from('training_sessions')
-      .select('*')
+      .select('id,date,title,discipline,disciplines,strategy,technique,first_movement,opponent_action,second_movement')
       .eq('user_id', user.id)
       .eq('session_type', 'Completed')
       .order('date', { ascending: false });

@@ -15,7 +15,7 @@ export const martialArtsDisciplines: MartialArtsDiscipline[] = [
 export const sessionTypes = ['Planned', 'Completed'] as const;
 export const feelings = ['Fresh', 'Normal', 'Tired', 'Injured', 'On Fire'] as const;
 export const userLevels = ['Beginner', 'Intermediate', 'Advanced', 'Pro'] as const;
-export const strategies = ['Attacking', 'Defending', 'Countering', 'Intercepting', 'Transitions', 'Control'] as const;
+export const strategies = ['Attacking', 'Defending', 'Countering', 'Intercepting', 'Transiction', 'Control'] as const;
 
 export const techniquesByDiscipline: Record<MartialArtsDiscipline, string[]> = {
   'MMA': [

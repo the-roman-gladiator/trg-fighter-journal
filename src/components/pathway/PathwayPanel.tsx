@@ -279,7 +279,7 @@ function PanelContent({
 
         {/* Pathway Chains */}
         <div className="pt-3 border-t border-cyan-900/30">
-          <PathwayChainsList sessions={sessions || []} />
+          <PathwayChainsList sessions={sessions || []} onSelectNode={onSelectNode} />
         </div>
 
         <p className="text-[10px] text-cyan-500/25 text-center">Tap a node on the map to view details</p>

@@ -24,9 +24,9 @@ interface TechniqueItem {
 }
 
 const LEVEL_COLORS: Record<string, string> = {
-  Beginner: 'bg-emerald-900/30 text-emerald-300 border-emerald-800/40',
-  Intermediate: 'bg-amber-900/30 text-amber-300 border-amber-800/40',
-  Advance: 'bg-rose-900/30 text-rose-300 border-rose-800/40',
+  Beginner: 'bg-emerald-600 text-white border-emerald-700',
+  Intermediate: 'bg-amber-500 text-black border-amber-600',
+  Advance: 'bg-rose-600 text-white border-rose-700',
 };
 
 const DISCIPLINE_COLORS: Record<string, string> = {
@@ -227,7 +227,7 @@ export default function TechniqueLibrary() {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <p className="text-sm font-semibold text-foreground leading-tight">{tech.name_en}</p>
-                                  <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 leading-none ${LEVEL_COLORS[tech.level] || ''}`}>
+                                  <Badge variant="outline" className={`text-[10px] px-1.5 py-0.5 h-auto leading-none font-bold uppercase tracking-wide ${LEVEL_COLORS[tech.level] || ''}`}>
                                     {tech.level}
                                   </Badge>
                                 </div>

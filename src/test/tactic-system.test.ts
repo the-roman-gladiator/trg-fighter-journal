@@ -135,9 +135,9 @@ describe("Tactic system — exactly 6 categories everywhere", () => {
   });
 
   describe("Legacy spelling guard", () => {
-    // Old data may still legitimately contain "Transitions"; we keep a
-    // backwards-compat fallback in chart colours and badge classes ONLY.
-    // No NEW dropdown / filter / type / config may use it.
+    // Old data may still legitimately contain "Transitions" / "Transiction"; we
+    // keep backwards-compat fallbacks in chart colours and badge classes ONLY.
+    // No NEW dropdown / filter / type / config may use the legacy spellings.
     const FORBIDDEN_FILES = [
       "config/dropdownOptions.ts",
       "types/training.ts",
@@ -147,13 +147,47 @@ describe("Tactic system — exactly 6 categories everywhere", () => {
     ];
 
     for (const file of FORBIDDEN_FILES) {
-      it(`${file} must not reference the legacy 'Transitions' spelling`, () => {
+      it(`${file} must not reference the legacy 'Transitions' or 'Transiction' spellings`, () => {
         const src = readSrc(file);
         expect(
           src.includes("'Transitions'") || src.includes('"Transitions"'),
           `${file} still contains legacy 'Transitions' spelling`,
         ).toBe(false);
+        expect(
+          src.includes("'Transiction'") || src.includes('"Transiction"'),
+          `${file} still contains legacy 'Transiction' spelling`,
+        ).toBe(false);
       });
     }
+  });
+
+  describe("Discipline → Tactic restrictions", () => {
+    it("K1 does not allow Control as a tactic", async () => {
+      const { getAllowedTactics } = await import("@/lib/disciplineTactics");
+      expect(getAllowedTactics("K1")).not.toContain("Control");
+    });
+
+    it("MMA, Wrestling, Grappling, BJJ, Muay Thai allow Control", async () => {
+      const { getAllowedTactics } = await import("@/lib/disciplineTactics");
+      for (const d of ["MMA", "Wrestling", "Grappling", "BJJ", "Muay Thai"]) {
+        expect(getAllowedTactics(d)).toContain("Control");
+      }
+    });
+
+    it("FighterSessionEdit uses -ing tactic names, not legacy 'Attack/Defend/Counter/Intercept'", () => {
+      const src = readSrc("pages/FighterSessionEdit.tsx");
+      // Must not hard-code the old short-form list as the tactic dropdown source
+      expect(src).not.toMatch(/\['Attack',\s*'Defend',\s*'Counter',\s*'Intercept'/);
+      // Must use the discipline-aware helper
+      expect(src).toMatch(/getAllowedTactics/);
+    });
+  });
+
+  describe("Technique normalisation", () => {
+    it("MMA technique list uses 'Ground & Pound' and not 'Ground and Pound'", () => {
+      const src = readSrc("config/dropdownOptions.ts");
+      expect(src).toMatch(/'Ground & Pound'/);
+      expect(src).not.toMatch(/'Ground and Pound'/);
+    });
   });
 });

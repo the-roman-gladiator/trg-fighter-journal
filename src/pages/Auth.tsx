@@ -126,6 +126,20 @@ export default function Auth() {
         toast({ title: 'Welcome back!', description: 'Successfully logged in.' });
         navigate('/');
       } else {
+        const pwError = validateStrongPassword(password);
+        if (pwError) throw new Error(pwError);
+        if (!captchaToken) throw new Error('Please complete the security check.');
+
+        // Server-side verify Turnstile token before creating account
+        const { data: verify, error: verifyErr } = await supabase.functions.invoke(
+          'verify-turnstile',
+          { body: { token: captchaToken } }
+        );
+        if (verifyErr || !verify?.success) {
+          setCaptchaToken('');
+          throw new Error('Security check failed. Please try again.');
+        }
+
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -138,6 +152,7 @@ export default function Auth() {
         logEvent('auth_signup', { method: 'password' }, 'auth');
         toast({ title: 'Account created!', description: 'You can now log in.' });
         setMode('login');
+        setCaptchaToken('');
       }
     } catch (error: any) {
       toast({

@@ -13,27 +13,26 @@ interface MapCanvas3DProps {
   pathwayNodeIdsOverride?: Set<string>;
 }
 
-// Futuristic palette: deep saturated cores + neon rim/glow accents
-const NODE_COLORS: Record<string, { core: string; glow: string; rim: string }> = {
-  root:       { core: '#fff8d6', glow: '#fbbf24', rim: '#fde68a' },
-  discipline: { core: '#7a0a18', glow: '#ff2d4a', rim: '#ff6b7a' },
-  strategy:   { core: '#7a3a00', glow: '#ff8a00', rim: '#ffb24d' },
-  tactic:     { core: '#7a3a00', glow: '#ff8a00', rim: '#ffb24d' },
-  technique:  { core: '#053b35', glow: '#10d9b8', rim: '#5ef0d4' },
-  action:     { core: '#053b35', glow: '#10d9b8', rim: '#5ef0d4' },
-  movement1:  { core: '#062a4a', glow: '#22d3ee', rim: '#7df1ff' },
-  movement:   { core: '#062a4a', glow: '#22d3ee', rim: '#7df1ff' },
-  movement2:  { core: '#3b0a2a', glow: '#ff2d92', rim: '#ff7ac6' },
-  reaction:   { core: '#3b0a2a', glow: '#ff2d92', rim: '#ff7ac6' },
-  movement3:  { core: '#1f3a05', glow: '#a3e635', rim: '#d4ff7a' },
-  followup:   { core: '#1f3a05', glow: '#a3e635', rim: '#d4ff7a' },
-  default:    { core: '#062a4a', glow: '#22d3ee', rim: '#7df1ff' },
+// Solid metallic colors for the sphere body, with a matching outer glow halo
+const NODE_COLORS: Record<string, { core: string; glow: string }> = {
+  root:       { core: '#f5d061', glow: '#fbbf24' },
+  discipline: { core: '#E63946', glow: '#ff5d6c' },
+  strategy:   { core: '#FF7F11', glow: '#ffa64d' },
+  tactic:     { core: '#FF7F11', glow: '#ffa64d' },
+  technique:  { core: '#2A9D8F', glow: '#4fc3b4' },
+  action:     { core: '#2A9D8F', glow: '#4fc3b4' },
+  movement1:  { core: '#4CC9F0', glow: '#7fdcf5' },
+  movement:   { core: '#4CC9F0', glow: '#7fdcf5' },
+  movement2:  { core: '#F72585', glow: '#ff5cae' },
+  reaction:   { core: '#F72585', glow: '#ff5cae' },
+  movement3:  { core: '#7FBA00', glow: '#a8d639' },
+  followup:   { core: '#7FBA00', glow: '#a8d639' },
+  default:    { core: '#4CC9F0', glow: '#7fdcf5' },
 };
 
 function getNodeColor(type: string, colorTag: string | null) {
-  const base = NODE_COLORS[type] || NODE_COLORS.default;
-  if (colorTag) return { core: base.core, glow: colorTag, rim: colorTag };
-  return base;
+  if (colorTag) return { core: colorTag, glow: colorTag };
+  return NODE_COLORS[type] || NODE_COLORS.default;
 }
 
 // Orbit ring per layer (distance from the central "My Training" star)

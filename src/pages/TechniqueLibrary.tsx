@@ -43,7 +43,8 @@ export default function TechniqueLibrary() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [disciplineFilter, setDisciplineFilter] = useState<string>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [tacticFilter, setTacticFilter] = useState<string>('all');
+  const [levelFilter, setLevelFilter] = useState<string>('all');
 
   const { data: techniques = [], isLoading } = useQuery({
     queryKey: ['technique-library'],
@@ -54,21 +55,21 @@ export default function TechniqueLibrary() {
         .order('discipline')
         .order('sort_order');
       if (error) throw error;
-      return data as TechniqueItem[];
+      return data as unknown as TechniqueItem[];
     },
     enabled: !!user,
   });
 
-  const disciplines = useMemo(() => 
+  const disciplines = useMemo(() =>
     [...new Set(techniques.map(t => t.discipline))].sort(),
     [techniques]
   );
 
-  const categories = useMemo(() => {
-    const filtered = disciplineFilter === 'all' 
-      ? techniques 
+  const tactics = useMemo(() => {
+    const filtered = disciplineFilter === 'all'
+      ? techniques
       : techniques.filter(t => t.discipline === disciplineFilter);
-    return [...new Set(filtered.map(t => t.category))].sort();
+    return [...new Set(filtered.map(t => t.tactic))].sort();
   }, [techniques, disciplineFilter]);
 
   const filtered = useMemo(() => {
@@ -76,28 +77,33 @@ export default function TechniqueLibrary() {
     if (disciplineFilter !== 'all') {
       result = result.filter(t => t.discipline === disciplineFilter);
     }
-    if (categoryFilter !== 'all') {
-      result = result.filter(t => t.category === categoryFilter);
+    if (tacticFilter !== 'all') {
+      result = result.filter(t => t.tactic === tacticFilter);
+    }
+    if (levelFilter !== 'all') {
+      result = result.filter(t => t.level === levelFilter);
     }
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter(t => 
-        t.name_en.toLowerCase().includes(q) || 
+      result = result.filter(t =>
+        t.name_en.toLowerCase().includes(q) ||
         (t.name_original && t.name_original.toLowerCase().includes(q)) ||
-        t.category.toLowerCase().includes(q)
+        (t.notes && t.notes.toLowerCase().includes(q)) ||
+        t.tactic.toLowerCase().includes(q) ||
+        t.discipline.toLowerCase().includes(q)
       );
     }
     return result;
-  }, [techniques, disciplineFilter, categoryFilter, search]);
+  }, [techniques, disciplineFilter, tacticFilter, levelFilter, search]);
 
-  // Group by discipline then category
+  // Group by discipline then tactic
   const grouped = useMemo(() => {
     const map = new Map<string, Map<string, TechniqueItem[]>>();
     filtered.forEach(t => {
       if (!map.has(t.discipline)) map.set(t.discipline, new Map());
-      const catMap = map.get(t.discipline)!;
-      if (!catMap.has(t.category)) catMap.set(t.category, []);
-      catMap.get(t.category)!.push(t);
+      const tacMap = map.get(t.discipline)!;
+      if (!tacMap.has(t.tactic)) tacMap.set(t.tactic, []);
+      tacMap.get(t.tactic)!.push(t);
     });
     return map;
   }, [filtered]);

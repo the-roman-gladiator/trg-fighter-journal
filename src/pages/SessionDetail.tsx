@@ -85,6 +85,7 @@ export default function SessionDetail() {
       toast({ title: 'Error', description: 'Failed to delete session', variant: 'destructive' });
       return;
     }
+    logEvent('session_deleted', { session_id: id }, 'session');
     toast({ title: 'Deleted', description: 'Session deleted.' });
     navigate('/');
   };

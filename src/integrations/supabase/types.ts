@@ -1470,38 +1470,44 @@ export type Database = {
       }
       technique_library: {
         Row: {
-          category: string
           created_at: string
           discipline: string
           id: string
           image_url: string | null
+          level: string
           name_en: string
           name_original: string | null
+          notes: string | null
           sort_order: number
+          tactic: string
           updated_at: string
           youtube_search_query: string | null
         }
         Insert: {
-          category: string
           created_at?: string
           discipline: string
           id?: string
           image_url?: string | null
+          level?: string
           name_en: string
           name_original?: string | null
+          notes?: string | null
           sort_order?: number
+          tactic: string
           updated_at?: string
           youtube_search_query?: string | null
         }
         Update: {
-          category?: string
           created_at?: string
           discipline?: string
           id?: string
           image_url?: string | null
+          level?: string
           name_en?: string
           name_original?: string | null
+          notes?: string | null
           sort_order?: number
+          tactic?: string
           updated_at?: string
           youtube_search_query?: string | null
         }

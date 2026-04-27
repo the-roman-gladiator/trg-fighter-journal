@@ -13,13 +13,21 @@ import { ArrowLeft, Search, ExternalLink, BookOpen, Image as ImageIcon } from 'l
 interface TechniqueItem {
   id: string;
   discipline: string;
-  category: string;
+  tactic: string;
   name_en: string;
   name_original: string | null;
   image_url: string | null;
   youtube_search_query: string | null;
+  notes: string | null;
+  level: string;
   sort_order: number;
 }
+
+const LEVEL_COLORS: Record<string, string> = {
+  Beginner: 'bg-emerald-900/30 text-emerald-300 border-emerald-800/40',
+  Intermediate: 'bg-amber-900/30 text-amber-300 border-amber-800/40',
+  Advance: 'bg-rose-900/30 text-rose-300 border-rose-800/40',
+};
 
 const DISCIPLINE_COLORS: Record<string, string> = {
   'MMA': 'bg-red-900/30 text-red-400 border-red-800/40',
@@ -35,7 +43,8 @@ export default function TechniqueLibrary() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [disciplineFilter, setDisciplineFilter] = useState<string>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [tacticFilter, setTacticFilter] = useState<string>('all');
+  const [levelFilter, setLevelFilter] = useState<string>('all');
 
   const { data: techniques = [], isLoading } = useQuery({
     queryKey: ['technique-library'],
@@ -46,21 +55,21 @@ export default function TechniqueLibrary() {
         .order('discipline')
         .order('sort_order');
       if (error) throw error;
-      return data as TechniqueItem[];
+      return data as unknown as TechniqueItem[];
     },
     enabled: !!user,
   });
 
-  const disciplines = useMemo(() => 
+  const disciplines = useMemo(() =>
     [...new Set(techniques.map(t => t.discipline))].sort(),
     [techniques]
   );
 
-  const categories = useMemo(() => {
-    const filtered = disciplineFilter === 'all' 
-      ? techniques 
+  const tactics = useMemo(() => {
+    const filtered = disciplineFilter === 'all'
+      ? techniques
       : techniques.filter(t => t.discipline === disciplineFilter);
-    return [...new Set(filtered.map(t => t.category))].sort();
+    return [...new Set(filtered.map(t => t.tactic))].sort();
   }, [techniques, disciplineFilter]);
 
   const filtered = useMemo(() => {
@@ -68,28 +77,33 @@ export default function TechniqueLibrary() {
     if (disciplineFilter !== 'all') {
       result = result.filter(t => t.discipline === disciplineFilter);
     }
-    if (categoryFilter !== 'all') {
-      result = result.filter(t => t.category === categoryFilter);
+    if (tacticFilter !== 'all') {
+      result = result.filter(t => t.tactic === tacticFilter);
+    }
+    if (levelFilter !== 'all') {
+      result = result.filter(t => t.level === levelFilter);
     }
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter(t => 
-        t.name_en.toLowerCase().includes(q) || 
+      result = result.filter(t =>
+        t.name_en.toLowerCase().includes(q) ||
         (t.name_original && t.name_original.toLowerCase().includes(q)) ||
-        t.category.toLowerCase().includes(q)
+        (t.notes && t.notes.toLowerCase().includes(q)) ||
+        t.tactic.toLowerCase().includes(q) ||
+        t.discipline.toLowerCase().includes(q)
       );
     }
     return result;
-  }, [techniques, disciplineFilter, categoryFilter, search]);
+  }, [techniques, disciplineFilter, tacticFilter, levelFilter, search]);
 
-  // Group by discipline then category
+  // Group by discipline then tactic
   const grouped = useMemo(() => {
     const map = new Map<string, Map<string, TechniqueItem[]>>();
     filtered.forEach(t => {
       if (!map.has(t.discipline)) map.set(t.discipline, new Map());
-      const catMap = map.get(t.discipline)!;
-      if (!catMap.has(t.category)) catMap.set(t.category, []);
-      catMap.get(t.category)!.push(t);
+      const tacMap = map.get(t.discipline)!;
+      if (!tacMap.has(t.tactic)) tacMap.set(t.tactic, []);
+      tacMap.get(t.tactic)!.push(t);
     });
     return map;
   }, [filtered]);
@@ -126,8 +140,8 @@ export default function TechniqueLibrary() {
         </div>
 
         {/* Filters */}
-        <div className="grid grid-cols-2 gap-2">
-          <Select value={disciplineFilter} onValueChange={v => { setDisciplineFilter(v); setCategoryFilter('all'); }}>
+        <div className="grid grid-cols-3 gap-2">
+          <Select value={disciplineFilter} onValueChange={v => { setDisciplineFilter(v); setTacticFilter('all'); }}>
             <SelectTrigger className="text-sm h-9">
               <SelectValue placeholder="Discipline" />
             </SelectTrigger>
@@ -139,15 +153,27 @@ export default function TechniqueLibrary() {
             </SelectContent>
           </Select>
 
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Select value={tacticFilter} onValueChange={setTacticFilter}>
             <SelectTrigger className="text-sm h-9">
-              <SelectValue placeholder="Category" />
+              <SelectValue placeholder="Tactic" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map(c => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+              <SelectItem value="all">All Tactics</SelectItem>
+              {tactics.map(t => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={levelFilter} onValueChange={setLevelFilter}>
+            <SelectTrigger className="text-sm h-9">
+              <SelectValue placeholder="Level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Levels</SelectItem>
+              <SelectItem value="Beginner">Beginner</SelectItem>
+              <SelectItem value="Intermediate">Intermediate</SelectItem>
+              <SelectItem value="Advance">Advance</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -164,7 +190,7 @@ export default function TechniqueLibrary() {
           <div className="text-center text-muted-foreground py-12">No techniques found</div>
         ) : (
           <div className="space-y-6">
-            {Array.from(grouped.entries()).map(([discipline, catMap]) => (
+            {Array.from(grouped.entries()).map(([discipline, tacMap]) => (
               <div key={discipline} className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className={`text-xs font-semibold ${DISCIPLINE_COLORS[discipline] || ''}`}>
@@ -172,10 +198,10 @@ export default function TechniqueLibrary() {
                   </Badge>
                 </div>
 
-                {Array.from(catMap.entries()).map(([category, items]) => (
-                  <div key={`${discipline}-${category}`} className="space-y-1.5">
+                {Array.from(tacMap.entries()).map(([tactic, items]) => (
+                  <div key={`${discipline}-${tactic}`} className="space-y-1.5">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest pl-1">
-                      {category}
+                      {tactic}
                     </h3>
                     {items.map(tech => {
                       rowNumber++;
@@ -197,11 +223,19 @@ export default function TechniqueLibrary() {
                                 )}
                               </div>
 
-                              {/* Names */}
+                              {/* Names + level */}
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-foreground leading-tight">{tech.name_en}</p>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <p className="text-sm font-semibold text-foreground leading-tight">{tech.name_en}</p>
+                                  <Badge variant="outline" className={`text-[9px] px-1.5 py-0 h-4 leading-none ${LEVEL_COLORS[tech.level] || ''}`}>
+                                    {tech.level}
+                                  </Badge>
+                                </div>
                                 {tech.name_original && (
                                   <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{tech.name_original}</p>
+                                )}
+                                {tech.notes && (
+                                  <p className="text-[10px] text-muted-foreground/80 mt-0.5 leading-tight italic">{tech.notes}</p>
                                 )}
                               </div>
 

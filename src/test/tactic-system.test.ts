@@ -115,12 +115,14 @@ describe("Tactic system — exactly 6 categories everywhere", () => {
   });
 
   describe("Validation rules — Select dropdowns + form state", () => {
-    it("TechniqueChainForm Tactical Goal dropdown is driven by `tacticalGoals` (all 6)", () => {
+    it("TechniqueChainForm Tactical Goal dropdown is driven by the central tactic list (all 6, discipline-aware)", () => {
       const src = readSrc("components/TechniqueChainForm.tsx");
-      // Must import the tacticalGoals array from the central config.
+      // Must import the central tacticalGoals array (sanity import).
       expect(src).toMatch(/tacticalGoals/);
-      // Must render every entry as a SelectItem (dynamic .map, not hard-coded).
-      expect(src).toMatch(/tacticalGoals\.map/);
+      // Must render its options dynamically from the discipline-aware allowed list.
+      expect(src).toMatch(/allowedTactics\.map/);
+      // Must use the discipline-aware helper.
+      expect(src).toMatch(/getAllowedTactics/);
       // The TacticalGoal type drives setState — guarantees enum-only writes.
       expect(src).toMatch(/TacticalGoal/);
     });

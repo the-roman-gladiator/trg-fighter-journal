@@ -13,27 +13,26 @@ interface MapCanvas3DProps {
   pathwayNodeIdsOverride?: Set<string>;
 }
 
-// Futuristic palette: deep saturated cores + neon rim/glow accents
-const NODE_COLORS: Record<string, { core: string; glow: string; rim: string }> = {
-  root:       { core: '#fff8d6', glow: '#fbbf24', rim: '#fde68a' },
-  discipline: { core: '#7a0a18', glow: '#ff2d4a', rim: '#ff6b7a' },
-  strategy:   { core: '#7a3a00', glow: '#ff8a00', rim: '#ffb24d' },
-  tactic:     { core: '#7a3a00', glow: '#ff8a00', rim: '#ffb24d' },
-  technique:  { core: '#053b35', glow: '#10d9b8', rim: '#5ef0d4' },
-  action:     { core: '#053b35', glow: '#10d9b8', rim: '#5ef0d4' },
-  movement1:  { core: '#062a4a', glow: '#22d3ee', rim: '#7df1ff' },
-  movement:   { core: '#062a4a', glow: '#22d3ee', rim: '#7df1ff' },
-  movement2:  { core: '#3b0a2a', glow: '#ff2d92', rim: '#ff7ac6' },
-  reaction:   { core: '#3b0a2a', glow: '#ff2d92', rim: '#ff7ac6' },
-  movement3:  { core: '#1f3a05', glow: '#a3e635', rim: '#d4ff7a' },
-  followup:   { core: '#1f3a05', glow: '#a3e635', rim: '#d4ff7a' },
-  default:    { core: '#062a4a', glow: '#22d3ee', rim: '#7df1ff' },
+// Solid metallic colors for the sphere body, with a matching outer glow halo
+const NODE_COLORS: Record<string, { core: string; glow: string }> = {
+  root:       { core: '#f5d061', glow: '#fbbf24' },
+  discipline: { core: '#E63946', glow: '#ff5d6c' },
+  strategy:   { core: '#FF7F11', glow: '#ffa64d' },
+  tactic:     { core: '#FF7F11', glow: '#ffa64d' },
+  technique:  { core: '#2A9D8F', glow: '#4fc3b4' },
+  action:     { core: '#2A9D8F', glow: '#4fc3b4' },
+  movement1:  { core: '#4CC9F0', glow: '#7fdcf5' },
+  movement:   { core: '#4CC9F0', glow: '#7fdcf5' },
+  movement2:  { core: '#F72585', glow: '#ff5cae' },
+  reaction:   { core: '#F72585', glow: '#ff5cae' },
+  movement3:  { core: '#7FBA00', glow: '#a8d639' },
+  followup:   { core: '#7FBA00', glow: '#a8d639' },
+  default:    { core: '#4CC9F0', glow: '#7fdcf5' },
 };
 
 function getNodeColor(type: string, colorTag: string | null) {
-  const base = NODE_COLORS[type] || NODE_COLORS.default;
-  if (colorTag) return { core: base.core, glow: colorTag, rim: colorTag };
-  return base;
+  if (colorTag) return { core: colorTag, glow: colorTag };
+  return NODE_COLORS[type] || NODE_COLORS.default;
 }
 
 // Orbit ring per layer (distance from the central "My Training" star)
@@ -131,8 +130,6 @@ function Node3D({
 }) {
   const haloRef = useRef<THREE.Mesh>(null);
   const coreRef = useRef<THREE.Mesh>(null);
-  const ringRef = useRef<THREE.Mesh>(null);
-  const rimRef = useRef<THREE.Mesh>(null);
   const colors = getNodeColor(node.node_type, node.color_tag);
   const baseRadius = nodeBaseRadius(node);
   const hitRadius = Math.max(baseRadius * 3.2, 0.55);
@@ -144,24 +141,13 @@ function Node3D({
       haloRef.current.scale.setScalar(pulse);
     }
     if (coreRef.current) {
-      coreRef.current.rotation.y += 0.012;
-      coreRef.current.rotation.x += 0.004;
-    }
-    if (ringRef.current) {
-      ringRef.current.rotation.z += 0.02;
-      ringRef.current.rotation.x = Math.PI / 2.4 + Math.sin(t * 0.5 + position[1]) * 0.15;
-    }
-    if (rimRef.current) {
-      const mat = rimRef.current.material as THREE.MeshBasicMaterial;
-      const active = isSelected || isHighlighted || isHovered;
-      const target = active ? 0.9 : 0.45;
-      mat.opacity = mat.opacity + (target - mat.opacity) * 0.15;
+      coreRef.current.rotation.y += 0.01;
     }
   });
 
   const opacity = isDimmed ? 0.22 : 1;
   const active = isSelected || isHighlighted || isHovered;
-  const emissiveIntensity = active ? 2.4 : node.is_root ? 1.8 : 1.1;
+  const emissiveIntensity = active ? 0.6 : node.is_root ? 0.5 : 0.25;
 
   return (
     <group position={position}>
@@ -187,9 +173,9 @@ function Node3D({
         <meshBasicMaterial transparent opacity={0} depthWrite={false} depthTest={false} />
       </mesh>
 
-      {/* Outer atmospheric glow */}
+      {/* Outer atmospheric glow halo */}
       <mesh ref={haloRef}>
-        <sphereGeometry args={[baseRadius * 2.4, 24, 24]} />
+        <sphereGeometry args={[baseRadius * 2.2, 24, 24]} />
         <meshBasicMaterial
           color={colors.glow}
           transparent
@@ -199,46 +185,19 @@ function Node3D({
         />
       </mesh>
 
-      {/* Neon rim shell — gives a holographic outline */}
-      <mesh ref={rimRef} scale={1.18}>
-        <sphereGeometry args={[baseRadius, 32, 32]} />
-        <meshBasicMaterial
-          color={colors.rim}
-          transparent
-          opacity={0.45}
-          side={THREE.BackSide}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </mesh>
-
-      {/* Dark metallic core with strong emissive glow from within */}
+      {/* Solid metallic sphere — full color body, polished metal finish */}
       <mesh ref={coreRef}>
         <sphereGeometry args={[baseRadius, 48, 48]} />
         <meshStandardMaterial
           color={colors.core}
-          emissive={colors.glow}
+          emissive={colors.core}
           emissiveIntensity={emissiveIntensity}
           transparent
           opacity={opacity}
-          roughness={0.15}
-          metalness={0.85}
+          roughness={0.25}
+          metalness={1}
         />
       </mesh>
-
-      {/* Equatorial energy ring — sci-fi accent (skip on tiny/root) */}
-      {!node.is_root && (
-        <mesh ref={ringRef} rotation={[Math.PI / 2.4, 0, 0]}>
-          <torusGeometry args={[baseRadius * 1.45, baseRadius * 0.045, 8, 64]} />
-          <meshBasicMaterial
-            color={colors.rim}
-            transparent
-            opacity={opacity * (active ? 0.95 : 0.55)}
-            blending={THREE.AdditiveBlending}
-            depthWrite={false}
-          />
-        </mesh>
-      )}
 
       {/* Always-visible label (interstellar nameplate) */}
       <Html

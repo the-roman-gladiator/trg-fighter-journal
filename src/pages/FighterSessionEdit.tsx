@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Shield } from 'lucide-react';
+import { getAllowedTactics } from '@/lib/disciplineTactics';
 
-const TACTICS = ['Attack', 'Defend', 'Counter', 'Intercept', 'Transition', 'Control'] as const;
+
 const OPPONENT_SCENARIOS = [
   'Pressure fighter', 'Counter striker', 'Wrestler', 'Grappler',
   'Aggressive starter', 'Defensive fighter', 'Southpaw', 'Orthodox',

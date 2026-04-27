@@ -502,7 +502,15 @@ function Scene({
             highlightSet!.has(edge.source_node_id) && highlightSet!.has(edge.target_node_id);
           state = inPath ? 'highlighted' : 'dimmed';
         }
-        return <Edge3D key={edge.id} start={s} end={t} state={state} />;
+        return (
+          <Edge3D
+            key={edge.id}
+            start={s}
+            end={t}
+            state={state}
+            pulsePhase={edgePhase.get(edge.id) ?? 0}
+          />
+        );
       })}
 
       {/* Nodes */}

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sparkles,
   Brain,
@@ -22,6 +37,11 @@ import {
   AlertTriangle,
   Trophy,
   Loader2,
+  Square,
+  History,
+  FileDown,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
@@ -59,6 +79,21 @@ interface ChatMessage {
   content: string;
 }
 
+interface SavedConversation {
+  id: string;
+  title: string;
+  updatedAt: number;
+  messages: ChatMessage[];
+}
+
+interface ImportableNote {
+  id: string;
+  title: string;
+  date: string;
+  discipline: string | null;
+  notes: string | null;
+}
+
 const NODE_COLORS: Record<NeuralNode['type'], string> = {
   trigger: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/40',
   defensive: 'bg-blue-500/15 text-blue-300 border-blue-500/40',
@@ -68,6 +103,28 @@ const NODE_COLORS: Record<NeuralNode['type'], string> = {
   exit: 'bg-orange-500/15 text-orange-300 border-orange-500/40',
 };
 
+const STORAGE_KEY = 'gladius:conversations';
+const MAX_SAVED = 30;
+
+function loadConversations(userId: string): SavedConversation[] {
+  try {
+    const raw = localStorage.getItem(`${STORAGE_KEY}:${userId}`);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+function saveConversations(userId: string, list: SavedConversation[]) {
+  try {
+    localStorage.setItem(
+      `${STORAGE_KEY}:${userId}`,
+      JSON.stringify(list.slice(0, MAX_SAVED)),
+    );
+  } catch { /* noop */ }
+}
+
 export default function AIFighterAssistant() {
   const { user, loading: authLoading } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
@@ -76,10 +133,20 @@ export default function AIFighterAssistant() {
   const [input, setInput] = useState('');
   const [chat, setChat] = useState<ChatMessage[]>([]);
   const [isThinking, setIsThinking] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [conversations, setConversations] = useState<SavedConversation[]>([]);
+  const [activeConvId, setActiveConvId] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importable, setImportable] = useState<ImportableNote[]>([]);
+  const [loadingImports, setLoadingImports] = useState(false);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const stopRequestedRef = useRef(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -88,6 +155,33 @@ export default function AIFighterAssistant() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chat, isThinking]);
+
+  // Hydrate saved conversations
+  useEffect(() => {
+    if (user) setConversations(loadConversations(user.id));
+  }, [user]);
+
+  // Persist current chat as the active conversation
+  useEffect(() => {
+    if (!user || chat.length === 0 || isStreaming) return;
+    const id = activeConvId ?? crypto.randomUUID();
+    const title =
+      chat.find((m) => m.role === 'user')?.content.slice(0, 60) ?? 'New chat';
+    const next: SavedConversation = {
+      id,
+      title,
+      updatedAt: Date.now(),
+      messages: chat,
+    };
+    setConversations((prev) => {
+      const without = prev.filter((c) => c.id !== id);
+      const updated = [next, ...without].slice(0, MAX_SAVED);
+      saveConversations(user.id, updated);
+      return updated;
+    });
+    if (!activeConvId) setActiveConvId(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chat, isStreaming, user]);
 
   if (authLoading || subLoading) {
     return (
@@ -100,6 +194,79 @@ export default function AIFighterAssistant() {
   if (!user) return null;
   if (!isPro) return <LockedScreen />;
 
+  const handleStop = () => {
+    stopRequestedRef.current = true;
+    abortRef.current?.abort();
+    setIsThinking(false);
+    setIsStreaming(false);
+    toast.message('Generation stopped');
+  };
+
+  const handleNewChat = () => {
+    if (isStreaming) handleStop();
+    setChat([]);
+    setAnalysis(null);
+    setActiveConvId(null);
+    setInput('');
+  };
+
+  const handleLoadConversation = (c: SavedConversation) => {
+    if (isStreaming) handleStop();
+    setChat(c.messages);
+    setActiveConvId(c.id);
+    setAnalysis(null);
+    setHistoryOpen(false);
+  };
+
+  const handleDeleteConversation = (id: string) => {
+    if (!user) return;
+    setConversations((prev) => {
+      const updated = prev.filter((c) => c.id !== id);
+      saveConversations(user.id, updated);
+      return updated;
+    });
+    if (activeConvId === id) handleNewChat();
+  };
+
+  const openImport = useCallback(async () => {
+    setImportOpen(true);
+    if (!user) return;
+    setLoadingImports(true);
+    try {
+      const { data, error } = await supabase
+        .from('training_sessions')
+        .select('id, title, date, discipline, notes')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .limit(25);
+      if (error) throw error;
+      setImportable(
+        (data ?? []).map((d) => ({
+          id: d.id,
+          title: d.title ?? 'Untitled session',
+          date: d.date,
+          discipline: d.discipline,
+          notes: d.notes,
+        })),
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to load notes');
+    } finally {
+      setLoadingImports(false);
+    }
+  }, [user]);
+
+  const handleImportNote = (n: ImportableNote) => {
+    const header = `Training note — ${n.title}${n.discipline ? ` (${n.discipline})` : ''} — ${n.date}`;
+    const body = n.notes?.trim() || '(no notes)';
+    const text = input.trim()
+      ? `${input.trim()}\n\n${header}\n${body}`
+      : `${header}\n${body}`;
+    setInput(text);
+    setImportOpen(false);
+    toast.success('Note imported into prompt');
+  };
+
   const callAI = async (mode: 'chat' | 'analyse', userText: string) => {
     const newMessages: ChatMessage[] = [
       ...chat,
@@ -107,15 +274,14 @@ export default function AIFighterAssistant() {
     ];
     setChat(newMessages);
     setIsThinking(true);
+    stopRequestedRef.current = false;
 
     try {
       if (mode === 'analyse') {
-        // Analyse uses tool-calling — keep non-streaming JSON path.
         const { data, error } = await supabase.functions.invoke(
           'ai-fighter-assistant',
           { body: { messages: newMessages, mode } },
         );
-
         if (error) {
           const ctx = (error as any).context;
           let msg = error.message || 'AI request failed';
@@ -125,7 +291,6 @@ export default function AIFighterAssistant() {
           } catch { /* noop */ }
           throw new Error(msg);
         }
-
         if (data?.analysis) {
           setAnalysis(data.analysis as Analysis);
           setChat([
@@ -141,21 +306,18 @@ export default function AIFighterAssistant() {
         return;
       }
 
-      // Chat mode — stream SSE token-by-token so words appear as they arrive.
-      // Robust to slow networks: idle-timeout, mid-stream reconnect, and
-      // proper SSE event-framing (handles multi-line data + CRLF).
+      // Chat mode — SSE stream with server-side token cursor.
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-fighter-assistant`;
       const session = (await supabase.auth.getSession()).data.session;
       const token =
         session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      // Insert empty assistant bubble we'll fill as tokens arrive.
       setChat([...newMessages, { role: 'assistant', content: '' }]);
 
-      // Throttle React updates to one per animation frame to avoid jank
-      // when many tiny tokens arrive on slow devices.
       let acc = '';
+      let lastTokenId = -1; // Server-side cursor; resume continues from here.
       let pendingFlush: number | null = null;
+
       const flushToUI = () => {
         pendingFlush = null;
         setChat((prev) => {
@@ -181,23 +343,23 @@ export default function AIFighterAssistant() {
       let streamCompleted = false;
       let firstByteSeen = false;
 
-      // Parse a single SSE event block ("data: ...\n[data: ...\n]") into a
-      // joined data payload, per https://html.spec.whatwg.org/#server-sent-events
       const parseEventBlock = (block: string): string | null => {
         const dataLines: string[] = [];
         for (let raw of block.split('\n')) {
           if (raw.endsWith('\r')) raw = raw.slice(0, -1);
           if (!raw || raw.startsWith(':')) continue;
           if (!raw.startsWith('data:')) continue;
-          // Spec: a single optional space after the colon is stripped.
           const v = raw.slice(5);
           dataLines.push(v.startsWith(' ') ? v.slice(1) : v);
         }
         return dataLines.length ? dataLines.join('\n') : null;
       };
 
-      while (!streamCompleted) {
+      setIsStreaming(true);
+
+      while (!streamCompleted && !stopRequestedRef.current) {
         const controller = new AbortController();
+        abortRef.current = controller;
         let idleTimer: ReturnType<typeof setTimeout> | null = null;
         const armIdleTimer = () => {
           if (idleTimer) clearTimeout(idleTimer);
@@ -213,21 +375,13 @@ export default function AIFighterAssistant() {
               apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
               Accept: 'text/event-stream',
             },
+            // Server-side cursor: send the *original* messages plus the
+            // last token id we received. Server replays the upstream stream
+            // and skips tokens we already have — no need to re-send acc.
             body: JSON.stringify({
-              // On reconnect, pass what we already have so the model can
-              // continue smoothly from where it left off.
-              messages: acc
-                ? [
-                    ...newMessages,
-                    { role: 'assistant', content: acc },
-                    {
-                      role: 'user',
-                      content:
-                        'Continue your previous reply from exactly where it stopped. Do not repeat anything.',
-                    },
-                  ]
-                : newMessages,
+              messages: newMessages,
               mode,
+              lastTokenId,
             }),
             signal: controller.signal,
           });
@@ -238,11 +392,9 @@ export default function AIFighterAssistant() {
               const j = await resp.json();
               if (j?.error) msg = j.error;
             } catch { /* noop */ }
-            // 429/402/auth — don't retry.
             throw new Error(msg);
           }
 
-          // Hide "Thinking…" the moment the connection opens.
           setIsThinking(false);
 
           const reader = resp.body.getReader();
@@ -257,7 +409,6 @@ export default function AIFighterAssistant() {
             armIdleTimer();
             buffer += decoder.decode(value, { stream: true });
 
-            // SSE events are separated by a blank line. Support \n\n and \r\n\r\n.
             let sepIdx: number;
             while (
               (sepIdx = (() => {
@@ -280,6 +431,9 @@ export default function AIFighterAssistant() {
               }
               try {
                 const parsed = JSON.parse(payload);
+                if (typeof parsed.tokenId === 'number') {
+                  lastTokenId = parsed.tokenId;
+                }
                 const delta = parsed.choices?.[0]?.delta?.content as
                   | string
                   | undefined;
@@ -289,24 +443,23 @@ export default function AIFighterAssistant() {
                 }
                 const finish = parsed.choices?.[0]?.finish_reason;
                 if (finish && finish !== 'null') {
-                  // Server signaled completion without a [DONE] sentinel.
                   streamCompleted = true;
                   break;
                 }
-              } catch {
-                // Malformed JSON — drop this event and keep reading.
-              }
+              } catch { /* malformed event — skip */ }
             }
-
             if (streamCompleted) break;
           }
 
           if (idleTimer) clearTimeout(idleTimer);
-
-          // If we got here without [DONE], treat it as a clean EOF and stop.
           streamCompleted = true;
         } catch (err) {
           if (idleTimer) clearTimeout(idleTimer);
+          // User-initiated stop short-circuits all retries.
+          if (stopRequestedRef.current) {
+            streamCompleted = true;
+            break;
+          }
           const aborted = (err as any)?.name === 'AbortError';
           const networkish =
             aborted ||
@@ -314,12 +467,8 @@ export default function AIFighterAssistant() {
             /network|fetch|stream/i.test(
               err instanceof Error ? err.message : String(err),
             );
-
-          // Only retry transient network/idle issues, and only after we've
-          // actually opened a stream (avoid hammering on hard auth errors).
           if (networkish && reconnectsLeft > 0 && firstByteSeen) {
             reconnectsLeft -= 1;
-            // Brief backoff before reconnecting.
             await new Promise((r) => setTimeout(r, 600));
             continue;
           }
@@ -327,20 +476,16 @@ export default function AIFighterAssistant() {
         }
       }
 
-      // Final flush so no trailing tokens are stuck in rAF.
       if (pendingFlush != null) {
         if (typeof cancelAnimationFrame !== 'undefined')
           cancelAnimationFrame(pendingFlush);
-        flushToUI();
-      } else {
-        flushToUI();
       }
+      flushToUI();
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Something went wrong';
       toast.error(msg);
       setChat((prev) => {
         const last = prev[prev.length - 1];
-        // If we already inserted an empty assistant bubble, replace it.
         if (last?.role === 'assistant' && last.content === '') {
           return prev.map((m, i) =>
             i === prev.length - 1 ? { ...m, content: `⚠️ ${msg}` } : m,
@@ -350,19 +495,21 @@ export default function AIFighterAssistant() {
       });
     } finally {
       setIsThinking(false);
+      setIsStreaming(false);
+      abortRef.current = null;
     }
   };
 
   const handleSend = () => {
     const text = input.trim();
-    if (!text || isThinking) return;
+    if (!text || isThinking || isStreaming) return;
     setInput('');
     callAI('chat', text);
   };
 
   const handleAnalyse = () => {
     const text = input.trim();
-    if (!text || isThinking) return;
+    if (!text || isThinking || isStreaming) return;
     setInput('');
     callAI('analyse', text);
   };
@@ -415,15 +562,134 @@ export default function AIFighterAssistant() {
           <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary to-primary/40 flex items-center justify-center shadow-lg shadow-primary/30">
             <Sparkles className="h-5 w-5 text-primary-foreground" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-xl font-bold tracking-tight">Gladius</h1>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground truncate">
               Your fighter AI support • Analyse notes, generate pathways
             </p>
           </div>
           <Badge variant="outline" className="ml-auto border-primary/40 text-primary">
             PRO
           </Badge>
+        </div>
+
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="outline" onClick={handleNewChat}>
+            <Plus className="h-3.5 w-3.5" />
+            New chat
+          </Button>
+
+          <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+            <SheetTrigger asChild>
+              <Button size="sm" variant="outline">
+                <History className="h-3.5 w-3.5" />
+                Previous chats
+                {conversations.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">
+                    {conversations.length}
+                  </Badge>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[88vw] sm:w-96">
+              <SheetHeader>
+                <SheetTitle>Previous chats</SheetTitle>
+              </SheetHeader>
+              <ScrollArea className="h-[calc(100vh-100px)] mt-4 pr-2">
+                {conversations.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-8 text-center">
+                    No saved chats yet.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {conversations.map((c) => (
+                      <div
+                        key={c.id}
+                        className={cn(
+                          'group flex items-start gap-2 rounded-md border p-2.5 hover:bg-accent transition',
+                          activeConvId === c.id && 'border-primary/50 bg-primary/5',
+                        )}
+                      >
+                        <button
+                          className="flex-1 text-left min-w-0"
+                          onClick={() => handleLoadConversation(c)}
+                        >
+                          <p className="text-sm font-medium truncate">{c.title}</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {new Date(c.updatedAt).toLocaleString()} ·{' '}
+                            {c.messages.length} msg
+                          </p>
+                        </button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                          onClick={() => handleDeleteConversation(c.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
+
+          <Dialog open={importOpen} onOpenChange={(o) => (o ? openImport() : setImportOpen(false))}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <FileDown className="h-3.5 w-3.5" />
+                Import note
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Import a session note</DialogTitle>
+              </DialogHeader>
+              <ScrollArea className="max-h-[60vh] pr-2">
+                {loadingImports ? (
+                  <div className="space-y-2 py-2">
+                    <Skeleton className="h-14 w-full" />
+                    <Skeleton className="h-14 w-full" />
+                    <Skeleton className="h-14 w-full" />
+                  </div>
+                ) : importable.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-8 text-center">
+                    No sessions found yet. Log a session first.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {importable.map((n) => (
+                      <button
+                        key={n.id}
+                        onClick={() => handleImportNote(n)}
+                        className="w-full text-left rounded-md border p-3 hover:bg-accent hover:border-primary/40 transition"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-medium truncate">{n.title}</p>
+                          <span className="text-[11px] text-muted-foreground shrink-0">
+                            {n.date}
+                          </span>
+                        </div>
+                        {n.discipline && (
+                          <Badge variant="outline" className="mt-1 text-[10px]">
+                            {n.discipline}
+                          </Badge>
+                        )}
+                        {n.notes && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {n.notes}
+                          </p>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Chat */}
@@ -466,19 +732,28 @@ export default function AIFighterAssistant() {
             />
 
             <div className="flex flex-wrap gap-2">
-              <Button onClick={handleSend} disabled={!input.trim() || isThinking} size="sm">
-                <Send className="h-3.5 w-3.5" />
-                Ask
-              </Button>
-              <Button
-                onClick={handleAnalyse}
-                disabled={!input.trim() || isThinking}
-                size="sm"
-                variant="secondary"
-              >
-                <Brain className="h-3.5 w-3.5" />
-                Analyse
-              </Button>
+              {isStreaming || isThinking ? (
+                <Button onClick={handleStop} size="sm" variant="destructive">
+                  <Square className="h-3.5 w-3.5 fill-current" />
+                  Stop
+                </Button>
+              ) : (
+                <>
+                  <Button onClick={handleSend} disabled={!input.trim()} size="sm">
+                    <Send className="h-3.5 w-3.5" />
+                    Ask
+                  </Button>
+                  <Button
+                    onClick={handleAnalyse}
+                    disabled={!input.trim()}
+                    size="sm"
+                    variant="secondary"
+                  >
+                    <Brain className="h-3.5 w-3.5" />
+                    Analyse
+                  </Button>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -500,7 +775,6 @@ export default function AIFighterAssistant() {
               </Button>
             </div>
 
-            {/* Card 1: Core Training */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -508,58 +782,23 @@ export default function AIFighterAssistant() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Field
-                  label="Discipline"
-                  value={analysis.discipline}
-                  editing={editing}
-                  onChange={(v) => updateAnalysis('discipline', v)}
-                />
-                <Field
-                  label="Tactic"
-                  value={analysis.tactic}
-                  editing={editing}
-                  onChange={(v) => updateAnalysis('tactic', v)}
-                />
-                <Field
-                  label="Technique"
-                  value={analysis.technique}
-                  editing={editing}
-                  onChange={(v) => updateAnalysis('technique', v)}
-                />
+                <Field label="Discipline" value={analysis.discipline} editing={editing} onChange={(v) => updateAnalysis('discipline', v)} />
+                <Field label="Tactic" value={analysis.tactic} editing={editing} onChange={(v) => updateAnalysis('tactic', v)} />
+                <Field label="Technique" value={analysis.technique} editing={editing} onChange={(v) => updateAnalysis('technique', v)} />
               </CardContent>
             </Card>
 
-            {/* Card 2: Movement Breakdown */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm">Movement Breakdown</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Field
-                  label="1. How did I start?"
-                  value={analysis.movement_1}
-                  editing={editing}
-                  multiline
-                  onChange={(v) => updateAnalysis('movement_1', v)}
-                />
-                <Field
-                  label="2. Opponent reaction"
-                  value={analysis.movement_2}
-                  editing={editing}
-                  multiline
-                  onChange={(v) => updateAnalysis('movement_2', v)}
-                />
-                <Field
-                  label="3. What did I capitalize with?"
-                  value={analysis.movement_3}
-                  editing={editing}
-                  multiline
-                  onChange={(v) => updateAnalysis('movement_3', v)}
-                />
+                <Field label="1. How did I start?" value={analysis.movement_1} editing={editing} multiline onChange={(v) => updateAnalysis('movement_1', v)} />
+                <Field label="2. Opponent reaction" value={analysis.movement_2} editing={editing} multiline onChange={(v) => updateAnalysis('movement_2', v)} />
+                <Field label="3. What did I capitalize with?" value={analysis.movement_3} editing={editing} multiline onChange={(v) => updateAnalysis('movement_3', v)} />
               </CardContent>
             </Card>
 
-            {/* Card 3: Neural Pathway Logic */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -576,27 +815,21 @@ export default function AIFighterAssistant() {
                         NODE_COLORS[n.type],
                       )}
                     >
-                      <span className="opacity-60 uppercase text-[9px] tracking-wider">
-                        {n.type}
-                      </span>
+                      <span className="opacity-60 uppercase text-[9px] tracking-wider">{n.type}</span>
                       {n.label}
                     </span>
                   ))}
                 </div>
                 {analysis.neural_connections.length > 0 && (
                   <div className="space-y-1.5">
-                    <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Connections
-                    </Label>
+                    <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Connections</Label>
                     <ul className="text-xs space-y-1 text-muted-foreground">
                       {analysis.neural_connections.map((c, i) => {
                         const from = analysis.neural_nodes.find((n) => n.id === c.from);
                         const to = analysis.neural_nodes.find((n) => n.id === c.to);
                         return (
                           <li key={i} className="flex gap-2">
-                            <span className="text-foreground">
-                              {from?.label ?? c.from} → {to?.label ?? c.to}
-                            </span>
+                            <span className="text-foreground">{from?.label ?? c.from} → {to?.label ?? c.to}</span>
                             <span className="opacity-60">· {c.rule}</span>
                           </li>
                         );
@@ -607,19 +840,12 @@ export default function AIFighterAssistant() {
               </CardContent>
             </Card>
 
-            {/* Card 4: Coach Explanation */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm">Coach Explanation</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Field
-                  label="Why this works / when to use"
-                  value={analysis.coach_explanation}
-                  editing={editing}
-                  multiline
-                  onChange={(v) => updateAnalysis('coach_explanation', v)}
-                />
+                <Field label="Why this works / when to use" value={analysis.coach_explanation} editing={editing} multiline onChange={(v) => updateAnalysis('coach_explanation', v)} />
                 <div className="space-y-1.5">
                   <Label className="text-[11px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                     <AlertTriangle className="h-3 w-3" /> Common mistakes
@@ -627,33 +853,19 @@ export default function AIFighterAssistant() {
                   {editing ? (
                     <Textarea
                       value={analysis.mistakes_to_avoid.join('\n')}
-                      onChange={(e) =>
-                        updateAnalysis(
-                          'mistakes_to_avoid',
-                          e.target.value.split('\n').filter(Boolean),
-                        )
-                      }
+                      onChange={(e) => updateAnalysis('mistakes_to_avoid', e.target.value.split('\n').filter(Boolean))}
                       className="min-h-[72px] text-sm"
                     />
                   ) : (
                     <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
-                      {analysis.mistakes_to_avoid.map((m, i) => (
-                        <li key={i}>{m}</li>
-                      ))}
+                      {analysis.mistakes_to_avoid.map((m, i) => <li key={i}>{m}</li>)}
                     </ul>
                   )}
                 </div>
-                <Field
-                  label="Advanced variation"
-                  value={analysis.advanced_variation}
-                  editing={editing}
-                  multiline
-                  onChange={(v) => updateAnalysis('advanced_variation', v)}
-                />
+                <Field label="Advanced variation" value={analysis.advanced_variation} editing={editing} multiline onChange={(v) => updateAnalysis('advanced_variation', v)} />
               </CardContent>
             </Card>
 
-            {/* Card 5: Save Options */}
             <Card className="border-primary/30">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -661,30 +873,15 @@ export default function AIFighterAssistant() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={saving}
-                  onClick={() => saveNote('fighter_note')}
-                >
+                <Button variant="outline" size="sm" disabled={saving} onClick={() => saveNote('fighter_note')}>
                   <Save className="h-3.5 w-3.5" />
                   Save to Fighter Notes
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={saving}
-                  onClick={() => saveNote('session_log')}
-                >
+                <Button variant="outline" size="sm" disabled={saving} onClick={() => saveNote('session_log')}>
                   <ListPlus className="h-3.5 w-3.5" />
                   Add to Session Log
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={saving}
-                  onClick={() => saveNote('neural_pathway')}
-                >
+                <Button variant="outline" size="sm" disabled={saving} onClick={() => saveNote('neural_pathway')}>
                   <Network className="h-3.5 w-3.5" />
                   Create Neural Pathway
                 </Button>
@@ -745,16 +942,10 @@ function Field({
 }) {
   return (
     <div className="space-y-1">
-      <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">
-        {label}
-      </Label>
+      <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</Label>
       {editing ? (
         multiline ? (
-          <Textarea
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="min-h-[64px] text-sm"
-          />
+          <Textarea value={value} onChange={(e) => onChange(e.target.value)} className="min-h-[64px] text-sm" />
         ) : (
           <Input value={value} onChange={(e) => onChange(e.target.value)} className="text-sm" />
         )

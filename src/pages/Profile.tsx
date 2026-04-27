@@ -63,6 +63,7 @@ export default function Profile() {
   const [customOpen, setCustomOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
+  const [deleteDataOpen, setDeleteDataOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // My Statement & Motivation

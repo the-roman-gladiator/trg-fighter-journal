@@ -175,17 +175,22 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "messages array required" }, 400);
     }
 
+    const isAnalyse = mode === "analyse";
     const body: Record<string, unknown> = {
-      model: "openai/gpt-5-mini",
+      // Fast model for snappy chat. Analyse mode also benefits.
+      model: "google/gemini-2.5-flash",
       messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
     };
 
-    if (mode === "analyse") {
+    if (isAnalyse) {
       body.tools = [ANALYSE_TOOL];
       body.tool_choice = {
         type: "function",
         function: { name: "analyse_training_note" },
       };
+    } else {
+      // Stream chat replies token-by-token so users see words as they arrive.
+      body.stream = true;
     }
 
     const aiResp = await fetch(
@@ -221,10 +226,22 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "AI gateway error" }, 500);
     }
 
+    // For chat mode, pipe the SSE stream straight back to the client.
+    if (!isAnalyse) {
+      return new Response(aiResp.body, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+        },
+      });
+    }
+
     const data = await aiResp.json();
     const choice = data.choices?.[0];
 
-    if (mode === "analyse") {
+    if (isAnalyse) {
       const toolCall = choice?.message?.tool_calls?.[0];
       if (!toolCall) {
         return jsonResponse({ error: "AI did not return structured analysis" }, 500);

@@ -109,23 +109,23 @@ export default function AIFighterAssistant() {
     setIsThinking(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke(
-        'ai-fighter-assistant',
-        { body: { messages: newMessages, mode } },
-      );
-
-      if (error) {
-        // Edge function returns JSON body even on error; try to surface it
-        const ctx = (error as any).context;
-        let msg = error.message || 'AI request failed';
-        try {
-          const body = await ctx?.json?.();
-          if (body?.error) msg = body.error;
-        } catch { /* noop */ }
-        throw new Error(msg);
-      }
-
       if (mode === 'analyse') {
+        // Analyse uses tool-calling — keep non-streaming JSON path.
+        const { data, error } = await supabase.functions.invoke(
+          'ai-fighter-assistant',
+          { body: { messages: newMessages, mode } },
+        );
+
+        if (error) {
+          const ctx = (error as any).context;
+          let msg = error.message || 'AI request failed';
+          try {
+            const body = await ctx?.json?.();
+            if (body?.error) msg = body.error;
+          } catch { /* noop */ }
+          throw new Error(msg);
+        }
+
         if (data?.analysis) {
           setAnalysis(data.analysis as Analysis);
           setChat([
@@ -138,15 +138,96 @@ export default function AIFighterAssistant() {
           ]);
           toast.success('Note analysed');
         }
-      } else {
-        if (data?.reply) {
-          setChat([...newMessages, { role: 'assistant', content: data.reply }]);
+        return;
+      }
+
+      // Chat mode — stream SSE token-by-token so words appear as they arrive.
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-fighter-assistant`;
+      const session = (await supabase.auth.getSession()).data.session;
+      const token =
+        session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ messages: newMessages, mode }),
+      });
+
+      if (!resp.ok || !resp.body) {
+        let msg = 'AI request failed';
+        try {
+          const j = await resp.json();
+          if (j?.error) msg = j.error;
+        } catch { /* noop */ }
+        throw new Error(msg);
+      }
+
+      // Insert empty assistant bubble we'll fill as tokens arrive.
+      setChat([...newMessages, { role: 'assistant', content: '' }]);
+      // Hide the "Thinking…" row as soon as the stream opens.
+      setIsThinking(false);
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let acc = '';
+      let done = false;
+
+      while (!done) {
+        const { value, done: rDone } = await reader.read();
+        if (rDone) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let nl: number;
+        while ((nl = buffer.indexOf('\n')) !== -1) {
+          let line = buffer.slice(0, nl);
+          buffer = buffer.slice(nl + 1);
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (!line || line.startsWith(':')) continue;
+          if (!line.startsWith('data: ')) continue;
+          const json = line.slice(6).trim();
+          if (json === '[DONE]') {
+            done = true;
+            break;
+          }
+          try {
+            const parsed = JSON.parse(json);
+            const delta = parsed.choices?.[0]?.delta?.content as
+              | string
+              | undefined;
+            if (delta) {
+              acc += delta;
+              setChat((prev) => {
+                const last = prev[prev.length - 1];
+                if (last?.role !== 'assistant') return prev;
+                return prev.map((m, i) =>
+                  i === prev.length - 1 ? { ...m, content: acc } : m,
+                );
+              });
+            }
+          } catch {
+            buffer = line + '\n' + buffer;
+            break;
+          }
         }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Something went wrong';
       toast.error(msg);
-      setChat([...newMessages, { role: 'assistant', content: `⚠️ ${msg}` }]);
+      setChat((prev) => {
+        const last = prev[prev.length - 1];
+        // If we already inserted an empty assistant bubble, replace it.
+        if (last?.role === 'assistant' && last.content === '') {
+          return prev.map((m, i) =>
+            i === prev.length - 1 ? { ...m, content: `⚠️ ${msg}` } : m,
+          );
+        }
+        return [...prev, { role: 'assistant', content: `⚠️ ${msg}` }];
+      });
     } finally {
       setIsThinking(false);
     }
@@ -215,9 +296,9 @@ export default function AIFighterAssistant() {
             <Sparkles className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Fighter Pathway AI</h1>
+            <h1 className="text-xl font-bold tracking-tight">Gladius</h1>
             <p className="text-xs text-muted-foreground">
-              Pro AI assistant • Analyse notes, generate pathways
+              Your fighter AI support • Analyse notes, generate pathways
             </p>
           </div>
           <Badge variant="outline" className="ml-auto border-primary/40 text-primary">
@@ -232,7 +313,9 @@ export default function AIFighterAssistant() {
               {chat.length === 0 && (
                 <div className="text-center py-6 text-sm text-muted-foreground">
                   <Bot className="h-8 w-8 mx-auto mb-2 text-primary/60" />
-                  Write a training note or ask anything about combat sports.
+                  Hi, I'm <span className="text-primary font-semibold">Gladius</span> — your fighter AI support.
+                  <br />
+                  Drop a training note or ask me anything about combat sports.
                 </div>
               )}
               {chat.map((m, i) => (

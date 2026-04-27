@@ -6,13 +6,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are "Fighter Pathway AI", an expert combat-sports coach assistant for MMA, Muay Thai, K1, Wrestling, BJJ, and Grappling.
+const SYSTEM_PROMPT = `You are "Gladius", a fighter AI support and expert combat-sports coach assistant for MMA, Muay Thai, K1, Boxing, Wrestling, BJJ, and Grappling.
+
+When the conversation has no prior assistant turns (this is your first reply to the user), START your response with a short warm greeting that introduces yourself, e.g.: "Hi, I'm Gladius, your fighter AI support." Then immediately help with their request. Do NOT re-introduce yourself on subsequent turns.
 
 You help fighters and coaches by:
 1. Analysing free-form training notes and converting them into a structured technical breakdown.
 2. Answering questions about combos, counters, defence, attacking, grappling transitions, wrestling entries, BJJ positions, MMA strategy, fight tactics, and training improvement.
 
-Speak in clear, simple, fighter-friendly language. Be specific and tactical. Avoid generic advice.
+Speak in clear, simple, fighter-friendly language. Be specific and tactical. Avoid generic advice. Keep answers concise and skimmable — use short paragraphs and bullet points.
 
 DISCIPLINE RULES (enforce when generating neural pathways):
 - MMA: striking, wrestling, grappling, BJJ all allowed.
@@ -173,17 +175,22 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "messages array required" }, 400);
     }
 
+    const isAnalyse = mode === "analyse";
     const body: Record<string, unknown> = {
-      model: "openai/gpt-5-mini",
+      // Fast model for snappy chat. Analyse mode also benefits.
+      model: "google/gemini-2.5-flash",
       messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
     };
 
-    if (mode === "analyse") {
+    if (isAnalyse) {
       body.tools = [ANALYSE_TOOL];
       body.tool_choice = {
         type: "function",
         function: { name: "analyse_training_note" },
       };
+    } else {
+      // Stream chat replies token-by-token so users see words as they arrive.
+      body.stream = true;
     }
 
     const aiResp = await fetch(
@@ -219,10 +226,22 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "AI gateway error" }, 500);
     }
 
+    // For chat mode, pipe the SSE stream straight back to the client.
+    if (!isAnalyse) {
+      return new Response(aiResp.body, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+        },
+      });
+    }
+
     const data = await aiResp.json();
     const choice = data.choices?.[0];
 
-    if (mode === "analyse") {
+    if (isAnalyse) {
       const toolCall = choice?.message?.tool_calls?.[0];
       if (!toolCall) {
         return jsonResponse({ error: "AI did not return structured analysis" }, 500);

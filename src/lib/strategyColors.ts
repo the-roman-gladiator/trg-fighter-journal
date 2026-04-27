@@ -3,6 +3,8 @@ export const strategyColorClass: Record<string, string> = {
   Defending: 'strategy-defending',
   Countering: 'strategy-countering',
   Intercepting: 'strategy-intercepting',
+  Transiction: 'strategy-transitions',
+  // Legacy spelling fallback (older data)
   Transitions: 'strategy-transitions',
   Control: 'strategy-control',
 };

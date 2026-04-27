@@ -626,8 +626,26 @@ export default function Profile() {
             <CollapsibleContent>
               <div className="mt-3 space-y-3">
                 <SupportSection />
-                {/* Privacy: delete personal AI + analytics data */}
-                <DeleteMyDataSection />
+                {/* Privacy: delete personal AI + analytics data — nested pull-down for less exposure */}
+                <Collapsible open={deleteDataOpen} onOpenChange={setDeleteDataOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between border-destructive/40 text-destructive hover:text-destructive"
+                      type="button"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Shield className="h-4 w-4" /> Delete my AI &amp; analytics data
+                      </span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${deleteDataOpen ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="mt-3">
+                      <DeleteMyDataSection />
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             </CollapsibleContent>
           </Collapsible>

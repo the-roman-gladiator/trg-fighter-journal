@@ -34,7 +34,10 @@ import Award from "./pages/Award";
 import TechniqueArchive from "./pages/TechniqueArchive";
 import AIFighterAssistant from "./pages/AIFighterAssistant";
 import NotFound from "./pages/NotFound";
+import AdminAnalytics from "./pages/AdminAnalytics";
 import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
+import { useAnalytics } from "./hooks/useAnalytics";
+import { ErrorBoundary, GlobalErrorListener } from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 

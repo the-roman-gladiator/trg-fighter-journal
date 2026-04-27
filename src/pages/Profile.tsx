@@ -23,7 +23,7 @@ import { CustomListManager } from '@/components/profile/CustomListManager';
 import { NotificationsSection } from '@/components/profile/NotificationsSection';
 import { SupportSection } from '@/components/profile/SupportSection';
 import { DeleteMyDataSection } from '@/components/profile/DeleteMyDataSection';
-import { RedeemCoachCode } from '@/components/coach/RedeemCoachCode';
+
 import { useAutosave } from '@/hooks/useAutosave';
 import { AutosaveStatus } from '@/components/AutosaveStatus';
 
@@ -612,9 +612,6 @@ export default function Profile() {
               </Card>
             </CollapsibleContent>
           </Collapsible>
-
-          {/* Redeem coach invite code */}
-          <RedeemCoachCode />
 
           {/* Support (collapsible) — must be the last section */}
           <Collapsible open={supportOpen} onOpenChange={setSupportOpen}>

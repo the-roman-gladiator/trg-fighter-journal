@@ -1,6 +1,6 @@
 import { useRef, useMemo, useState, useEffect, Suspense, useCallback } from 'react';
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
-import { OrbitControls, Line, Html } from '@react-three/drei';
+import { OrbitControls, Line, Html, Stars } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { PathwayNode, PathwayEdge } from './FuturisticMap';
@@ -14,7 +14,7 @@ interface MapCanvas3DProps {
 }
 
 const NODE_COLORS: Record<string, { core: string; glow: string }> = {
-  root: { core: '#ffffff', glow: '#e0f2fe' },
+  root: { core: '#ffffff', glow: '#fde68a' },
   discipline: { core: '#E63946', glow: '#ff5d6c' },
   strategy: { core: '#FF7F11', glow: '#ffa64d' },
   technique: { core: '#2A9D8F', glow: '#4fc3b4' },
@@ -34,55 +34,80 @@ function getNodeColor(type: string, colorTag: string | null) {
   return NODE_COLORS[type] || NODE_COLORS.default;
 }
 
-const LAYER_Z: Record<string, number> = {
+// Orbit ring per layer (distance from the central "My Training" star)
+const LAYER_RING: Record<string, number> = {
   root: 0,
-  discipline: 1.2,
-  strategy: 2.4,
-  tactic: 2.4,
-  technique: 3.6,
-  action: 3.6,
-  movement1: 4.8,
-  movement: 4.8,
-  movement2: 6.0,
-  reaction: 6.0,
-  movement3: 7.2,
-  followup: 7.2,
+  discipline: 2.4,
+  strategy: 4.2,
+  tactic: 4.2,
+  technique: 6.0,
+  action: 6.0,
+  movement1: 7.6,
+  movement: 7.6,
+  movement2: 9.0,
+  reaction: 9.0,
+  movement3: 10.2,
+  followup: 10.2,
 };
 
-const SCALE = 0.012;
+// Per-layer orbit speed (rad/s) — outer rings drift slower for cosmic feel
+const LAYER_SPEED: Record<string, number> = {
+  root: 0,
+  discipline: 0.08,
+  strategy: 0.06,
+  tactic: 0.06,
+  technique: 0.045,
+  action: 0.045,
+  movement1: 0.035,
+  movement: 0.035,
+  movement2: 0.028,
+  reaction: 0.028,
+  movement3: 0.022,
+  followup: 0.022,
+};
 
-function toWorld(node: PathwayNode): [number, number, number] {
-  const z = LAYER_Z[node.node_type] ?? 0;
-  return [node.position_x * SCALE, -node.position_y * SCALE, z];
-}
+// Slight tilt per layer to avoid a flat-disc look
+const LAYER_TILT: Record<string, number> = {
+  root: 0,
+  discipline: 0.08,
+  strategy: -0.12,
+  tactic: -0.12,
+  technique: 0.18,
+  action: 0.18,
+  movement1: -0.22,
+  movement: -0.22,
+  movement2: 0.26,
+  reaction: 0.26,
+  movement3: -0.3,
+  followup: -0.3,
+};
 
 function nodeBaseRadius(node: PathwayNode): number {
-  return node.is_root ? 0.45 : node.node_type === 'discipline' ? 0.35 : 0.22;
+  if (node.is_root) return 0.55;
+  if (node.node_type === 'discipline') return 0.32;
+  if (node.node_type === 'strategy' || node.node_type === 'tactic') return 0.26;
+  return 0.2;
 }
 
-/* ---------- Containing wireframe sphere wrapping the whole structure ---------- */
-function StructureSphere({ radius }: { radius: number }) {
-  const ref = useRef<THREE.Group>(null);
-  useFrame((_, delta) => {
-    if (ref.current) ref.current.rotation.y += delta * 0.04;
-  });
+/* ---------- Faint orbit ring (visual guide for each layer) ---------- */
+function OrbitRing({ radius, tilt }: { radius: number; tilt: number }) {
+  const points = useMemo(() => {
+    const segs = 96;
+    const pts: [number, number, number][] = [];
+    for (let i = 0; i <= segs; i++) {
+      const a = (i / segs) * Math.PI * 2;
+      pts.push([Math.cos(a) * radius, 0, Math.sin(a) * radius]);
+    }
+    return pts;
+  }, [radius]);
   return (
-    <group ref={ref}>
-      {/* Wireframe outer shell */}
-      <mesh>
-        <sphereGeometry args={[radius, 32, 24]} />
-        <meshBasicMaterial color="#0ea5e9" wireframe transparent opacity={0.12} depthWrite={false} />
-      </mesh>
-      {/* Soft inner glow shell */}
-      <mesh>
-        <sphereGeometry args={[radius * 0.995, 32, 24]} />
-        <meshBasicMaterial color="#0ea5e9" transparent opacity={0.04} side={THREE.BackSide} depthWrite={false} />
-      </mesh>
+    <group rotation={[tilt, 0, 0]}>
+      <Line points={points} color="#1e3a8a" lineWidth={1} transparent opacity={0.25} />
     </group>
   );
 }
 
-/* ---------- Node ---------- */
+/* ---------- Node (orbiting body) ---------- */
 function Node3D({
   node,
   position,
@@ -103,32 +128,32 @@ function Node3D({
   onHover: (hovered: boolean) => void;
 }) {
   const haloRef = useRef<THREE.Mesh>(null);
+  const coreRef = useRef<THREE.Mesh>(null);
   const colors = getNodeColor(node.node_type, node.color_tag);
   const baseRadius = nodeBaseRadius(node);
-
-  // Generous invisible hit-sphere — much larger than visual radius for reliable mobile taps
   const hitRadius = Math.max(baseRadius * 3.2, 0.55);
 
   useFrame(({ clock }) => {
-    if (!haloRef.current) return;
     const t = clock.getElapsedTime();
-    const pulse = 1 + Math.sin(t * 2 + position[0]) * 0.08;
-    haloRef.current.scale.setScalar(pulse);
+    if (haloRef.current) {
+      const pulse = 1 + Math.sin(t * 2 + position[0]) * 0.1;
+      haloRef.current.scale.setScalar(pulse);
+    }
+    if (coreRef.current) {
+      coreRef.current.rotation.y += 0.01;
+    }
   });
 
-  const opacity = isDimmed ? 0.18 : 1;
+  const opacity = isDimmed ? 0.22 : 1;
   const emissiveIntensity =
-    isSelected || isHighlighted || isHovered ? 1.6 : 0.55;
+    isSelected || isHighlighted || isHovered ? 1.8 : node.is_root ? 1.4 : 0.7;
 
   return (
     <group position={position}>
-      {/* Invisible large hit mesh for reliable tapping — sits in front so it always wins picking */}
+      {/* Invisible large hit mesh */}
       <mesh
         renderOrder={999}
-        onPointerDown={(e: ThreeEvent<PointerEvent>) => {
-          // Stops OrbitControls from grabbing the gesture as a rotation
-          e.stopPropagation();
-        }}
+        onPointerDown={(e: ThreeEvent<PointerEvent>) => e.stopPropagation()}
         onClick={(e: ThreeEvent<MouseEvent>) => {
           e.stopPropagation();
           onSelect();
@@ -147,44 +172,54 @@ function Node3D({
         <meshBasicMaterial transparent opacity={0} depthWrite={false} depthTest={false} />
       </mesh>
 
-      {/* Glow halo */}
+      {/* Outer atmospheric glow */}
       <mesh ref={haloRef}>
-        <sphereGeometry args={[baseRadius * 1.8, 16, 16]} />
+        <sphereGeometry args={[baseRadius * 2.2, 24, 24]} />
         <meshBasicMaterial
           color={colors.glow}
           transparent
-          opacity={opacity * (isHovered || isSelected ? 0.32 : 0.18)}
+          opacity={opacity * (isHovered || isSelected ? 0.35 : 0.16)}
           depthWrite={false}
         />
       </mesh>
 
-      {/* Core sphere */}
-      <mesh>
-        <sphereGeometry args={[baseRadius, 24, 24]} />
+      {/* Core planet */}
+      <mesh ref={coreRef}>
+        <sphereGeometry args={[baseRadius, 32, 32]} />
         <meshStandardMaterial
           color={colors.core}
           emissive={colors.core}
           emissiveIntensity={emissiveIntensity}
           transparent
           opacity={opacity}
-          roughness={0.3}
-          metalness={0.2}
+          roughness={0.35}
+          metalness={0.3}
         />
       </mesh>
 
-      {/* Label */}
-      {(isSelected || isHovered || node.is_root || node.node_type === 'discipline') && (
-        <Html
-          center
-          distanceFactor={10}
-          position={[0, baseRadius + 0.35, 0]}
-          style={{ pointerEvents: 'none' }}
+      {/* Always-visible label (interstellar nameplate) */}
+      <Html
+        center
+        distanceFactor={9}
+        position={[0, baseRadius + 0.4, 0]}
+        style={{ pointerEvents: 'none' }}
+        zIndexRange={[10, 0]}
+      >
+        <div
+          className={`px-2 py-0.5 rounded-md whitespace-nowrap font-medium border backdrop-blur-sm transition-all
+            ${
+              isSelected || isHovered
+                ? 'bg-cyan-500/30 border-cyan-300/60 text-white text-[11px] shadow-[0_0_12px_rgba(103,232,249,0.6)]'
+                : node.is_root
+                ? 'bg-amber-500/20 border-amber-300/50 text-amber-50 text-[11px]'
+                : 'bg-black/55 border-cyan-400/20 text-cyan-100/90 text-[10px]'
+            }
+            ${isDimmed ? 'opacity-40' : 'opacity-100'}
+          `}
         >
-          <div className="px-2 py-0.5 rounded-md bg-black/70 border border-cyan-400/30 backdrop-blur-sm whitespace-nowrap text-[10px] text-cyan-100 font-medium">
-            {node.title}
-          </div>
-        </Html>
-      )}
+          {node.title}
+        </div>
+      </Html>
     </group>
   );
 }
@@ -199,12 +234,72 @@ function Edge3D({
   end: [number, number, number];
   state: 'highlighted' | 'dimmed' | 'normal';
 }) {
-  const opacity = state === 'dimmed' ? 0.05 : state === 'highlighted' ? 0.95 : 0.3;
+  const opacity = state === 'dimmed' ? 0.05 : state === 'highlighted' ? 0.95 : 0.28;
   const color = state === 'highlighted' ? '#67e8f9' : '#0ea5e9';
   const lineWidth = state === 'highlighted' ? 2.4 : 1;
   return (
     <Line points={[start, end]} color={color} lineWidth={lineWidth} transparent opacity={opacity} />
   );
+}
+
+/* ---------- Orbit positions (recomputed each frame) ---------- */
+function useOrbitPositions(nodes: PathwayNode[]) {
+  // Stable per-node orbit parameters: ring index, base angle, tilt, speed
+  const params = useMemo(() => {
+    const layerCounts: Record<string, number> = {};
+    const layerIndex = new Map<string, number>();
+    for (const n of nodes) {
+      const layer = n.node_type;
+      const idx = layerCounts[layer] ?? 0;
+      layerIndex.set(n.id, idx);
+      layerCounts[layer] = idx + 1;
+    }
+    return nodes.map((n) => {
+      const layer = n.node_type;
+      const total = layerCounts[layer] || 1;
+      const idx = layerIndex.get(n.id) ?? 0;
+      const radius = LAYER_RING[layer] ?? 5;
+      const speed = LAYER_SPEED[layer] ?? 0.04;
+      const tilt = LAYER_TILT[layer] ?? 0;
+      const baseAngle = (idx / total) * Math.PI * 2;
+      return { id: n.id, radius, speed, tilt, baseAngle, isRoot: n.is_root };
+    });
+  }, [nodes]);
+
+  const positions = useRef(new Map<string, [number, number, number]>());
+
+  // Initialize once so first render has values
+  if (positions.current.size === 0) {
+    for (const p of params) {
+      if (p.isRoot || p.radius === 0) {
+        positions.current.set(p.id, [0, 0, 0]);
+      } else {
+        const x = Math.cos(p.baseAngle) * p.radius;
+        const z = Math.sin(p.baseAngle) * p.radius;
+        const y = Math.sin(p.baseAngle) * Math.sin(p.tilt) * p.radius;
+        positions.current.set(p.id, [x, y, z]);
+      }
+    }
+  }
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    for (const p of params) {
+      if (p.isRoot || p.radius === 0) {
+        positions.current.set(p.id, [0, 0, 0]);
+        continue;
+      }
+      const a = p.baseAngle + t * p.speed;
+      const x = Math.cos(a) * p.radius;
+      const zFlat = Math.sin(a) * p.radius;
+      // Tilt the orbital plane around the X axis
+      const y = zFlat * Math.sin(p.tilt);
+      const z = zFlat * Math.cos(p.tilt);
+      positions.current.set(p.id, [x, y, z]);
+    }
+  });
+
+  return positions;
 }
 
 /* ---------- Scene ---------- */
@@ -222,39 +317,17 @@ function Scene({
   setHoveredId: (id: string | null) => void;
   controlsRef: React.MutableRefObject<OrbitControlsImpl | null>;
 }) {
-  const positions = useMemo(() => {
-    const map = new Map<string, [number, number, number]>();
-    for (const n of nodes) map.set(n.id, toWorld(n));
-    return map;
-  }, [nodes]);
+  const positionsRef = useOrbitPositions(nodes);
+  const [, force] = useState(0);
 
-  // Center + bounding radius for the containing sphere
-  const { center, radius } = useMemo(() => {
-    if (nodes.length === 0) {
-      return { center: [0, 0, 0] as [number, number, number], radius: 4 };
-    }
-    let sx = 0, sy = 0, sz = 0;
-    for (const n of nodes) {
-      const [x, y, z] = toWorld(n);
-      sx += x; sy += y; sz += z;
-    }
-    const cx = sx / nodes.length;
-    const cy = sy / nodes.length;
-    const cz = sz / nodes.length;
-    let max = 0;
-    for (const n of nodes) {
-      const [x, y, z] = toWorld(n);
-      const dx = x - cx, dy = y - cy, dz = z - cz;
-      const d = Math.sqrt(dx * dx + dy * dy + dz * dz) + nodeBaseRadius(n);
-      if (d > max) max = d;
-    }
-    return { center: [cx, cy, cz] as [number, number, number], radius: Math.max(max * 1.25, 3) };
-  }, [nodes]);
+  // Re-render every frame so React-rendered nodes/edges follow orbiting positions
+  useFrame(() => {
+    force((n) => (n + 1) % 1000000);
+  });
 
   const highlightSet = pathwayNodeIdsOverride;
   const hasOverride = !!(highlightSet && highlightSet.size > 0);
 
-  // Build adjacency for hover/selection edge-glow
   const neighborEdges = useMemo(() => {
     const m = new Map<string, Set<string>>();
     for (const e of edges) {
@@ -266,14 +339,12 @@ function Scene({
     return m;
   }, [edges]);
 
-  // Active node = hovered (priority) OR selected — drives edge glow
   const activeNodeId = hoveredId ?? selectedNodeId;
   const activeEdgeIds = useMemo(() => {
     if (!activeNodeId) return null;
     return neighborEdges.get(activeNodeId) ?? new Set<string>();
   }, [activeNodeId, neighborEdges]);
 
-  // Disable OrbitControls drag while pointer is over a node — guarantees a tap is a tap
   const handleNodeHover = useCallback(
     (id: string, hovered: boolean) => {
       setHoveredId(hovered ? id : null);
@@ -284,21 +355,39 @@ function Scene({
     [setHoveredId, controlsRef],
   );
 
+  // Unique layer rings to draw
+  const rings = useMemo(() => {
+    const seen = new Set<string>();
+    const out: { radius: number; tilt: number }[] = [];
+    for (const n of nodes) {
+      if (n.is_root) continue;
+      const layer = n.node_type;
+      if (seen.has(layer)) continue;
+      seen.add(layer);
+      const r = LAYER_RING[layer];
+      if (!r) continue;
+      out.push({ radius: r, tilt: LAYER_TILT[layer] ?? 0 });
+    }
+    return out;
+  }, [nodes]);
+
   return (
-    <group position={[-center[0], -center[1], -center[2]]}>
-      <ambientLight intensity={0.35} />
-      <pointLight position={[10, 10, 10]} intensity={0.9} color="#60a5fa" />
-      <pointLight position={[-10, -8, 6]} intensity={0.5} color="#f472b6" />
+    <group>
+      <ambientLight intensity={0.3} />
+      {/* Central "star" light at the My Training root */}
+      <pointLight position={[0, 0, 0]} intensity={2.2} color="#fde68a" distance={20} decay={1.5} />
+      <pointLight position={[10, 8, 10]} intensity={0.5} color="#60a5fa" />
+      <pointLight position={[-10, -6, -8]} intensity={0.35} color="#f472b6" />
 
-      {/* Containing wireframe sphere wrapping the entire neural structure */}
-      <group position={center}>
-        <StructureSphere radius={radius} />
-      </group>
+      {/* Faint orbit guides */}
+      {rings.map((r, i) => (
+        <OrbitRing key={i} radius={r.radius} tilt={r.tilt} />
+      ))}
 
-      {/* Edges */}
+      {/* Edges (recomputed each frame from live positions) */}
       {edges.map((edge) => {
-        const s = positions.get(edge.source_node_id);
-        const t = positions.get(edge.target_node_id);
+        const s = positionsRef.current.get(edge.source_node_id);
+        const t = positionsRef.current.get(edge.target_node_id);
         if (!s || !t) return null;
 
         let state: 'highlighted' | 'dimmed' | 'normal' = 'normal';
@@ -311,20 +400,19 @@ function Scene({
             highlightSet!.has(edge.source_node_id) && highlightSet!.has(edge.target_node_id);
           state = inPath ? 'highlighted' : 'dimmed';
         }
-
         return <Edge3D key={edge.id} start={s} end={t} state={state} />;
       })}
 
       {/* Nodes */}
       {nodes.map((node) => {
-        const pos = positions.get(node.id);
+        const pos = positionsRef.current.get(node.id);
         if (!pos) return null;
         const isSelected = node.id === selectedNodeId;
         const isHovered = node.id === hoveredId;
         const isHighlighted = hasOverride ? highlightSet!.has(node.id) : false;
         const isDimmed =
           (hasOverride && !isHighlighted && !isSelected && !isHovered) ||
-          (!!activeNodeId && node.id !== activeNodeId && !isSelected);
+          (!!activeNodeId && node.id !== activeNodeId && !isSelected && !node.is_root);
 
         return (
           <Node3D
@@ -349,7 +437,6 @@ export function MapCanvas3D(props: MapCanvas3DProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  // Safety: re-enable controls if hover state is lost (e.g. node unmount)
   useEffect(() => {
     if (!hoveredId && controlsRef.current) {
       controlsRef.current.enabled = true;
@@ -359,17 +446,18 @@ export function MapCanvas3D(props: MapCanvas3DProps) {
   return (
     <div className="absolute inset-0" style={{ touchAction: 'none' }}>
       <Canvas
-        camera={{ position: [0, 0, 12], fov: 55, near: 0.1, far: 200 }}
+        camera={{ position: [0, 6, 18], fov: 55, near: 0.1, far: 400 }}
         gl={{ antialias: true, alpha: true }}
         style={{ background: 'transparent' }}
         onPointerMissed={() => {
-          // Tap on empty space deselects + clears hover
           setHoveredId(null);
           props.onNodeClick(null);
         }}
       >
-        <color attach="background" args={['#0a0a12']} />
-        <fog attach="fog" args={['#0a0a12', 18, 38]} />
+        <color attach="background" args={['#05060f']} />
+        <fog attach="fog" args={['#05060f', 28, 60]} />
+        {/* Deep-space starfield backdrop */}
+        <Stars radius={120} depth={60} count={3500} factor={3.5} saturation={0} fade speed={0.6} />
         <Suspense fallback={null}>
           <Scene
             {...props}
@@ -383,11 +471,10 @@ export function MapCanvas3D(props: MapCanvas3DProps) {
           enablePan
           enableZoom
           enableRotate
-          minDistance={4}
-          maxDistance={28}
+          minDistance={5}
+          maxDistance={40}
           autoRotate={false}
-          dampingFactor={0.1}
-          // Tighter touch handling so a tap is never interpreted as a rotate
+          dampingFactor={0.12}
           rotateSpeed={0.7}
         />
       </Canvas>

@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, ClipboardList, TrendingUp, NotebookPen, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const tabs = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -12,14 +13,17 @@ const tabs = [
   { to: '/award', label: 'Award', icon: Trophy },
 ];
 
-const HIDDEN_ROUTES = ['/auth', '/onboarding'];
+const HIDDEN_ROUTES = ['/auth', '/onboarding', '/admin'];
 
 export function BottomNav() {
   const { pathname } = useLocation();
   const { user } = useAuth();
+  const { isAdmin } = useSubscription();
   if (HIDDEN_ROUTES.some(r => pathname.startsWith(r))) return null;
   // Hide on public landing (root, logged out)
   if (pathname === '/' && !user) return null;
+  // Admins are locked to the admin area — never show the athlete nav
+  if (isAdmin) return null;
 
   return (
     <nav

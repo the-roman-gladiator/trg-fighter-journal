@@ -39,13 +39,32 @@ import AdminDashboard from "./pages/AdminDashboard";
 import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
 import { useAnalytics } from "./hooks/useAnalytics";
 import { ErrorBoundary, GlobalErrorListener } from "./components/ErrorBoundary";
+import { useSubscription } from "./hooks/useSubscription";
+import { Navigate, useLocation } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
 function RootRoute() {
   const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen bg-background" />;
+  const { isAdmin, loading: subLoading } = useSubscription();
+  if (loading || (user && subLoading)) return <div className="min-h-screen bg-background" />;
+  if (user && isAdmin) return <Navigate to="/admin" replace />;
   return user ? <Dashboard /> : <Landing />;
+}
+
+/**
+ * Admins are locked to the admin area. Any other route redirects to /admin.
+ * Non-admins pass through unchanged.
+ */
+function AdminLockGate({ children }: { children: React.ReactNode }) {
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: subLoading } = useSubscription();
+  const { pathname } = useLocation();
+  if (authLoading || (user && subLoading)) return <>{children}</>;
+  if (user && isAdmin && !pathname.startsWith('/admin') && pathname !== '/auth') {
+    return <Navigate to="/admin" replace />;
+  }
+  return <>{children}</>;
 }
 
 function AppShell() {
@@ -54,6 +73,7 @@ function AppShell() {
   return (
     <div className="h-[100dvh] flex flex-col overflow-hidden bg-background">
       <main className="flex-1 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))]">
+      <AdminLockGate>
       <Routes>
         <Route path="/" element={<RootRoute />} />
         <Route path="/auth" element={<Auth />} />
@@ -87,6 +107,7 @@ function AppShell() {
         <Route path="/admin/analytics" element={<AdminAnalytics />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </AdminLockGate>
       </main>
       <BottomNav />
     </div>

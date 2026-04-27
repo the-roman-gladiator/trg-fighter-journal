@@ -122,7 +122,7 @@ export const subTypesByDiscipline: Record<MartialArtsDiscipline, string[]> = {
   'BJJ': ['Stand-up', 'Guard (Closed / Open)', 'Half Guard', 'Side Control', 'Mount', 'Back Control', 'Submissions']
 };
 
-export const tacticalGoals = ['Attacking', 'Defending', 'Countering', 'Intercepting', 'Transiction', 'Control'] as const;
+export const tacticalGoals = ['Attacking', 'Defending', 'Countering', 'Intercepting', 'Transition', 'Control'] as const;
 
 export const firstMovementsByDiscipline: Record<MartialArtsDiscipline, string[]> = {
   'MMA': ['Jab','Cross','Jab–Cross','Lead Hook','Inside Low Kick','Low Kick','Right Body Kick','Lead Teep','Lead Hand Fake','Level Change Feint','Overhand Right','Double-Leg Shot','Single-Leg Shot','Clinch Entry'],

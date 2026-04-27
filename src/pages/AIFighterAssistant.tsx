@@ -851,7 +851,14 @@ export default function AIFighterAssistant() {
             <div className="max-h-[40vh] min-h-[120px] overflow-y-auto space-y-3 pr-1">
               {chat.length === 0 && (
                 <div className="text-center py-6 text-sm text-muted-foreground">
-                  <Bot className="h-8 w-8 mx-auto mb-2 text-primary/60" />
+                  <img
+                    src={gladiusIcon}
+                    alt="Gladius"
+                    width={512}
+                    height={512}
+                    loading="lazy"
+                    className="h-10 w-10 mx-auto mb-2 object-contain"
+                  />
                   Hi, I'm <span className="text-primary font-semibold">Gladius</span> — your fighter AI support.
                   <br />
                   Drop a training note or ask me anything about combat sports.
@@ -1054,11 +1061,24 @@ function ChatBubble({ role, content }: { role: 'user' | 'assistant'; content: st
     <div className={cn('flex gap-2', isUser && 'flex-row-reverse')}>
       <div
         className={cn(
-          'h-7 w-7 rounded-full flex items-center justify-center shrink-0',
-          isUser ? 'bg-primary/20 text-primary' : 'bg-secondary text-secondary-foreground',
+          'h-7 w-7 rounded-full flex items-center justify-center shrink-0 overflow-hidden',
+          isUser
+            ? 'bg-primary/20 text-primary'
+            : 'bg-background border border-primary/30',
         )}
       >
-        {isUser ? <UserIcon className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
+        {isUser ? (
+          <UserIcon className="h-3.5 w-3.5" />
+        ) : (
+          <img
+            src={gladiusIcon}
+            alt="Gladius"
+            width={512}
+            height={512}
+            loading="lazy"
+            className="h-6 w-6 object-contain"
+          />
+        )}
       </div>
       <div
         className={cn(

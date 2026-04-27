@@ -140,8 +140,8 @@ export default function TechniqueLibrary() {
         </div>
 
         {/* Filters */}
-        <div className="grid grid-cols-2 gap-2">
-          <Select value={disciplineFilter} onValueChange={v => { setDisciplineFilter(v); setCategoryFilter('all'); }}>
+        <div className="grid grid-cols-3 gap-2">
+          <Select value={disciplineFilter} onValueChange={v => { setDisciplineFilter(v); setTacticFilter('all'); }}>
             <SelectTrigger className="text-sm h-9">
               <SelectValue placeholder="Discipline" />
             </SelectTrigger>
@@ -153,15 +153,27 @@ export default function TechniqueLibrary() {
             </SelectContent>
           </Select>
 
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Select value={tacticFilter} onValueChange={setTacticFilter}>
             <SelectTrigger className="text-sm h-9">
-              <SelectValue placeholder="Category" />
+              <SelectValue placeholder="Tactic" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map(c => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+              <SelectItem value="all">All Tactics</SelectItem>
+              {tactics.map(t => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={levelFilter} onValueChange={setLevelFilter}>
+            <SelectTrigger className="text-sm h-9">
+              <SelectValue placeholder="Level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Levels</SelectItem>
+              <SelectItem value="Beginner">Beginner</SelectItem>
+              <SelectItem value="Intermediate">Intermediate</SelectItem>
+              <SelectItem value="Advance">Advance</SelectItem>
             </SelectContent>
           </Select>
         </div>

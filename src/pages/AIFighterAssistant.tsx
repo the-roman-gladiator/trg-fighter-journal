@@ -228,7 +228,7 @@ export default function AIFighterAssistant() {
     if (activeConvId === id) handleNewChat();
   };
 
-  const openImport = useCallback(async () => {
+  const openImport = async () => {
     setImportOpen(true);
     if (!user) return;
     setLoadingImports(true);
@@ -254,7 +254,7 @@ export default function AIFighterAssistant() {
     } finally {
       setLoadingImports(false);
     }
-  }, [user]);
+  };
 
   const handleImportNote = (n: ImportableNote) => {
     const header = `Training note — ${n.title}${n.discipline ? ` (${n.discipline})` : ''} — ${n.date}`;

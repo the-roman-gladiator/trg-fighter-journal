@@ -202,6 +202,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         disciplines: selectedDisciplines, // full multi-discipline list
         title: title || null,
         notes: notes || null,
+        video_url: videoUrl.trim() || null,
         strategy: strategy || null,
         technique: resolvedTechnique || null,
         first_movement: firstMovement || null,

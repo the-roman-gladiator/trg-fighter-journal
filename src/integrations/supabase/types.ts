@@ -670,54 +670,205 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_note_comments: {
+        Row: {
+          author_id: string
+          body: string
+          coach_session_id: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          coach_session_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          coach_session_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_note_comments_coach_session_id_fkey"
+            columns: ["coach_session_id"]
+            isOneToOne: false
+            referencedRelation: "coach_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_note_offers: {
+        Row: {
+          coach_id: string
+          coach_session_id: string
+          created_at: string
+          id: string
+          saved_session_id: string | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          coach_session_id: string
+          created_at?: string
+          id?: string
+          saved_session_id?: string | null
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          coach_session_id?: string
+          created_at?: string
+          id?: string
+          saved_session_id?: string | null
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_note_offers_coach_session_id_fkey"
+            columns: ["coach_session_id"]
+            isOneToOne: false
+            referencedRelation: "coach_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_note_offers_saved_session_id_fkey"
+            columns: ["saved_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_note_shares: {
+        Row: {
+          coach_session_id: string
+          created_at: string
+          id: string
+          permission: string
+          see_class_plan: boolean
+          see_student_status: boolean
+          shared_by: string
+          shared_with: string
+        }
+        Insert: {
+          coach_session_id: string
+          created_at?: string
+          id?: string
+          permission?: string
+          see_class_plan?: boolean
+          see_student_status?: boolean
+          shared_by: string
+          shared_with: string
+        }
+        Update: {
+          coach_session_id?: string
+          created_at?: string
+          id?: string
+          permission?: string
+          see_class_plan?: boolean
+          see_student_status?: boolean
+          shared_by?: string
+          shared_with?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_note_shares_coach_session_id_fkey"
+            columns: ["coach_session_id"]
+            isOneToOne: false
+            referencedRelation: "coach_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_sessions: {
         Row: {
           created_at: string
           discipline: string
           drills: string | null
           duration_minutes: number | null
+          first_movement: string | null
           id: string
+          note_type: string
           notes: string | null
+          opponent_action: string | null
           scheduled_date: string | null
+          second_movement: string | null
           session_plan: string | null
           status: string
+          tactic: string | null
+          tags: string[]
+          target_group: string | null
           target_level: string | null
           target_students: string | null
+          technique: string | null
           title: string
           updated_at: string
           user_id: string
+          visibility_scope: string
         }
         Insert: {
           created_at?: string
           discipline: string
           drills?: string | null
           duration_minutes?: number | null
+          first_movement?: string | null
           id?: string
+          note_type?: string
           notes?: string | null
+          opponent_action?: string | null
           scheduled_date?: string | null
+          second_movement?: string | null
           session_plan?: string | null
           status?: string
+          tactic?: string | null
+          tags?: string[]
+          target_group?: string | null
           target_level?: string | null
           target_students?: string | null
+          technique?: string | null
           title: string
           updated_at?: string
           user_id: string
+          visibility_scope?: string
         }
         Update: {
           created_at?: string
           discipline?: string
           drills?: string | null
           duration_minutes?: number | null
+          first_movement?: string | null
           id?: string
+          note_type?: string
           notes?: string | null
+          opponent_action?: string | null
           scheduled_date?: string | null
+          second_movement?: string | null
           session_plan?: string | null
           status?: string
+          tactic?: string | null
+          tags?: string[]
+          target_group?: string | null
           target_level?: string | null
           target_students?: string | null
+          technique?: string | null
           title?: string
           updated_at?: string
           user_id?: string
+          visibility_scope?: string
         }
         Relationships: []
       }
@@ -1526,6 +1677,7 @@ export type Database = {
           cardio_activity_name: string | null
           cardio_type: Database["public"]["Enums"]["cardio_type"] | null
           class_type: string | null
+          coach_note_snapshot: Json | null
           coach_session_id: string | null
           created_at: string
           date: string
@@ -1550,6 +1702,7 @@ export type Database = {
           opponent_action: string | null
           physical_effort_execution: string | null
           physical_effort_level: string | null
+          saved_from_coach_note: boolean
           second_movement: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           strategy: Database["public"]["Enums"]["strategy"] | null
@@ -1579,6 +1732,7 @@ export type Database = {
           cardio_activity_name?: string | null
           cardio_type?: Database["public"]["Enums"]["cardio_type"] | null
           class_type?: string | null
+          coach_note_snapshot?: Json | null
           coach_session_id?: string | null
           created_at?: string
           date?: string
@@ -1603,6 +1757,7 @@ export type Database = {
           opponent_action?: string | null
           physical_effort_execution?: string | null
           physical_effort_level?: string | null
+          saved_from_coach_note?: boolean
           second_movement?: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           strategy?: Database["public"]["Enums"]["strategy"] | null
@@ -1632,6 +1787,7 @@ export type Database = {
           cardio_activity_name?: string | null
           cardio_type?: Database["public"]["Enums"]["cardio_type"] | null
           class_type?: string | null
+          coach_note_snapshot?: Json | null
           coach_session_id?: string | null
           created_at?: string
           date?: string
@@ -1656,6 +1812,7 @@ export type Database = {
           opponent_action?: string | null
           physical_effort_execution?: string | null
           physical_effort_level?: string | null
+          saved_from_coach_note?: boolean
           second_movement?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]
           strategy?: Database["public"]["Enums"]["strategy"] | null
@@ -2269,6 +2426,10 @@ export type Database = {
           _inviter: string
           _target_level: Database["public"]["Enums"]["coach_level"]
         }
+        Returns: boolean
+      }
+      can_view_coach_session: {
+        Args: { _session_id: string; _user_id: string }
         Returns: boolean
       }
       coach_can_access_discipline: {

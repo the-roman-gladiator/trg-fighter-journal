@@ -302,7 +302,7 @@ export default function StudentSaveCoachNote() {
 
             <div>
               <Label className="text-xs">Extra Tags (optional)</Label>
-              <PredictiveTagInput selectedTags={extraTags} onChange={setExtraTags} />
+              <PredictiveTagInput selectedTags={extraTags} onTagsChange={setExtraTags} disciplines={[coachNote.discipline]} />
             </div>
           </CardContent>
         </Card>

@@ -88,6 +88,7 @@ export default function FighterSessionEdit() {
     setAction(data.action || '');
     setGoal(data.goal || '');
     setNotes(data.notes || '');
+    setVideoUrl((data as any).video_url || '');
     setStatus(data.status);
   };
 

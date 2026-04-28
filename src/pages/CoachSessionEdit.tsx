@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,12 +6,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Lock, Users, Globe } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { strategies, disciplines as DISCIPLINES } from '@/config/dropdownOptions';
+import { StudentOfferPicker } from '@/components/coach/StudentOfferPicker';
+import { SharedCoachesPicker, CoachShare } from '@/components/coach/SharedCoachesPicker';
+import { StudentSaveStatus } from '@/components/coach/StudentSaveStatus';
+import { CoachNoteComments } from '@/components/coach/CoachNoteComments';
 
-const DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ', 'Boxing', 'General'];
-const TARGET_LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'All Levels'];
+const TARGET_GROUPS = [
+  { value: 'all_students', label: 'All Students' },
+  { value: 'beginners', label: 'Beginners' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'advanced', label: 'Advanced' },
+  { value: 'fighters', label: 'Fighters' },
+];
+
+type NoteType = 'class_plan' | 'technical_note';
+type Visibility = 'private' | 'selected_coaches' | 'all_coaches';
 
 export default function CoachSessionEdit() {
   const { id } = useParams();
@@ -19,44 +34,91 @@ export default function CoachSessionEdit() {
   const navigate = useNavigate();
   const isNew = !id || id === 'new';
 
+  const [noteType, setNoteType] = useState<NoteType>('class_plan');
   const [form, setForm] = useState({
     title: '',
     discipline: 'MMA',
+    // class plan
     session_plan: '',
     drills: '',
-    target_level: 'All Levels',
-    target_students: '',
+    target_group: 'all_students',
     duration_minutes: 60,
     notes: '',
     scheduled_date: new Date().toISOString().split('T')[0],
+    // technical note
+    technique: '',
+    tactic: '',
+    first_movement: '',
+    opponent_action: '',
+    second_movement: '',
+    target_level: 'All Levels',
   });
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+
+  const [visibility, setVisibility] = useState<Visibility>('private');
+  const [shares, setShares] = useState<CoachShare[]>([]);
+  const [studentOffers, setStudentOffers] = useState<string[]>([]);
+  const [existingOfferStudentIds, setExistingOfferStudentIds] = useState<Set<string>>(new Set());
+
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
     if (!profile?.coach_level) { navigate('/'); return; }
-    if (!isNew) loadSession();
+    if (!isNew) loadAll();
   }, [user, id]);
 
-  const loadSession = async () => {
+  const loadAll = async () => {
     const { data } = await supabase
       .from('coach_sessions')
       .select('*')
       .eq('id', id)
       .maybeSingle();
-    if (data) {
-      setForm({
-        title: data.title || '',
-        discipline: data.discipline || 'MMA',
-        session_plan: data.session_plan || '',
-        drills: data.drills || '',
-        target_level: data.target_level || 'All Levels',
-        target_students: data.target_students || '',
-        duration_minutes: data.duration_minutes || 60,
-        notes: data.notes || '',
-        scheduled_date: data.scheduled_date || new Date().toISOString().split('T')[0],
-      });
-    }
+    if (!data) return;
+    setNoteType((data.note_type || 'class_plan') as NoteType);
+    setForm({
+      title: data.title || '',
+      discipline: data.discipline || 'MMA',
+      session_plan: data.session_plan || '',
+      drills: data.drills || '',
+      target_group: data.target_group || 'all_students',
+      duration_minutes: data.duration_minutes || 60,
+      notes: data.notes || '',
+      scheduled_date: data.scheduled_date || new Date().toISOString().split('T')[0],
+      technique: data.technique || '',
+      tactic: data.tactic || '',
+      first_movement: data.first_movement || '',
+      opponent_action: data.opponent_action || '',
+      second_movement: data.second_movement || '',
+      target_level: data.target_level || 'All Levels',
+    });
+    setTags(data.tags || []);
+    setVisibility((data.visibility_scope || 'private') as Visibility);
+
+    const { data: shareRows } = await supabase
+      .from('coach_note_shares').select('*').eq('coach_session_id', id);
+    setShares((shareRows || []).map((r: any) => ({
+      shared_with: r.shared_with,
+      permission: r.permission,
+      see_student_status: r.see_student_status,
+      see_class_plan: r.see_class_plan,
+    })));
+
+    const { data: offerRows } = await supabase
+      .from('coach_note_offers').select('student_id').eq('coach_session_id', id);
+    const ids = (offerRows || []).map((r: any) => r.student_id);
+    setStudentOffers(ids);
+    setExistingOfferStudentIds(new Set(ids));
+  };
+
+  const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
+
+  const addTag = () => {
+    const t = tagInput.trim();
+    if (!t) return;
+    if (!tags.map(x => x.toLowerCase()).includes(t.toLowerCase())) setTags([...tags, t]);
+    setTagInput('');
   };
 
   const handleSave = async (status: string = 'draft') => {
@@ -64,129 +126,318 @@ export default function CoachSessionEdit() {
       toast.error('Title is required');
       return;
     }
+    if (noteType === 'technical_note' && !form.technique.trim()) {
+      toast.error('Technique is required for a Technical Note');
+      return;
+    }
     setSaving(true);
 
-    const payload = {
-      ...form,
+    const payload: any = {
       user_id: user.id,
-      duration_minutes: Number(form.duration_minutes) || 60,
+      title: form.title,
+      discipline: form.discipline,
+      note_type: noteType,
+      tags,
+      visibility_scope: visibility,
       status,
+      // class plan fields (always store; harmless when blank for technical notes)
+      session_plan: form.session_plan || null,
+      drills: form.drills || null,
+      target_group: noteType === 'class_plan' ? form.target_group : null,
+      duration_minutes: noteType === 'class_plan' ? Number(form.duration_minutes) || 60 : null,
+      scheduled_date: noteType === 'class_plan' ? form.scheduled_date : null,
+      notes: form.notes || null,
+      // technical note fields
+      technique: form.technique || null,
+      tactic: form.tactic || null,
+      first_movement: form.first_movement || null,
+      opponent_action: form.opponent_action || null,
+      second_movement: form.second_movement || null,
+      target_level: form.target_level || null,
     };
 
+    let savedId = id as string | undefined;
     if (isNew) {
-      const { error } = await supabase.from('coach_sessions').insert(payload);
-      if (error) { toast.error(error.message); setSaving(false); return; }
-      toast.success(status === 'scheduled' ? 'Session scheduled — visible to athletes!' : 'Draft saved');
+      const { data, error } = await supabase.from('coach_sessions').insert(payload).select().single();
+      if (error || !data) { toast.error(error?.message || 'Save failed'); setSaving(false); return; }
+      savedId = data.id;
     } else {
       const { error } = await supabase.from('coach_sessions').update(payload).eq('id', id);
       if (error) { toast.error(error.message); setSaving(false); return; }
-      toast.success(status === 'scheduled' ? 'Session scheduled!' : 'Draft updated');
+    }
+
+    // Sync coach-to-coach shares (only meaningful when visibility = selected_coaches)
+    if (savedId) {
+      // Strategy: replace shares fully on save.
+      await supabase.from('coach_note_shares').delete().eq('coach_session_id', savedId);
+      if (visibility === 'selected_coaches' && shares.length > 0) {
+        const rows = shares.map(s => ({
+          coach_session_id: savedId,
+          shared_by: user.id,
+          shared_with: s.shared_with,
+          permission: s.permission,
+          see_student_status: s.see_student_status,
+          see_class_plan: s.see_class_plan,
+        }));
+        const { error: shErr } = await supabase.from('coach_note_shares').insert(rows);
+        if (shErr) toast.error(shErr.message);
+      }
+
+      // Sync student offers: insert new ones; do NOT delete existing offers
+      // (a student may have already saved/dismissed — preserve their state).
+      const newOffers = studentOffers.filter(sid => !existingOfferStudentIds.has(sid));
+      if (newOffers.length > 0) {
+        const rows = newOffers.map(sid => ({
+          coach_session_id: savedId,
+          coach_id: user.id,
+          student_id: sid,
+          status: 'pending',
+        }));
+        const { error: offErr } = await supabase.from('coach_note_offers').insert(rows);
+        if (offErr) toast.error(offErr.message);
+      }
     }
 
     setSaving(false);
+    toast.success(status === 'scheduled' ? 'Saved & scheduled' : 'Draft saved');
     navigate('/coach');
   };
 
-  const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
+  const visibilityIcon = useMemo(() => {
+    if (visibility === 'private') return <Lock className="h-3.5 w-3.5" />;
+    if (visibility === 'selected_coaches') return <Users className="h-3.5 w-3.5" />;
+    return <Globe className="h-3.5 w-3.5" />;
+  }, [visibility]);
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-4 max-w-2xl">
           <Button variant="ghost" onClick={() => navigate(-1)}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
           <h1 className="text-xl font-bold mt-2">
-            {isNew ? 'New Coach Session' : 'Edit Coach Session'}
+            {isNew ? 'New Coach Note' : 'Edit Coach Note'}
           </h1>
-          <p className="text-xs text-muted-foreground">Plan a class or training session for your students</p>
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+            {visibilityIcon}
+            {visibility === 'private' && 'Private — only you can see this'}
+            {visibility === 'selected_coaches' && `Shared with ${shares.length} coach${shares.length !== 1 ? 'es' : ''}`}
+            {visibility === 'all_coaches' && 'Visible to all coaches in the org'}
+          </p>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-lg space-y-5">
-        {/* Title */}
-        <div className="space-y-1.5">
-          <Label htmlFor="title">Session Title *</Label>
-          <Input id="title" value={form.title} onChange={e => update('title', e.target.value)}
-            placeholder="e.g. Tuesday Muay Thai Fundamentals" />
-        </div>
+      <main className="container mx-auto px-4 py-6 max-w-2xl space-y-5">
+        {/* Note Type Switcher */}
+        <Tabs value={noteType} onValueChange={(v) => setNoteType(v as NoteType)}>
+          <TabsList className="grid grid-cols-2 w-full">
+            <TabsTrigger value="class_plan">Class Plan</TabsTrigger>
+            <TabsTrigger value="technical_note">Technical Note</TabsTrigger>
+          </TabsList>
 
-        {/* Discipline & Level */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label>Discipline</Label>
-            <Select value={form.discipline} onValueChange={v => update('discipline', v)}>
+          {/* Common: Title + Discipline */}
+          <Card className="mt-4">
+            <CardContent className="space-y-4 pt-5">
+              <div>
+                <Label htmlFor="title">Title *</Label>
+                <Input id="title" value={form.title} onChange={e => update('title', e.target.value)}
+                  placeholder={noteType === 'class_plan' ? 'e.g. Tuesday Muay Thai Fundamentals' : 'e.g. Closing distance with the jab'} />
+              </div>
+              <div>
+                <Label>Discipline</Label>
+                <Select value={form.discipline} onValueChange={v => update('discipline', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {[...DISCIPLINES, 'General'].map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Class Plan section */}
+          <TabsContent value="class_plan" className="mt-4 space-y-4">
+            <Card>
+              <CardHeader><CardTitle className="text-sm">Class Plan</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Scheduled Date</Label>
+                    <Input type="date" value={form.scheduled_date} onChange={e => update('scheduled_date', e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Duration (min)</Label>
+                    <Input type="number" value={form.duration_minutes} onChange={e => update('duration_minutes', e.target.value)} />
+                  </div>
+                </div>
+                <div>
+                  <Label>Session Plan</Label>
+                  <Textarea value={form.session_plan} onChange={e => update('session_plan', e.target.value)} rows={4}
+                    placeholder="Warm-up → Pad work → Clinch → Sparring → Cool down" />
+                </div>
+                <div>
+                  <Label>Drills & Exercises</Label>
+                  <Textarea value={form.drills} onChange={e => update('drills', e.target.value)} rows={3}
+                    placeholder="3x3min pad rounds, 2x3min clinch knees, 5x2min sparring" />
+                </div>
+                <div>
+                  <Label>Target Group</Label>
+                  <Select value={form.target_group} onValueChange={v => update('target_group', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {TARGET_GROUPS.map(g => <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Coach Notes <span className="text-[10px] text-muted-foreground">(private)</span></Label>
+                  <Textarea value={form.notes} onChange={e => update('notes', e.target.value)} rows={3}
+                    placeholder="Private observations about student progress, focus areas, etc." />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Technical Note section */}
+          <TabsContent value="technical_note" className="mt-4 space-y-4">
+            <Card>
+              <CardHeader><CardTitle className="text-sm">Coach Technical Note</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Technique *</Label>
+                  <Input value={form.technique} onChange={e => update('technique', e.target.value)}
+                    placeholder="e.g. Jab, double-leg, kimura sweep" />
+                </div>
+                <div>
+                  <Label>Tactic</Label>
+                  <Select value={form.tactic} onValueChange={v => update('tactic', v)}>
+                    <SelectTrigger><SelectValue placeholder="Select tactic" /></SelectTrigger>
+                    <SelectContent>
+                      {strategies
+                        .filter(s => !(form.discipline === 'K1' && s === 'Control'))
+                        .map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Movement Chain</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    <Input value={form.first_movement} onChange={e => update('first_movement', e.target.value)} placeholder="My first movement (e.g. Jab)" />
+                    <Input value={form.opponent_action} onChange={e => update('opponent_action', e.target.value)} placeholder="Opponent reaction (e.g. Slip right)" />
+                    <Input value={form.second_movement} onChange={e => update('second_movement', e.target.value)} placeholder="My follow-up (e.g. Right hook)" />
+                  </div>
+                </div>
+                <div>
+                  <Label>Notes</Label>
+                  <Textarea value={form.notes} onChange={e => update('notes', e.target.value)} rows={3}
+                    placeholder="Cues, common mistakes, when to use..." />
+                </div>
+                <div>
+                  <Label>Target Level</Label>
+                  <Select value={form.target_level} onValueChange={v => update('target_level', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {['Beginner', 'Intermediate', 'Advanced', 'All Levels'].map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Tags (both modes) */}
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Tags</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex gap-2">
+              <Input value={tagInput} onChange={e => setTagInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                placeholder="Add tag and press Enter" />
+              <Button type="button" size="sm" onClick={addTag}>Add</Button>
+            </div>
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map(t => (
+                  <button key={t} type="button"
+                    onClick={() => setTags(tags.filter(x => x !== t))}
+                    className="text-[11px] px-2 py-0.5 rounded border border-border hover:border-destructive">
+                    {t} ✕
+                  </button>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Visibility & Coach Sharing */}
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Visibility</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <Select value={visibility} onValueChange={(v) => setVisibility(v as Visibility)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {DISCIPLINES.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                <SelectItem value="private">Private to me only</SelectItem>
+                <SelectItem value="selected_coaches">Share with selected coaches</SelectItem>
+                <SelectItem value="all_coaches">Share with all coaches in the org</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Target Level</Label>
-            <Select value={form.target_level} onValueChange={v => update('target_level', v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {TARGET_LEVELS.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+            {visibility === 'selected_coaches' && (
+              <div>
+                <Label className="text-xs">Choose coaches</Label>
+                <SharedCoachesPicker selected={shares} onChange={setShares} />
+              </div>
+            )}
+            <p className="text-[10px] text-muted-foreground">
+              Coach notes are private by default. Students never see this note unless you explicitly allow them to save it below.
+            </p>
+          </CardContent>
+        </Card>
 
-        {/* Schedule & Duration */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="date">Scheduled Date</Label>
-            <Input id="date" type="date" value={form.scheduled_date}
-              onChange={e => update('scheduled_date', e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="duration">Duration (min)</Label>
-            <Input id="duration" type="number" value={form.duration_minutes}
-              onChange={e => update('duration_minutes', e.target.value)} />
-          </div>
-        </div>
+        {/* Allow students to save */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Allow Students to Save</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <StudentOfferPicker
+              selected={studentOffers}
+              onChange={setStudentOffers}
+              discipline={form.discipline}
+            />
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Selected students will see a "Save coach note" prompt. Their saved copy is an immutable snapshot.
+              Existing pending/saved/dismissed states are preserved.
+            </p>
+          </CardContent>
+        </Card>
 
-        {/* Session Plan */}
-        <div className="space-y-1.5">
-          <Label htmlFor="plan">Session Plan</Label>
-          <Textarea id="plan" value={form.session_plan} onChange={e => update('session_plan', e.target.value)}
-            placeholder="e.g. Warm-up → Shadow boxing → Pad work (jab-cross-hook combos) → Clinch entries → Sparring rounds → Cool down"
-            rows={4} />
-          <p className="text-[10px] text-muted-foreground">Outline the structure and flow of the class.</p>
-        </div>
+        {/* Existing-only sections (after save) */}
+        {!isNew && id && (
+          <>
+            <Card>
+              <CardHeader><CardTitle className="text-sm">Student Save Status</CardTitle></CardHeader>
+              <CardContent>
+                <StudentSaveStatus coachSessionId={id} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-sm">Comments</CardTitle></CardHeader>
+              <CardContent>
+                <CoachNoteComments coachSessionId={id} canComment={true} />
+              </CardContent>
+            </Card>
+          </>
+        )}
 
-        {/* Drills */}
-        <div className="space-y-1.5">
-          <Label htmlFor="drills">Drills & Exercises</Label>
-          <Textarea id="drills" value={form.drills} onChange={e => update('drills', e.target.value)}
-            placeholder="e.g. 3x3min pad rounds (jab-cross-hook), 2x3min clinch knees, 5x2min sparring"
-            rows={3} />
-          <p className="text-[10px] text-muted-foreground">List the specific drills, rounds, and exercises.</p>
-        </div>
-
-        {/* Target Students */}
-        <div className="space-y-1.5">
-          <Label htmlFor="students">Target Students</Label>
-          <Input id="students" value={form.target_students} onChange={e => update('target_students', e.target.value)}
-            placeholder="e.g. All students, Fighters only, Beginners group" />
-        </div>
-
-        {/* Notes */}
-        <div className="space-y-1.5">
-          <Label htmlFor="notes">Coach Notes</Label>
-          <Textarea id="notes" value={form.notes} onChange={e => update('notes', e.target.value)}
-            placeholder="Private notes about student progress, focus areas, etc."
-            rows={3} />
-        </div>
-
-        {/* Save */}
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" onClick={() => handleSave('draft')} disabled={saving} className="h-12 text-base font-bold">
+        {/* Save buttons */}
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <Button variant="outline" onClick={() => handleSave('draft')} disabled={saving} className="h-12 font-bold">
             {saving ? 'Saving...' : 'Save Draft'}
           </Button>
-          <Button onClick={() => handleSave('scheduled')} disabled={saving} className="h-12 text-base font-bold">
-            {saving ? 'Saving...' : 'Schedule'}
+          <Button onClick={() => handleSave(noteType === 'class_plan' ? 'scheduled' : 'completed')} disabled={saving} className="h-12 font-bold">
+            {saving ? 'Saving...' : noteType === 'class_plan' ? 'Schedule' : 'Save'}
           </Button>
         </div>
       </main>

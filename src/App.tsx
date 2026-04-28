@@ -26,6 +26,7 @@ import FighterSessionDetail from "./pages/FighterSessionDetail";
 import FighterPathway from "./pages/FighterPathway";
 import CoachDashboard from "./pages/CoachDashboard";
 import CoachSessionEdit from "./pages/CoachSessionEdit";
+import StudentSaveCoachNote from "./pages/StudentSaveCoachNote";
 import TechniqueLibrary from "./pages/TechniqueLibrary";
 import Records from "./pages/Records";
 import Trends from "./pages/Trends";
@@ -96,6 +97,7 @@ function AppShell() {
         <Route path="/coach" element={<CoachDashboard />} />
         <Route path="/coach/session/new" element={<CoachSessionEdit />} />
         <Route path="/coach/session/:id/edit" element={<CoachSessionEdit />} />
+        <Route path="/coach-note/save/:offerId" element={<StudentSaveCoachNote />} />
         <Route path="/library" element={<TechniqueLibrary />} />
         
         <Route path="/records" element={<Records />} />

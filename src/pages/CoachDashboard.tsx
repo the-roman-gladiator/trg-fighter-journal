@@ -17,6 +17,7 @@ import { HierarchySettings } from '@/components/coach/HierarchySettings';
 import { CoachRoster } from '@/components/coach/CoachRoster';
 import { FighterManager } from '@/components/coach/FighterManager';
 import { useCoachAccess } from '@/hooks/useCoachAccess';
+import { SharedWithMe } from '@/components/coach/SharedWithMe';
 
 const ALL_FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
 
@@ -290,6 +291,7 @@ export default function CoachDashboard() {
                 Reviews {fighterSessions.length > 0 && <Badge variant="secondary" className="ml-1 text-[10px]">{fighterSessions.length}</Badge>}
               </TabsTrigger>
             )}
+            <TabsTrigger value="shared" className="flex-1">Shared</TabsTrigger>
             {canInviteCoaches && (
               <TabsTrigger value="coaches" className="flex-1">Coaches</TabsTrigger>
             )}
@@ -523,6 +525,10 @@ export default function CoachDashboard() {
                 );
               })
             )}
+          </TabsContent>
+
+          <TabsContent value="shared" className="space-y-3 mt-4">
+            <SharedWithMe />
           </TabsContent>
 
           {/* Coach invitations */}

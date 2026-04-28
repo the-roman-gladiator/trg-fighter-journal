@@ -55,6 +55,7 @@ export default function CoachSessionEdit() {
     opponent_action: '',
     second_movement: '',
     target_level: 'All Levels',
+    video_url: '',
   });
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');

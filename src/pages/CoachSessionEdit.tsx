@@ -117,6 +117,14 @@ export default function CoachSessionEdit() {
 
   const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
 
+  // Pre-populated technique options for the selected discipline (mirrors athlete SessionForm)
+  const techniqueOptions = useMemo(
+    () => getActive('technique', form.discipline).map(i => i.item_name),
+    [getActive, form.discipline]
+  );
+  const isCustomTechnique =
+    !!form.technique && !techniqueOptions.includes(form.technique);
+
   const addTag = () => {
     const t = tagInput.trim();
     if (!t) return;

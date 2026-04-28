@@ -93,7 +93,6 @@ export default function Auth() {
     supabase.rpc('signups_open').then(({ data, error }) => {
       if (cancelled) return;
       if (error) {
-        // Fail closed: assume signups are closed if check fails.
         setSignupsOpen(false);
       } else {
         setSignupsOpen(Boolean(data));
@@ -101,6 +100,13 @@ export default function Auth() {
     });
     return () => { cancelled = true; };
   }, []);
+
+  // If signups are closed and user is on signup tab, send them to login.
+  useEffect(() => {
+    if (signupsOpen === false && mode === 'signup') {
+      setMode('login');
+    }
+  }, [signupsOpen, mode]);
 
   // Reset captcha token when switching modes
   useEffect(() => {

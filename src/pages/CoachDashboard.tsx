@@ -527,6 +527,10 @@ export default function CoachDashboard() {
             )}
           </TabsContent>
 
+          <TabsContent value="shared" className="space-y-3 mt-4">
+            <SharedWithMe />
+          </TabsContent>
+
           {/* Coach invitations */}
           {canInviteCoaches && (
             <TabsContent value="coaches" className="space-y-4 mt-4">

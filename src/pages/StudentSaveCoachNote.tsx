@@ -245,49 +245,54 @@ export default function StudentSaveCoachNote() {
         <Card>
           <CardHeader><CardTitle className="text-sm">Your Reflection</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs">Before Emotion</Label>
-                <Select value={beforeEmotion} onValueChange={setBeforeEmotion}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{emotionOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                </Select>
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Emotions</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Before Emotion</Label>
+                  <Select value={beforeEmotion} onValueChange={setBeforeEmotion}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectContent>{emotionOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">After Emotion</Label>
+                  <Select value={afterEmotion} onValueChange={setAfterEmotion}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectContent>{emotionOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div>
-                <Label className="text-xs">Before Mindset</Label>
-                <Select value={beforeMindset} onValueChange={setBeforeMindset}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{mindsetOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                </Select>
+
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground pt-2">Mindset</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Before Mindset</Label>
+                  <Select value={beforeMindset} onValueChange={setBeforeMindset}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectContent>{mindsetOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">After Mindset</Label>
+                  <Select value={afterMindset} onValueChange={setAfterMindset}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectContent>{mindsetOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div>
-                <Label className="text-xs">After Emotion</Label>
-                <Select value={afterEmotion} onValueChange={setAfterEmotion}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{emotionOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">After Mindset</Label>
-                <Select value={afterMindset} onValueChange={setAfterMindset}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{mindsetOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Physical Effort</Label>
-                <Select value={physicalEffort} onValueChange={setPhysicalEffort}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{EFFORTS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Mental Effort</Label>
-                <Select value={mentalEffort} onValueChange={setMentalEffort}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{EFFORTS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
+
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground pt-2">Physical Effort</p>
+              <Select value={physicalEffort} onValueChange={setPhysicalEffort}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Easy to Max" /></SelectTrigger>
+                <SelectContent>{EFFORTS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+              </Select>
+
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground pt-2">Mental Effort</p>
+              <Select value={mentalEffort} onValueChange={setMentalEffort}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Easy to Max" /></SelectTrigger>
+                <SelectContent>{EFFORTS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+              </Select>
             </div>
 
             <div>

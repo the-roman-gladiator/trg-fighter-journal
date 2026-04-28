@@ -167,6 +167,7 @@ export default function CoachSessionEdit() {
       opponent_action: form.opponent_action || null,
       second_movement: form.second_movement || null,
       target_level: form.target_level || null,
+      video_url: form.video_url.trim() || null,
     };
 
     let savedId = id as string | undefined;

@@ -43,6 +43,7 @@ export default function FighterSessionEdit() {
   const [action, setAction] = useState('');
   const [goal, setGoal] = useState('');
   const [notes, setNotes] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [status, setStatus] = useState('draft');
   const [loading, setLoading] = useState(false);
 
@@ -87,6 +88,7 @@ export default function FighterSessionEdit() {
     setAction(data.action || '');
     setGoal(data.goal || '');
     setNotes(data.notes || '');
+    setVideoUrl((data as any).video_url || '');
     setStatus(data.status);
   };
 
@@ -108,6 +110,7 @@ export default function FighterSessionEdit() {
         action: action || null,
         goal: goal || null,
         notes: notes || null,
+        video_url: videoUrl.trim() || null,
         status,
       };
 
@@ -251,6 +254,12 @@ export default function FighterSessionEdit() {
               <div>
                 <Label>Notes</Label>
                 <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Additional observations..." />
+              </div>
+              <div>
+                <Label>YouTube / Video URL (optional)</Label>
+                <Input type="url" inputMode="url" maxLength={500}
+                  value={videoUrl} onChange={e => setVideoUrl(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=..." />
               </div>
               <div>
                 <Label>Session Status</Label>

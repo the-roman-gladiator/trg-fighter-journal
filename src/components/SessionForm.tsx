@@ -66,6 +66,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [opponentReaction, setOpponentReaction] = useState('');
   const [thirdMovement, setThirdMovement] = useState('');
   const [notes, setNotes] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Performance fields
@@ -124,6 +125,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setOpponentReaction(session.opponent_action || '');
       setThirdMovement(session.second_movement || '');
       setNotes(session.notes || '');
+      setVideoUrl((session as any).video_url || '');
       setBeforeEmotion((session as any).before_emotion || '');
       setBeforeMindset((session as any).before_mindset || '');
       setAfterEmotion((session as any).after_emotion || '');
@@ -200,6 +202,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         disciplines: selectedDisciplines, // full multi-discipline list
         title: title || null,
         notes: notes || null,
+        video_url: videoUrl.trim() || null,
         strategy: strategy || null,
         technique: resolvedTechnique || null,
         first_movement: firstMovement || null,
@@ -661,6 +664,18 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             <div>
               <Label>Notes</Label>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={5} placeholder="What happened? What worked? What needs improvement?" />
+            </div>
+
+            <div>
+              <Label>YouTube / Video URL (optional)</Label>
+              <Input
+                type="url"
+                inputMode="url"
+                maxLength={500}
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                placeholder="https://youtube.com/watch?v=..."
+              />
             </div>
 
             <PredictiveTagInput

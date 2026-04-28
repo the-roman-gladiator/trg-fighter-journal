@@ -228,6 +228,23 @@ export default function SessionDetail() {
           </Card>
         )}
 
+        {/* Video URL */}
+        {(session as any).video_url && (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-xs text-muted-foreground mb-1">Video</p>
+              <a
+                href={(session as any).video_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary underline break-all"
+              >
+                {(session as any).video_url}
+              </a>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Tags */}
         {tags.length > 0 && (
           <Card>

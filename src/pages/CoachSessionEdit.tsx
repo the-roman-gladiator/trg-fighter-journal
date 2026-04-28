@@ -55,6 +55,7 @@ export default function CoachSessionEdit() {
     opponent_action: '',
     second_movement: '',
     target_level: 'All Levels',
+    video_url: '',
   });
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
@@ -95,6 +96,7 @@ export default function CoachSessionEdit() {
       opponent_action: data.opponent_action || '',
       second_movement: data.second_movement || '',
       target_level: data.target_level || 'All Levels',
+      video_url: (data as any).video_url || '',
     });
     setTags(data.tags || []);
     setVisibility((data.visibility_scope || 'private') as Visibility);
@@ -165,6 +167,7 @@ export default function CoachSessionEdit() {
       opponent_action: form.opponent_action || null,
       second_movement: form.second_movement || null,
       target_level: form.target_level || null,
+      video_url: form.video_url.trim() || null,
     };
 
     let savedId = id as string | undefined;
@@ -306,6 +309,12 @@ export default function CoachSessionEdit() {
                   <Textarea value={form.notes} onChange={e => update('notes', e.target.value)} rows={3}
                     placeholder="Private observations about student progress, focus areas, etc." />
                 </div>
+                <div>
+                  <Label>YouTube / Video URL (optional)</Label>
+                  <Input type="url" inputMode="url" maxLength={500}
+                    value={form.video_url} onChange={e => update('video_url', e.target.value)}
+                    placeholder="https://youtube.com/watch?v=..." />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -374,6 +383,12 @@ export default function CoachSessionEdit() {
                   <Label>Notes</Label>
                   <Textarea value={form.notes} onChange={e => update('notes', e.target.value)} rows={3}
                     placeholder="Cues, common mistakes, when to use..." />
+                </div>
+                <div>
+                  <Label>YouTube / Video URL (optional)</Label>
+                  <Input type="url" inputMode="url" maxLength={500}
+                    value={form.video_url} onChange={e => update('video_url', e.target.value)}
+                    placeholder="https://youtube.com/watch?v=..." />
                 </div>
                 <div>
                   <Label>Target Level</Label>

@@ -87,6 +87,21 @@ export default function Auth() {
     }
   }, [mode]);
 
+  // Check whether public signups are still open (first-user-only).
+  useEffect(() => {
+    let cancelled = false;
+    supabase.rpc('signups_open').then(({ data, error }) => {
+      if (cancelled) return;
+      if (error) {
+        // Fail closed: assume signups are closed if check fails.
+        setSignupsOpen(false);
+      } else {
+        setSignupsOpen(Boolean(data));
+      }
+    });
+    return () => { cancelled = true; };
+  }, []);
+
   // Reset captcha token when switching modes
   useEffect(() => {
     setCaptchaToken('');

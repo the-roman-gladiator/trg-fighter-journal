@@ -309,6 +309,12 @@ export default function CoachSessionEdit() {
                   <Textarea value={form.notes} onChange={e => update('notes', e.target.value)} rows={3}
                     placeholder="Private observations about student progress, focus areas, etc." />
                 </div>
+                <div>
+                  <Label>YouTube / Video URL (optional)</Label>
+                  <Input type="url" inputMode="url" maxLength={500}
+                    value={form.video_url} onChange={e => update('video_url', e.target.value)}
+                    placeholder="https://youtube.com/watch?v=..." />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

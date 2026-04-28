@@ -34,7 +34,7 @@ export function SharedWithMe() {
       .eq('shared_with', user!.id);
     const sharedIds = (myShares || []).map(s => s.coach_session_id);
     const permByShare: Record<string, 'view' | 'comment'> = {};
-    (myShares || []).forEach(s => { permByShare[s.coach_session_id] = s.permission; });
+    (myShares || []).forEach(s => { permByShare[s.coach_session_id] = s.permission as 'view' | 'comment'; });
 
     // Pull notes set to all_coaches (RLS will permit since we have coach_level)
     const { data: allCoachNotes } = await supabase

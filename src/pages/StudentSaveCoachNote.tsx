@@ -117,8 +117,6 @@ export default function StudentSaveCoachNote() {
       first_movement: coachNote.first_movement,
       opponent_action: coachNote.opponent_action,
       second_movement: coachNote.second_movement,
-      session_plan: coachNote.session_plan,
-      drills: coachNote.drills,
       notes: coachNote.notes,
       tags: coachNote.tags || [],
       snapshot_at: new Date().toISOString(),

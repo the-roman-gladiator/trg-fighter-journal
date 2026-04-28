@@ -256,6 +256,12 @@ export default function FighterSessionEdit() {
                 <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Additional observations..." />
               </div>
               <div>
+                <Label>YouTube / Video URL (optional)</Label>
+                <Input type="url" inputMode="url" maxLength={500}
+                  value={videoUrl} onChange={e => setVideoUrl(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=..." />
+              </div>
+              <div>
                 <Label>Session Status</Label>
                 <Select value={status} onValueChange={setStatus}>
                   <SelectTrigger><SelectValue /></SelectTrigger>

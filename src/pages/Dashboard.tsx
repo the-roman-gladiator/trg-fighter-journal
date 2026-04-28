@@ -182,33 +182,8 @@ export default function Dashboard() {
       }
     }
 
-    // Fetch scheduled coach sessions
-    const { data: coachData } = await supabase
-      .from('coach_sessions')
-      .select('*')
-      .eq('status', 'scheduled')
-      .gte('scheduled_date', format(new Date(), 'yyyy-MM-dd'))
-      .order('scheduled_date', { ascending: true })
-      .limit(10);
-    setCoachSessions(coachData || []);
-
-    // Build coach name map
-    const coachUserIds = [...new Set((coachData || []).map(cs => cs.user_id))];
-    if (coachUserIds.length > 0) {
-      const { data: coachProfiles } = await supabase
-        .from('profiles')
-        .select('id, name, middle_name, surname')
-        .in('id', coachUserIds);
-      const nameMap: Record<string, string> = {};
-      (coachProfiles || []).forEach(p => {
-        nameMap[p.id] = [p.name, p.middle_name, p.surname].filter(Boolean).join(' ');
-      });
-      const csNameMap: Record<string, string> = {};
-      (coachData || []).forEach(cs => {
-        csNameMap[cs.id] = nameMap[cs.user_id] || 'Coach';
-      });
-      setCoachNameMap(csNameMap);
-    }
+    // Coach notes are private — student-side discovery is handled exclusively
+    // through the CoachNoteOffersInbox widget (reads coach_note_offers).
 
     setLoading(false);
   };

@@ -125,6 +125,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setOpponentReaction(session.opponent_action || '');
       setThirdMovement(session.second_movement || '');
       setNotes(session.notes || '');
+      setVideoUrl((session as any).video_url || '');
       setBeforeEmotion((session as any).before_emotion || '');
       setBeforeMindset((session as any).before_mindset || '');
       setAfterEmotion((session as any).after_emotion || '');

@@ -32,6 +32,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string>('');
+  const [signupsOpen, setSignupsOpen] = useState<boolean | null>(null);
   const turnstileResetRef = useRef<(() => void) | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();

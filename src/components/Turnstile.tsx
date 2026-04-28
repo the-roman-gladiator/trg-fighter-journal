@@ -7,7 +7,6 @@ declare global {
       reset: (id?: string) => void;
       remove: (id?: string) => void;
     };
-    onloadTurnstileCallback?: () => void;
   }
 }
 
@@ -16,11 +15,12 @@ interface TurnstileProps {
   onVerify: (token: string) => void;
   onExpire?: () => void;
   onError?: () => void;
+  onResetReady?: (reset: () => void) => void;
 }
 
 const SCRIPT_ID = 'cf-turnstile-script';
 
-export function Turnstile({ siteKey, onVerify, onExpire, onError }: TurnstileProps) {
+export function Turnstile({ siteKey, onVerify, onExpire, onError, onResetReady }: TurnstileProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
 
@@ -36,6 +36,15 @@ export function Turnstile({ siteKey, onVerify, onExpire, onError }: TurnstilePro
         callback: (token: string) => onVerify(token),
         'expired-callback': () => onExpire?.(),
         'error-callback': () => onError?.(),
+      });
+      onResetReady?.(() => {
+        if (widgetIdRef.current && window.turnstile) {
+          try {
+            window.turnstile.reset(widgetIdRef.current);
+          } catch {
+            // ignore
+          }
+        }
       });
     };
 
@@ -70,7 +79,7 @@ export function Turnstile({ siteKey, onVerify, onExpire, onError }: TurnstilePro
         widgetIdRef.current = null;
       }
     };
-  }, [siteKey, onVerify, onExpire, onError]);
+  }, [siteKey, onVerify, onExpire, onError, onResetReady]);
 
   return <div ref={containerRef} className="flex justify-center" />;
 }

@@ -317,8 +317,39 @@ export default function CoachSessionEdit() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>Technique *</Label>
-                  <Input value={form.technique} onChange={e => update('technique', e.target.value)}
-                    placeholder="e.g. Jab, double-leg, kimura sweep" />
+                  <Select
+                    value={isCustomTechnique || form.technique === '__custom__' ? '__custom__' : form.technique}
+                    onValueChange={(v) => {
+                      if (v === '__custom__') {
+                        update('technique', customTechnique || '');
+                      } else {
+                        setCustomTechnique('');
+                        update('technique', v);
+                      }
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Select technique" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__custom__">+ Custom (type your own)</SelectItem>
+                      {techniqueOptions.map((t) => (<SelectItem key={t} value={t}>{t}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                  {(isCustomTechnique || (form.technique === '' && customTechnique !== '')) && (
+                    <Input
+                      className="mt-2"
+                      value={isCustomTechnique ? form.technique : customTechnique}
+                      onChange={(e) => {
+                        setCustomTechnique(e.target.value);
+                        update('technique', e.target.value);
+                      }}
+                      placeholder="Type your custom technique"
+                    />
+                  )}
+                  {techniqueOptions.length === 0 && (
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      No saved techniques for {form.discipline} yet — add them in Profile → Custom Lists, or use Custom.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label>Tactic</Label>

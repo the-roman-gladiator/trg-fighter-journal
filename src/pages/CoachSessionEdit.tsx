@@ -385,6 +385,12 @@ export default function CoachSessionEdit() {
                     placeholder="Cues, common mistakes, when to use..." />
                 </div>
                 <div>
+                  <Label>YouTube / Video URL (optional)</Label>
+                  <Input type="url" inputMode="url" maxLength={500}
+                    value={form.video_url} onChange={e => update('video_url', e.target.value)}
+                    placeholder="https://youtube.com/watch?v=..." />
+                </div>
+                <div>
                   <Label>Target Level</Label>
                   <Select value={form.target_level} onValueChange={v => update('target_level', v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>

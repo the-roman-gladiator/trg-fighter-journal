@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Lock, Users, Globe } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { strategies, disciplines as DISCIPLINES } from '@/config/dropdownOptions';
+import { useUserLists } from '@/hooks/useUserLists';
 import { StudentOfferPicker } from '@/components/coach/StudentOfferPicker';
 import { SharedCoachesPicker, CoachShare } from '@/components/coach/SharedCoachesPicker';
 import { StudentSaveStatus } from '@/components/coach/StudentSaveStatus';
@@ -33,8 +34,10 @@ export default function CoachSessionEdit() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const isNew = !id || id === 'new';
+  const { getActive } = useUserLists();
 
   const [noteType, setNoteType] = useState<NoteType>('class_plan');
+  const [customTechnique, setCustomTechnique] = useState('');
   const [form, setForm] = useState({
     title: '',
     discipline: 'MMA',
@@ -113,6 +116,14 @@ export default function CoachSessionEdit() {
   };
 
   const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
+
+  // Pre-populated technique options for the selected discipline (mirrors athlete SessionForm)
+  const techniqueOptions = useMemo(
+    () => getActive('technique', form.discipline).map(i => i.item_name),
+    [getActive, form.discipline]
+  );
+  const isCustomTechnique =
+    !!form.technique && !techniqueOptions.includes(form.technique);
 
   const addTag = () => {
     const t = tagInput.trim();
@@ -306,8 +317,39 @@ export default function CoachSessionEdit() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>Technique *</Label>
-                  <Input value={form.technique} onChange={e => update('technique', e.target.value)}
-                    placeholder="e.g. Jab, double-leg, kimura sweep" />
+                  <Select
+                    value={isCustomTechnique || form.technique === '__custom__' ? '__custom__' : form.technique}
+                    onValueChange={(v) => {
+                      if (v === '__custom__') {
+                        update('technique', customTechnique || '');
+                      } else {
+                        setCustomTechnique('');
+                        update('technique', v);
+                      }
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Select technique" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__custom__">+ Custom (type your own)</SelectItem>
+                      {techniqueOptions.map((t) => (<SelectItem key={t} value={t}>{t}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                  {(isCustomTechnique || (form.technique === '' && customTechnique !== '')) && (
+                    <Input
+                      className="mt-2"
+                      value={isCustomTechnique ? form.technique : customTechnique}
+                      onChange={(e) => {
+                        setCustomTechnique(e.target.value);
+                        update('technique', e.target.value);
+                      }}
+                      placeholder="Type your custom technique"
+                    />
+                  )}
+                  {techniqueOptions.length === 0 && (
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      No saved techniques for {form.discipline} yet — add them in Profile → Custom Lists, or use Custom.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label>Tactic</Label>

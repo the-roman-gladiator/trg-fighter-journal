@@ -66,6 +66,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [opponentReaction, setOpponentReaction] = useState('');
   const [thirdMovement, setThirdMovement] = useState('');
   const [notes, setNotes] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Performance fields

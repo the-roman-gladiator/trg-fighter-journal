@@ -32,6 +32,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string>('');
+  const [signupsOpen, setSignupsOpen] = useState<boolean | null>(null);
   const turnstileResetRef = useRef<(() => void) | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -85,6 +86,27 @@ export default function Auth() {
       });
     }
   }, [mode]);
+
+  // Check whether public signups are still open (first-user-only).
+  useEffect(() => {
+    let cancelled = false;
+    supabase.rpc('signups_open').then(({ data, error }) => {
+      if (cancelled) return;
+      if (error) {
+        setSignupsOpen(false);
+      } else {
+        setSignupsOpen(Boolean(data));
+      }
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // If signups are closed and user is on signup tab, send them to login.
+  useEffect(() => {
+    if (signupsOpen === false && mode === 'signup') {
+      setMode('login');
+    }
+  }, [signupsOpen, mode]);
 
   // Reset captcha token when switching modes
   useEffect(() => {
@@ -149,6 +171,9 @@ export default function Auth() {
         toast({ title: 'Welcome back!', description: 'Successfully logged in.' });
         navigate('/');
       } else {
+        if (signupsOpen === false) {
+          throw new Error('Private access only. New registrations are closed.');
+        }
         const pwError = validateStrongPassword(password);
         if (pwError) throw new Error(pwError);
         if (!captchaToken) throw new Error('Please complete the security check.');
@@ -204,6 +229,14 @@ export default function Auth() {
           <h1 className="text-4xl font-bold text-primary">Fighter Training Journal</h1>
           <p className="mt-2 text-muted-foreground">{headings[mode]}</p>
           <p className="mt-1 text-sm text-muted-foreground">{descriptions[mode]}</p>
+          <p className="mt-3 text-xs text-muted-foreground italic">
+            This app is currently in private testing. Only approved users can access.
+          </p>
+          {signupsOpen === false && (
+            <p className="mt-2 text-sm font-medium text-primary">
+              Private access only. New registrations are closed.
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleAuth} className="mt-8 space-y-6 bg-card p-8 rounded-lg border border-border">
@@ -290,13 +323,15 @@ export default function Auth() {
                   Forgot your password?
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => setMode(mode === 'signup' ? 'login' : mode === 'login' ? 'signup' : 'login')}
-                className="text-sm text-primary hover:underline"
-              >
-                {mode === 'signup' ? 'Already have an account? Sign in' : mode === 'login' ? "Don't have an account? Sign up" : 'Back to Sign in'}
-              </button>
+              {!(signupsOpen === false && mode === 'login') && (
+                <button
+                  type="button"
+                  onClick={() => setMode(mode === 'signup' ? 'login' : mode === 'login' ? 'signup' : 'login')}
+                  className="text-sm text-primary hover:underline"
+                >
+                  {mode === 'signup' ? 'Already have an account? Sign in' : mode === 'login' ? "Don't have an account? Sign up" : 'Back to Sign in'}
+                </button>
+              )}
             </div>
           )}
 

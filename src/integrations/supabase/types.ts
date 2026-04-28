@@ -2300,6 +2300,7 @@ export type Database = {
         Returns: Json
       }
       redeem_coach_invitation: { Args: { _code: string }; Returns: Json }
+      signups_open: { Args: never; Returns: boolean }
       user_has_fighter_profile: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {

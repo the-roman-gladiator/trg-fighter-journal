@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Lock, Users, Globe } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { strategies, disciplines as DISCIPLINES } from '@/config/dropdownOptions';
+import { useUserLists } from '@/hooks/useUserLists';
 import { StudentOfferPicker } from '@/components/coach/StudentOfferPicker';
 import { SharedCoachesPicker, CoachShare } from '@/components/coach/SharedCoachesPicker';
 import { StudentSaveStatus } from '@/components/coach/StudentSaveStatus';

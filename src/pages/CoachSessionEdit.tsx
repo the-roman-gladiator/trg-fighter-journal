@@ -96,6 +96,7 @@ export default function CoachSessionEdit() {
       opponent_action: data.opponent_action || '',
       second_movement: data.second_movement || '',
       target_level: data.target_level || 'All Levels',
+      video_url: (data as any).video_url || '',
     });
     setTags(data.tags || []);
     setVisibility((data.visibility_scope || 'private') as Visibility);

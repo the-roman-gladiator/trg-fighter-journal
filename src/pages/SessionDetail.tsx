@@ -47,8 +47,13 @@ export default function SessionDetail() {
 
     setSession(data);
 
-    // Fetch coach name if this is a coach class
-    if (data.coach_session_id) {
+    // Resolve coach name. Prefer the immutable snapshot stored on the
+    // student's training session — this works even after RLS lockdown.
+    const snap = (data as any).coach_note_snapshot;
+    if (snap?.coach_name) {
+      setCoachName(snap.coach_name);
+    } else if (data.coach_session_id) {
+      // Fallback (only succeeds if the user can view the coach session via RLS).
       const { data: cs } = await supabase
         .from('coach_sessions')
         .select('user_id')

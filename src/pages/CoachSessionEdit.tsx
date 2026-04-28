@@ -36,6 +36,7 @@ export default function CoachSessionEdit() {
   const isNew = !id || id === 'new';
   const { getActive } = useUserLists();
 
+  const [noteType, setNoteType] = useState<NoteType>('class_plan');
   const [customTechnique, setCustomTechnique] = useState('');
   const [form, setForm] = useState({
     title: '',

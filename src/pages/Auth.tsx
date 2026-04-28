@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,13 +9,14 @@ import { useToast } from '@/hooks/use-toast';
 import { logEvent } from '@/hooks/useAnalytics';
 import { Turnstile } from '@/components/Turnstile';
 
+// Public Cloudflare Turnstile site key (safe to expose in frontend).
+// The matching SECRET key must be configured in Cloud → Auth Settings → CAPTCHA Protection.
+const TURNSTILE_SITE_KEY = '0x4AAAAAADEiFrPq6HzDSJ78';
+
 const STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 function validateStrongPassword(pw: string): string | null {
-  if (pw.length < 8) return 'Password must be at least 8 characters.';
-  if (!/[a-z]/.test(pw)) return 'Password must contain a lowercase letter.';
-  if (!/[A-Z]/.test(pw)) return 'Password must contain an uppercase letter.';
-  if (!/\d/.test(pw)) return 'Password must contain a number.';
-  if (!STRONG_PASSWORD.test(pw)) return 'Password does not meet requirements.';
+  if (pw.length < 8) return 'Password does not meet security requirements.';
+  if (!STRONG_PASSWORD.test(pw)) return 'Password does not meet security requirements.';
   return null;
 }
 
@@ -30,34 +31,43 @@ export default function Auth() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
-  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string>('');
   const [captchaToken, setCaptchaToken] = useState<string>('');
+  const turnstileResetRef = useRef<(() => void) | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Fetch Turnstile site key when entering signup mode
-  useEffect(() => {
-    if (mode !== 'signup' || turnstileSiteKey) return;
-    supabase.functions.invoke('turnstile-config').then(({ data }) => {
-      if (data?.siteKey) setTurnstileSiteKey(data.siteKey);
-    });
-  }, [mode, turnstileSiteKey]);
-
   const handleVerify = useCallback((token: string) => setCaptchaToken(token), []);
-  const handleExpire = useCallback(() => setCaptchaToken(''), []);
+  const handleExpire = useCallback(() => {
+    setCaptchaToken('');
+    toast({
+      title: 'CAPTCHA expired',
+      description: 'CAPTCHA expired. Please verify again.',
+      variant: 'destructive',
+    });
+  }, [toast]);
+  const handleError = useCallback(() => {
+    setCaptchaToken('');
+    toast({
+      title: 'CAPTCHA failed',
+      description: 'CAPTCHA failed. Please try again.',
+      variant: 'destructive',
+    });
+  }, [toast]);
+  const handleResetReady = useCallback((reset: () => void) => {
+    turnstileResetRef.current = reset;
+  }, []);
+
+  const resetCaptcha = useCallback(() => {
+    setCaptchaToken('');
+    turnstileResetRef.current?.();
+  }, []);
 
   useEffect(() => {
-    // Check URL params for mode=reset (from recovery link redirect)
     const urlMode = searchParams.get('mode');
-    if (urlMode === 'reset') {
-      setMode('reset');
-    }
+    if (urlMode === 'reset') setMode('reset');
 
-    // Detect recovery token in URL hash
     const hash = window.location.hash;
-    if (hash && hash.includes('type=recovery')) {
-      setMode('reset');
-    }
+    if (hash && hash.includes('type=recovery')) setMode('reset');
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
@@ -68,15 +78,17 @@ export default function Auth() {
     return () => subscription.unsubscribe();
   }, [searchParams]);
 
-  // Also check if user has a valid session (recovery sessions auto-login the user)
   useEffect(() => {
     if (mode === 'reset') {
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          setIsRecoverySession(true);
-        }
+        if (session) setIsRecoverySession(true);
       });
     }
+  }, [mode]);
+
+  // Reset captcha token when switching modes
+  useEffect(() => {
+    setCaptchaToken('');
   }, [mode]);
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -92,7 +104,6 @@ export default function Auth() {
           throw new Error('Password must be at least 6 characters.');
         }
 
-        // If user arrived via recovery link, they have a session — update password directly
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           throw new Error('No active recovery session. Please request a new password reset link.');
@@ -104,24 +115,36 @@ export default function Auth() {
           title: 'Password updated!',
           description: 'You can now log in with your new password.',
         });
-        // Sign out so user logs in fresh with new password
         await supabase.auth.signOut();
         setMode('login');
         setPassword('');
         setConfirmPassword('');
       } else if (mode === 'forgot') {
+        if (!captchaToken) throw new Error('Please complete the security check.');
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/auth?mode=reset`,
+          captchaToken,
         });
-        if (error) throw error;
+        if (error) {
+          resetCaptcha();
+          throw error;
+        }
         toast({
           title: 'Check your email',
           description: 'A password reset link has been sent to your email.',
         });
         setMode('login');
       } else if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (!captchaToken) throw new Error('Please complete the security check.');
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+          options: { captchaToken },
+        });
+        if (error) {
+          resetCaptcha();
+          throw error;
+        }
         logEvent('auth_login', { method: 'password' }, 'auth');
         toast({ title: 'Welcome back!', description: 'Successfully logged in.' });
         navigate('/');
@@ -130,29 +153,22 @@ export default function Auth() {
         if (pwError) throw new Error(pwError);
         if (!captchaToken) throw new Error('Please complete the security check.');
 
-        // Server-side verify Turnstile token before creating account
-        const { data: verify, error: verifyErr } = await supabase.functions.invoke(
-          'verify-turnstile',
-          { body: { token: captchaToken } }
-        );
-        if (verifyErr || !verify?.success) {
-          setCaptchaToken('');
-          throw new Error('Security check failed. Please try again.');
-        }
-
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { name },
             emailRedirectTo: `${window.location.origin}/`,
+            captchaToken,
           },
         });
-        if (error) throw error;
+        if (error) {
+          resetCaptcha();
+          throw new Error(error.message || 'Signup failed. Please try again.');
+        }
         logEvent('auth_signup', { method: 'password' }, 'auth');
         toast({ title: 'Account created!', description: 'You can now log in.' });
         setMode('login');
-        setCaptchaToken('');
       }
     } catch (error: any) {
       toast({
@@ -178,6 +194,8 @@ export default function Auth() {
     forgot: 'Enter your email and we\'ll send you a reset link',
     reset: 'Enter your new password below',
   };
+
+  const showCaptcha = mode === 'signup' || mode === 'login' || mode === 'forgot';
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -220,12 +238,13 @@ export default function Auth() {
             </div>
           )}
 
-          {mode === 'signup' && turnstileSiteKey && (
+          {showCaptcha && (
             <Turnstile
-              siteKey={turnstileSiteKey}
+              siteKey={TURNSTILE_SITE_KEY}
               onVerify={handleVerify}
               onExpire={handleExpire}
-              onError={handleExpire}
+              onError={handleError}
+              onResetReady={handleResetReady}
             />
           )}
 

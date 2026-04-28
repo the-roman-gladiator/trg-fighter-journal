@@ -43,6 +43,7 @@ export default function FighterSessionEdit() {
   const [action, setAction] = useState('');
   const [goal, setGoal] = useState('');
   const [notes, setNotes] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [status, setStatus] = useState('draft');
   const [loading, setLoading] = useState(false);
 

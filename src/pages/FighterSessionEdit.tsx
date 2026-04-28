@@ -110,6 +110,7 @@ export default function FighterSessionEdit() {
         action: action || null,
         goal: goal || null,
         notes: notes || null,
+        video_url: videoUrl.trim() || null,
         status,
       };
 

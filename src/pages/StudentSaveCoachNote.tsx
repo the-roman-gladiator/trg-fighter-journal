@@ -117,8 +117,6 @@ export default function StudentSaveCoachNote() {
       first_movement: coachNote.first_movement,
       opponent_action: coachNote.opponent_action,
       second_movement: coachNote.second_movement,
-      session_plan: coachNote.session_plan,
-      drills: coachNote.drills,
       notes: coachNote.notes,
       tags: coachNote.tags || [],
       snapshot_at: new Date().toISOString(),
@@ -230,18 +228,16 @@ export default function StudentSaveCoachNote() {
             {coachName && <p className="text-xs text-muted-foreground">From {coachName}</p>}
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
+            <p><span className="text-muted-foreground">Discipline:</span> {coachNote.discipline}</p>
             {coachNote.tactic && <p><span className="text-muted-foreground">Tactic:</span> {coachNote.tactic}</p>}
             {coachNote.technique && <p><span className="text-muted-foreground">Technique:</span> {coachNote.technique}</p>}
             {chain && <p className="font-mono text-xs text-primary/80">{chain}</p>}
-            {coachNote.session_plan && <p className="text-xs text-muted-foreground whitespace-pre-wrap">{coachNote.session_plan}</p>}
-            {coachNote.drills && <p className="text-xs text-muted-foreground"><b>Drills:</b> {coachNote.drills}</p>}
-            {coachNote.notes && <p className="text-xs text-muted-foreground"><b>Coach notes:</b> {coachNote.notes}</p>}
+            {coachNote.notes && <p className="text-xs text-muted-foreground whitespace-pre-wrap"><b>Coach notes:</b> {coachNote.notes}</p>}
             {(coachNote.tags || []).length > 0 && (
               <div className="flex flex-wrap gap-1 pt-1">
                 {coachNote.tags.map((t: string) => <Badge key={t} variant="outline" className="text-[10px]">{t}</Badge>)}
               </div>
             )}
-            <p className="text-[10px] text-muted-foreground/60 pt-2 italic">This snapshot won't change if the coach edits later.</p>
           </CardContent>
         </Card>
 

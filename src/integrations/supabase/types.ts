@@ -818,6 +818,7 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          video_url: string | null
           visibility_scope: string
         }
         Insert: {
@@ -843,6 +844,7 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          video_url?: string | null
           visibility_scope?: string
         }
         Update: {
@@ -868,6 +870,7 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          video_url?: string | null
           visibility_scope?: string
         }
         Relationships: []
@@ -1061,6 +1064,7 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          video_url: string | null
         }
         Insert: {
           action?: string | null
@@ -1076,6 +1080,7 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          video_url?: string | null
         }
         Update: {
           action?: string | null
@@ -1091,6 +1096,7 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          video_url?: string | null
         }
         Relationships: []
       }
@@ -1715,6 +1721,7 @@ export type Database = {
           total_sets: number | null
           updated_at: string
           user_id: string
+          video_url: string | null
           workout_mode: Database["public"]["Enums"]["workout_mode"] | null
           workout_name: string | null
           workout_template_id: string | null
@@ -1770,6 +1777,7 @@ export type Database = {
           total_sets?: number | null
           updated_at?: string
           user_id: string
+          video_url?: string | null
           workout_mode?: Database["public"]["Enums"]["workout_mode"] | null
           workout_name?: string | null
           workout_template_id?: string | null
@@ -1825,6 +1833,7 @@ export type Database = {
           total_sets?: number | null
           updated_at?: string
           user_id?: string
+          video_url?: string | null
           workout_mode?: Database["public"]["Enums"]["workout_mode"] | null
           workout_name?: string | null
           workout_template_id?: string | null

@@ -229,6 +229,14 @@ export default function Auth() {
           <h1 className="text-4xl font-bold text-primary">Fighter Training Journal</h1>
           <p className="mt-2 text-muted-foreground">{headings[mode]}</p>
           <p className="mt-1 text-sm text-muted-foreground">{descriptions[mode]}</p>
+          <p className="mt-3 text-xs text-muted-foreground italic">
+            This app is currently in private testing. Only approved users can access.
+          </p>
+          {signupsOpen === false && (
+            <p className="mt-2 text-sm font-medium text-primary">
+              Private access only. New registrations are closed.
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleAuth} className="mt-8 space-y-6 bg-card p-8 rounded-lg border border-border">

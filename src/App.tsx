@@ -11,6 +11,7 @@ import { BottomNav } from "./components/BottomNav";
 import Dashboard from "./pages/Dashboard";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
+import LoadingDebug from "./pages/LoadingDebug";
 import { useAuth } from "./hooks/useAuth";
 import SessionEdit from "./pages/SessionEdit";
 import SessionDetail from "./pages/SessionDetail";

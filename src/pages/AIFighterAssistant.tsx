@@ -1052,7 +1052,7 @@ export default function AIFighterAssistant() {
                     </Button>
                   </div>
                 </div>
-                <ScrollArea className="max-h-[40vh] pr-2">
+                <ScrollArea className="h-[40vh] pr-3 rounded-md border">
                   <div className="space-y-1.5">
                     {chat.map((m, i) => {
                       const checked = exportSelected.has(i);

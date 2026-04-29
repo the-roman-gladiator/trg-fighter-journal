@@ -197,7 +197,7 @@ export default function StudentSaveCoachNote() {
     setSaving(false);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>;
+  if (loading) return <LoadingScreen />;
   if (!coachNote) return null;
 
   const chain = [coachNote.first_movement, coachNote.opponent_action, coachNote.second_movement].filter(Boolean).join(' → ');

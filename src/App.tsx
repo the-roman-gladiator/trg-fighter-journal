@@ -79,6 +79,7 @@ function AppShell() {
       <Routes>
         <Route path="/" element={<RootRoute />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/debug/loading" element={<LoadingDebug />} />
         <Route path="/session/new" element={<SessionEdit />} />
         <Route path="/session/:id" element={<SessionDetail />} />
         <Route path="/session/:id/edit" element={<SessionEdit />} />

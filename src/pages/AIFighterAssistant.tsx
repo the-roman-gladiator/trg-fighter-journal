@@ -1211,10 +1211,12 @@ function ChatBubble({
   message,
   feedback,
   onFeedback,
+  onExport,
 }: {
   message: ChatMessage;
   feedback?: 'thumbs_up' | 'thumbs_down';
   onFeedback: (rating: 'thumbs_up' | 'thumbs_down') => void;
+  onExport?: () => void;
 }) {
   const isUser = message.role === 'user';
   return (

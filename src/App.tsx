@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -48,7 +49,7 @@ const queryClient = new QueryClient();
 function RootRoute() {
   const { user, loading } = useAuth();
   const { isAdmin, loading: subLoading } = useSubscription();
-  if (loading || (user && subLoading)) return <div className="min-h-screen bg-background" />;
+  if (loading || (user && subLoading)) return <LoadingScreen />;
   if (user && isAdmin) return <Navigate to="/admin" replace />;
   return user ? <Dashboard /> : <Landing />;
 }

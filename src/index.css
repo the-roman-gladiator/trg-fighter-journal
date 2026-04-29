@@ -348,3 +348,14 @@
 [data-theme='light'] header .bg-secondary\/50 button[class*="bg-primary"] * {
   color: hsl(var(--primary)) !important;
 }
+
+/* Loading warrior horizontal flip (Y-axis spin, no rotation) */
+@keyframes flip-y {
+  0%   { transform: perspective(800px) rotateY(0deg); }
+  100% { transform: perspective(800px) rotateY(360deg); }
+}
+.animate-flip-y {
+  animation: flip-y 2.4s linear infinite;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+}

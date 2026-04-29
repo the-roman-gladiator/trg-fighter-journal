@@ -1,4 +1,3 @@
-import loadingWarrior from '@/assets/loading-warrior.png';
 import { cn } from '@/lib/utils';
 
 interface LoadingScreenProps {
@@ -9,14 +8,13 @@ interface LoadingScreenProps {
 }
 
 const sizeMap = {
-  sm: 'h-20 w-20 md:h-28 md:w-28',
-  md: 'h-32 w-32 md:h-56 md:w-56 lg:h-64 lg:w-64',
-  lg: 'h-44 w-44 md:h-72 md:w-72 lg:h-80 lg:w-80',
+  sm: 'h-6 w-6 border-2',
+  md: 'h-10 w-10 border-[3px]',
+  lg: 'h-14 w-14 border-4',
 };
 
 /**
- * Branded loading state featuring the martial arts warrior emblem.
- * The icon flips horizontally on its Y-axis while staying centered.
+ * Minimal branded loading state — a clean primary-colored spinner.
  */
 export function LoadingScreen({
   label,
@@ -25,20 +23,14 @@ export function LoadingScreen({
   className,
 }: LoadingScreenProps) {
   const content = (
-    <div
-      className={cn(
-        'flex flex-col items-center justify-center gap-3',
-        className,
-      )}
-    >
-      <img
-        src={loadingWarrior}
-        alt=""
-        aria-hidden="true"
+    <div className={cn('flex flex-col items-center justify-center gap-3', className)}>
+      <div
         className={cn(
-          'block object-contain animate-flip-y select-none pointer-events-none',
+          'rounded-full border-primary border-t-transparent animate-spin',
           sizeMap[size],
         )}
+        role="status"
+        aria-label="Loading"
       />
       {label && (
         <p className="text-sm text-muted-foreground tracking-wide">{label}</p>

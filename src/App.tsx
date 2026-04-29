@@ -11,6 +11,7 @@ import { BottomNav } from "./components/BottomNav";
 import Dashboard from "./pages/Dashboard";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
+import LoadingDebug from "./pages/LoadingDebug";
 import { useAuth } from "./hooks/useAuth";
 import SessionEdit from "./pages/SessionEdit";
 import SessionDetail from "./pages/SessionDetail";
@@ -79,6 +80,7 @@ function AppShell() {
       <Routes>
         <Route path="/" element={<RootRoute />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/debug/loading" element={<LoadingDebug />} />
         <Route path="/session/new" element={<SessionEdit />} />
         <Route path="/session/:id" element={<SessionDetail />} />
         <Route path="/session/:id/edit" element={<SessionEdit />} />

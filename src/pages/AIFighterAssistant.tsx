@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { DialogFooter } from '@/components/ui/dialog';
 import {
   Sheet,
   SheetContent,
@@ -130,6 +133,9 @@ export default function AIFighterAssistant() {
   const [importable, setImportable] = useState<ImportableNote[]>([]);
   const [loadingImports, setLoadingImports] = useState(false);
   const [feedback, setFeedback] = useState<Record<string, 'thumbs_up' | 'thumbs_down'>>({});
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportMode, setExportMode] = useState<'all' | 'custom'>('all');
+  const [exportSelected, setExportSelected] = useState<Set<number>>(new Set());
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -274,7 +280,170 @@ export default function AIFighterAssistant() {
     toast.success(rating === 'thumbs_up' ? 'Thanks for the 👍' : 'Thanks — we\'ll improve');
   };
 
-  const handleExportPDF = () => {
+  const buildPDF = (
+    messages: ChatMessage[],
+    opts: { includeAnalysis?: boolean; subtitle?: string } = {},
+  ) => {
+    const { includeAnalysis = true, subtitle } = opts;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 48;
+    const maxWidth = pageWidth - margin * 2;
+    let y = margin;
+
+    const ensureSpace = (needed: number) => {
+      if (y + needed > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+    };
+
+    const writeLines = (
+      text: string,
+      o: { size?: number; style?: 'normal' | 'bold' | 'italic'; color?: [number, number, number] } = {},
+    ) => {
+      const { size = 11, style = 'normal', color = [30, 30, 30] } = o;
+      doc.setFont('helvetica', style);
+      doc.setFontSize(size);
+      doc.setTextColor(color[0], color[1], color[2]);
+      const lines = doc.splitTextToSize(text || '', maxWidth);
+      const lineHeight = size * 1.35;
+      for (const line of lines) {
+        ensureSpace(lineHeight);
+        doc.text(line, margin, y);
+        y += lineHeight;
+      }
+    };
+
+    // Header banner
+    doc.setFillColor(177, 18, 38);
+    doc.rect(0, 0, pageWidth, 64, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('Gladius — Conversation Export', margin, 38);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(new Date().toLocaleString(), margin, 54);
+    y = 96;
+
+    if (subtitle) {
+      writeLines(subtitle, { size: 12, style: 'italic', color: [120, 120, 120] });
+      y += 4;
+    }
+
+    writeLines(`Conversation (${messages.length} message${messages.length !== 1 ? 's' : ''})`, {
+      size: 14,
+      style: 'bold',
+    });
+    y += 4;
+
+    messages.forEach((m) => {
+      const label = m.role === 'user' ? 'You' : 'Gladius';
+      const color: [number, number, number] = m.role === 'user' ? [80, 80, 80] : [177, 18, 38];
+      writeLines(label, { size: 11, style: 'bold', color });
+      writeLines(m.content || '(empty)', { size: 11 });
+      y += 8;
+    });
+
+    if (includeAnalysis && analysis) {
+      ensureSpace(40);
+      y += 8;
+      writeLines('Technical Analysis', { size: 14, style: 'bold' });
+      y += 4;
+      const fields: Array<[string, string | undefined]> = [
+        ['Discipline', analysis.discipline],
+        ['Tactic', analysis.tactic],
+        ['Technique', analysis.technique],
+        ['Movement 1', analysis.movement_1],
+        ['Movement 2', analysis.movement_2],
+        ['Movement 3', analysis.movement_3],
+        ['Coach Explanation', analysis.coach_explanation],
+        ['Advanced Variation', analysis.advanced_variation],
+      ];
+      for (const [k, v] of fields) {
+        if (!v) continue;
+        writeLines(k, { size: 11, style: 'bold', color: [177, 18, 38] });
+        writeLines(v, { size: 11 });
+        y += 4;
+      }
+      if (analysis.mistakes_to_avoid?.length) {
+        writeLines('Mistakes to Avoid', { size: 11, style: 'bold', color: [177, 18, 38] });
+        analysis.mistakes_to_avoid.forEach((m) => writeLines(`• ${m}`, { size: 11 }));
+        y += 4;
+      }
+      if (analysis.neural_nodes?.length) {
+        writeLines('Neural Pathway Nodes', { size: 11, style: 'bold', color: [177, 18, 38] });
+        analysis.neural_nodes.forEach((n) =>
+          writeLines(`${n.id}. [${n.type}] ${n.label}`, { size: 11 }),
+        );
+        y += 4;
+      }
+      if (analysis.neural_connections?.length) {
+        writeLines('Neural Connections', { size: 11, style: 'bold', color: [177, 18, 38] });
+        analysis.neural_connections.forEach((c) =>
+          writeLines(`${c.from} → ${c.to}: ${c.rule}`, { size: 11 }),
+        );
+      }
+    }
+
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(140, 140, 140);
+      doc.text(
+        `Gladius • Page ${i} of ${pageCount}`,
+        pageWidth / 2,
+        pageHeight - 20,
+        { align: 'center' },
+      );
+    }
+
+    return doc;
+  };
+
+  const exportMessagesToPDF = (
+    messages: ChatMessage[],
+    scope: 'all' | 'single' | 'custom',
+  ) => {
+    if (!isPro) {
+      toast.error('PDF export is available for Pro accounts only');
+      return;
+    }
+    if (messages.length === 0) {
+      toast.message('Nothing to export');
+      return;
+    }
+    try {
+      const subtitleMap = {
+        all: 'Full conversation export',
+        single: 'Single message export',
+        custom: `Custom selection — ${messages.length} message${messages.length !== 1 ? 's' : ''}`,
+      };
+      const doc = buildPDF(messages, {
+        includeAnalysis: scope === 'all',
+        subtitle: subtitleMap[scope],
+      });
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      const suffix = scope === 'all' ? 'full' : scope === 'single' ? 'message' : 'selection';
+      doc.save(`gladius-${suffix}-${stamp}.pdf`);
+      logEvent('ai_pdf_exported', { messages: messages.length, scope }, 'ai');
+      toast.success('PDF exported');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to export PDF');
+    }
+  };
+
+  const handleExportSingle = (i: number) => {
+    const msg = chat[i];
+    if (!msg) return;
+    exportMessagesToPDF([msg], 'single');
+  };
+
+  const handleOpenExportDialog = () => {
     if (!isPro) {
       toast.error('PDF export is available for Pro accounts only');
       return;
@@ -283,123 +452,34 @@ export default function AIFighterAssistant() {
       toast.message('Nothing to export yet');
       return;
     }
+    // Default to all-selected for the custom mode
+    setExportSelected(new Set(chat.map((_, i) => i)));
+    setExportMode('all');
+    setExportOpen(true);
+  };
 
-    try {
-      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 48;
-      const maxWidth = pageWidth - margin * 2;
-      let y = margin;
-
-      const ensureSpace = (needed: number) => {
-        if (y + needed > pageHeight - margin) {
-          doc.addPage();
-          y = margin;
-        }
-      };
-
-      const writeLines = (
-        text: string,
-        opts: { size?: number; style?: 'normal' | 'bold' | 'italic'; color?: [number, number, number] } = {},
-      ) => {
-        const { size = 11, style = 'normal', color = [30, 30, 30] } = opts;
-        doc.setFont('helvetica', style);
-        doc.setFontSize(size);
-        doc.setTextColor(color[0], color[1], color[2]);
-        const lines = doc.splitTextToSize(text || '', maxWidth);
-        const lineHeight = size * 1.35;
-        for (const line of lines) {
-          ensureSpace(lineHeight);
-          doc.text(line, margin, y);
-          y += lineHeight;
-        }
-      };
-
-      doc.setFillColor(177, 18, 38);
-      doc.rect(0, 0, pageWidth, 64, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(20);
-      doc.text('Gladius — Conversation Export', margin, 38);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.text(new Date().toLocaleString(), margin, 54);
-      y = 96;
-
-      writeLines('Conversation', { size: 14, style: 'bold' });
-      y += 4;
-
-      chat.forEach((m) => {
-        const label = m.role === 'user' ? 'You' : 'Gladius';
-        const color: [number, number, number] = m.role === 'user' ? [80, 80, 80] : [177, 18, 38];
-        writeLines(label, { size: 11, style: 'bold', color });
-        writeLines(m.content || '(empty)', { size: 11 });
-        y += 8;
-      });
-
-      if (analysis) {
-        ensureSpace(40);
-        y += 8;
-        writeLines('Technical Analysis', { size: 14, style: 'bold' });
-        y += 4;
-        const fields: Array<[string, string | undefined]> = [
-          ['Discipline', analysis.discipline],
-          ['Tactic', analysis.tactic],
-          ['Technique', analysis.technique],
-          ['Movement 1', analysis.movement_1],
-          ['Movement 2', analysis.movement_2],
-          ['Movement 3', analysis.movement_3],
-          ['Coach Explanation', analysis.coach_explanation],
-          ['Advanced Variation', analysis.advanced_variation],
-        ];
-        for (const [k, v] of fields) {
-          if (!v) continue;
-          writeLines(k, { size: 11, style: 'bold', color: [177, 18, 38] });
-          writeLines(v, { size: 11 });
-          y += 4;
-        }
-        if (analysis.mistakes_to_avoid?.length) {
-          writeLines('Mistakes to Avoid', { size: 11, style: 'bold', color: [177, 18, 38] });
-          analysis.mistakes_to_avoid.forEach((m) => writeLines(`• ${m}`, { size: 11 }));
-          y += 4;
-        }
-        if (analysis.neural_nodes?.length) {
-          writeLines('Neural Pathway Nodes', { size: 11, style: 'bold', color: [177, 18, 38] });
-          analysis.neural_nodes.forEach((n) =>
-            writeLines(`${n.id}. [${n.type}] ${n.label}`, { size: 11 }),
-          );
-          y += 4;
-        }
-        if (analysis.neural_connections?.length) {
-          writeLines('Neural Connections', { size: 11, style: 'bold', color: [177, 18, 38] });
-          analysis.neural_connections.forEach((c) =>
-            writeLines(`${c.from} → ${c.to}: ${c.rule}`, { size: 11 }),
-          );
-        }
+  const handleConfirmExport = () => {
+    if (exportMode === 'all') {
+      exportMessagesToPDF(chat, 'all');
+    } else {
+      const indices = Array.from(exportSelected).sort((a, b) => a - b);
+      const subset = indices.map((i) => chat[i]).filter(Boolean);
+      if (subset.length === 0) {
+        toast.message('Select at least one message');
+        return;
       }
-
-      const pageCount = doc.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(140, 140, 140);
-        doc.text(
-          `Gladius • Page ${i} of ${pageCount}`,
-          pageWidth / 2,
-          pageHeight - 20,
-          { align: 'center' },
-        );
-      }
-
-      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-      doc.save(`gladius-chat-${stamp}.pdf`);
-      logEvent('ai_pdf_exported', { messages: chat.length }, 'ai');
-      toast.success('PDF exported');
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to export PDF');
+      exportMessagesToPDF(subset, 'custom');
     }
+    setExportOpen(false);
+  };
+
+  const toggleExportSelection = (i: number) => {
+    setExportSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
   };
 
   const openImport = async () => {
@@ -907,7 +987,7 @@ export default function AIFighterAssistant() {
           <Button
             size="sm"
             variant="outline"
-            onClick={handleExportPDF}
+            onClick={handleOpenExportDialog}
             disabled={chat.length === 0 || !isPro}
             title={isPro ? 'Export conversation as PDF' : 'Pro accounts only'}
           >
@@ -916,6 +996,112 @@ export default function AIFighterAssistant() {
             {!isPro && <Lock className="h-3 w-3 ml-1 opacity-70" />}
           </Button>
         </div>
+
+        {/* Export PDF dialog */}
+        <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" /> Export to PDF
+              </DialogTitle>
+            </DialogHeader>
+
+            <RadioGroup value={exportMode} onValueChange={(v) => setExportMode(v as 'all' | 'custom')}>
+              <div className="flex items-start gap-2 rounded-md border p-3 hover:border-primary/40">
+                <RadioGroupItem value="all" id="export-all" className="mt-0.5" />
+                <Label htmlFor="export-all" className="flex-1 cursor-pointer">
+                  <p className="text-sm font-semibold">Full conversation</p>
+                  <p className="text-xs text-muted-foreground">
+                    All {chat.length} message{chat.length !== 1 ? 's' : ''}{analysis ? ' + technical analysis' : ''}
+                  </p>
+                </Label>
+              </div>
+              <div className="flex items-start gap-2 rounded-md border p-3 hover:border-primary/40">
+                <RadioGroupItem value="custom" id="export-custom" className="mt-0.5" />
+                <Label htmlFor="export-custom" className="flex-1 cursor-pointer">
+                  <p className="text-sm font-semibold">Custom selection</p>
+                  <p className="text-xs text-muted-foreground">
+                    Pick specific messages to include
+                  </p>
+                </Label>
+              </div>
+            </RadioGroup>
+
+            {exportMode === 'custom' && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    {exportSelected.size} of {chat.length} selected
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-xs"
+                      onClick={() => setExportSelected(new Set(chat.map((_, i) => i)))}
+                    >
+                      Select all
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-xs"
+                      onClick={() => setExportSelected(new Set())}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+                <ScrollArea className="max-h-[40vh] pr-2">
+                  <div className="space-y-1.5">
+                    {chat.map((m, i) => {
+                      const checked = exportSelected.has(i);
+                      const preview = (m.content || '').slice(0, 120);
+                      return (
+                        <label
+                          key={m.id ?? i}
+                          className={cn(
+                            'flex items-start gap-2 rounded-md border p-2 cursor-pointer transition',
+                            checked ? 'border-primary/50 bg-primary/5' : 'hover:border-primary/30',
+                          )}
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => toggleExportSelection(i)}
+                            className="mt-0.5"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              {m.role === 'user' ? 'You' : 'Gladius'} · #{i + 1}
+                            </p>
+                            <p className="text-xs text-foreground line-clamp-2">
+                              {preview || '(empty)'}
+                              {(m.content || '').length > 120 ? '…' : ''}
+                            </p>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+
+            <p className="text-[11px] text-muted-foreground">
+              Tip: you can also export a single message directly using the
+              <FileText className="inline h-3 w-3 mx-1" />
+              icon under any message.
+            </p>
+
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setExportOpen(false)}>Cancel</Button>
+              <Button onClick={handleConfirmExport}>
+                <FileText className="h-4 w-4 mr-1" />
+                Export PDF
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Chat */}
         <Card className="border-primary/20 bg-card/60 backdrop-blur">
@@ -935,6 +1121,7 @@ export default function AIFighterAssistant() {
                   message={m}
                   feedback={m.id ? feedback[m.id] : undefined}
                   onFeedback={(rating) => handleFeedback(m.id, rating)}
+                  onExport={() => handleExportSingle(i)}
                 />
               ))}
               {isThinking && (
@@ -1133,10 +1320,12 @@ function ChatBubble({
   message,
   feedback,
   onFeedback,
+  onExport,
 }: {
   message: ChatMessage;
   feedback?: 'thumbs_up' | 'thumbs_down';
   onFeedback: (rating: 'thumbs_up' | 'thumbs_down') => void;
+  onExport?: () => void;
 }) {
   const isUser = message.role === 'user';
   return (
@@ -1172,32 +1361,47 @@ function ChatBubble({
             </div>
           )}
         </div>
-        {!isUser && message.content && (
+        {message.content && (
           <div className="flex items-center gap-1 mt-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                'h-6 w-6',
-                feedback === 'thumbs_up' && 'text-primary bg-primary/10',
-              )}
-              onClick={() => onFeedback('thumbs_up')}
-              title="Helpful"
-            >
-              <ThumbsUp className="h-3 w-3" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                'h-6 w-6',
-                feedback === 'thumbs_down' && 'text-destructive bg-destructive/10',
-              )}
-              onClick={() => onFeedback('thumbs_down')}
-              title="Not helpful"
-            >
-              <ThumbsDown className="h-3 w-3" />
-            </Button>
+            {!isUser && (
+              <>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={cn(
+                    'h-6 w-6',
+                    feedback === 'thumbs_up' && 'text-primary bg-primary/10',
+                  )}
+                  onClick={() => onFeedback('thumbs_up')}
+                  title="Helpful"
+                >
+                  <ThumbsUp className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={cn(
+                    'h-6 w-6',
+                    feedback === 'thumbs_down' && 'text-destructive bg-destructive/10',
+                  )}
+                  onClick={() => onFeedback('thumbs_down')}
+                  title="Not helpful"
+                >
+                  <ThumbsDown className="h-3 w-3" />
+                </Button>
+              </>
+            )}
+            {onExport && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6"
+                onClick={onExport}
+                title="Export this message as PDF"
+              >
+                <FileText className="h-3 w-3" />
+              </Button>
+            )}
           </div>
         )}
       </div>

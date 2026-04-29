@@ -48,7 +48,7 @@ const queryClient = new QueryClient();
 function RootRoute() {
   const { user, loading } = useAuth();
   const { isAdmin, loading: subLoading } = useSubscription();
-  if (loading || (user && subLoading)) return <div className="min-h-screen bg-background" />;
+  if (loading || (user && subLoading)) return <LoadingScreen />;
   if (user && isAdmin) return <Navigate to="/admin" replace />;
   return user ? <Dashboard /> : <Landing />;
 }

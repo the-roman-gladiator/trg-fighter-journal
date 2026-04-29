@@ -573,6 +573,43 @@ export default function CoachSessionEdit() {
           </Button>
         </div>
       </main>
+
+      {/* AI Draft dialog */}
+      <Dialog open={aiOpen} onOpenChange={setAiOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" /> Draft with AI
+            </DialogTitle>
+            <DialogDescription>
+              Tell the AI what this {noteType === 'class_plan' ? 'class' : 'technical note'} is about. It will fill the form — you can edit before saving.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-xs text-muted-foreground">
+              Discipline: <span className="text-foreground font-semibold">{form.discipline}</span> · Type:{' '}
+              <span className="text-foreground font-semibold">{noteType === 'class_plan' ? 'Class Plan' : 'Technical Note'}</span>
+            </div>
+            <Textarea
+              autoFocus
+              rows={4}
+              value={aiPrompt}
+              onChange={e => setAiPrompt(e.target.value)}
+              placeholder={
+                noteType === 'class_plan'
+                  ? 'e.g. 60-min beginner Muay Thai class focused on teep defense and counter low-kicks'
+                  : 'e.g. Closing distance with the jab against a taller opponent, finish with a left hook'
+              }
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setAiOpen(false)} disabled={aiLoading}>Cancel</Button>
+            <Button onClick={handleAiDraft} disabled={aiLoading}>
+              {aiLoading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Drafting…</> : <><Sparkles className="h-4 w-4 mr-2" /> Generate</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

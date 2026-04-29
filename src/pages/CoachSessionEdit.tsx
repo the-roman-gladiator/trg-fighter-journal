@@ -305,6 +305,19 @@ export default function CoachSessionEdit() {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-2xl space-y-5">
+        {/* AI Draft button (Pro only) */}
+        {isPro && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setAiOpen(true)}
+            className="w-full h-11 border-primary/40 text-primary hover:bg-primary/10"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            Draft this note with AI
+          </Button>
+        )}
+
         {/* Note Type Switcher */}
         <Tabs value={noteType} onValueChange={(v) => setNoteType(v as NoteType)}>
           <TabsList className="grid grid-cols-2 w-full">

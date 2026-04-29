@@ -292,6 +292,36 @@ export default function AIFighterAssistant() {
     const maxWidth = pageWidth - margin * 2;
     let y = margin;
 
+    // Strip markdown / decorative symbols so the PDF reads as clean prose
+    const sanitize = (raw: string): string => {
+      if (!raw) return '';
+      let s = raw;
+      // Remove fenced code blocks markers
+      s = s.replace(/```[a-zA-Z0-9]*\n?/g, '').replace(/```/g, '');
+      // Inline code backticks
+      s = s.replace(/`+/g, '');
+      // Heading hashes at line start (### Foo -> Foo)
+      s = s.replace(/^\s{0,3}#{1,6}\s*/gm, '');
+      // Horizontal rules --- *** ___
+      s = s.replace(/^\s*([-*_])\1{2,}\s*$/gm, '');
+      // Blockquotes
+      s = s.replace(/^\s{0,3}>\s?/gm, '');
+      // Bold/italic markers **x** *x* __x__ _x_  -> x
+      s = s.replace(/(\*\*|__)(.*?)\1/g, '$2');
+      s = s.replace(/(\*|_)(?=\S)(.+?)(?<=\S)\1/g, '$2');
+      // Strikethrough ~~x~~
+      s = s.replace(/~~(.*?)~~/g, '$1');
+      // Links [text](url) -> text (url)
+      s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)');
+      // List bullets - * + at line start -> •
+      s = s.replace(/^\s*[-*+]\s+/gm, '• ');
+      // Leftover stray markers
+      s = s.replace(/[*_~`]/g, '');
+      // Collapse 3+ blank lines
+      s = s.replace(/\n{3,}/g, '\n\n');
+      return s.trim();
+    };
+
     const ensureSpace = (needed: number) => {
       if (y + needed > pageHeight - margin) {
         doc.addPage();
@@ -307,7 +337,7 @@ export default function AIFighterAssistant() {
       doc.setFont('helvetica', style);
       doc.setFontSize(size);
       doc.setTextColor(color[0], color[1], color[2]);
-      const lines = doc.splitTextToSize(text || '', maxWidth);
+      const lines = doc.splitTextToSize(sanitize(text || ''), maxWidth);
       const lineHeight = size * 1.35;
       for (const line of lines) {
         ensureSpace(lineHeight);

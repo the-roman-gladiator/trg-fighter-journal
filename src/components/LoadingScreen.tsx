@@ -30,8 +30,7 @@ export function LoadingScreen({
         <img
           src={loadingWarrior}
           alt="Loading"
-          className="absolute inset-0 h-full w-full object-contain animate-spin"
-          style={{ animationDuration: '2.4s' }}
+          className="absolute inset-0 h-full w-full object-contain animate-flip-y"
         />
       </div>
       {label && (

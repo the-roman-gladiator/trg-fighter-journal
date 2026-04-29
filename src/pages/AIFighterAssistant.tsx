@@ -984,7 +984,7 @@ export default function AIFighterAssistant() {
           <Button
             size="sm"
             variant="outline"
-            onClick={handleExportPDF}
+            onClick={handleOpenExportDialog}
             disabled={chat.length === 0 || !isPro}
             title={isPro ? 'Export conversation as PDF' : 'Pro accounts only'}
           >

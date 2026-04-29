@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Lock, Users, Globe } from 'lucide-react';
+import { ArrowLeft, Lock, Users, Globe, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { strategies, disciplines as DISCIPLINES } from '@/config/dropdownOptions';
 import { useUserLists } from '@/hooks/useUserLists';
@@ -17,6 +17,8 @@ import { StudentOfferPicker } from '@/components/coach/StudentOfferPicker';
 import { SharedCoachesPicker, CoachShare } from '@/components/coach/SharedCoachesPicker';
 import { StudentSaveStatus } from '@/components/coach/StudentSaveStatus';
 import { CoachNoteComments } from '@/components/coach/CoachNoteComments';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const TARGET_GROUPS = [
   { value: 'all_students', label: 'All Students' },
@@ -66,6 +68,66 @@ export default function CoachSessionEdit() {
   const [existingOfferStudentIds, setExistingOfferStudentIds] = useState<Set<string>>(new Set());
 
   const [saving, setSaving] = useState(false);
+
+  // AI draft
+  const { isPro } = useSubscription();
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const handleAiDraft = async () => {
+    if (!aiPrompt.trim()) { toast.error('Tell the AI what the session is about'); return; }
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-coach-note-draft', {
+        body: {
+          noteType,
+          discipline: form.discipline,
+          prompt: aiPrompt.trim(),
+          current: { ...form, tags },
+        },
+      });
+      if (error) {
+        const msg = (error as any)?.context?.error || (error as any)?.message || 'AI draft failed';
+        toast.error(String(msg));
+        setAiLoading(false);
+        return;
+      }
+      const draft = (data as any)?.draft;
+      if (!draft) { toast.error('No draft returned'); setAiLoading(false); return; }
+
+      setForm(prev => ({
+        ...prev,
+        title: draft.title || prev.title,
+        discipline: draft.discipline || prev.discipline,
+        // class plan
+        session_plan: draft.session_plan ?? prev.session_plan,
+        drills: draft.drills ?? prev.drills,
+        duration_minutes: draft.duration_minutes ?? prev.duration_minutes,
+        target_group: draft.target_group ?? prev.target_group,
+        // technical note
+        technique: draft.technique ?? prev.technique,
+        tactic: draft.tactic ?? prev.tactic,
+        first_movement: draft.first_movement ?? prev.first_movement,
+        opponent_action: draft.opponent_action ?? prev.opponent_action,
+        second_movement: draft.second_movement ?? prev.second_movement,
+        target_level: draft.target_level ?? prev.target_level,
+        // shared
+        notes: draft.notes ?? prev.notes,
+      }));
+      if (Array.isArray(draft.tags) && draft.tags.length > 0) {
+        const merged = Array.from(new Set([...tags, ...draft.tags.map(String)]));
+        setTags(merged);
+      }
+      toast.success('AI draft applied — review and edit before saving');
+      setAiOpen(false);
+      setAiPrompt('');
+    } catch (e: any) {
+      toast.error(e?.message || 'AI draft failed');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }

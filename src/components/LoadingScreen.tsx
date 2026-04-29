@@ -9,9 +9,9 @@ interface LoadingScreenProps {
 }
 
 const sizeMap = {
-  sm: 'h-20 w-20',
-  md: 'h-32 w-32',
-  lg: 'h-44 w-44',
+  sm: 'h-20 w-20 md:h-28 md:w-28',
+  md: 'h-32 w-32 md:h-56 md:w-56 lg:h-64 lg:w-64',
+  lg: 'h-44 w-44 md:h-72 md:w-72 lg:h-80 lg:w-80',
 };
 
 /**

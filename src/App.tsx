@@ -79,6 +79,7 @@ function AppShell() {
     <div className="h-[100dvh] flex flex-col overflow-hidden bg-background">
       <main className="flex-1 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))]">
       <AdminLockGate>
+      <Suspense fallback={<LoadingScreen />}>
       <Routes>
         <Route path="/" element={<RootRoute />} />
         <Route path="/auth" element={<Auth />} />
@@ -114,6 +115,7 @@ function AppShell() {
         <Route path="/admin/analytics" element={<AdminAnalytics />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
       </AdminLockGate>
       </main>
       <BottomNav />

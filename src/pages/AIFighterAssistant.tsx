@@ -1012,6 +1012,7 @@ export default function AIFighterAssistant() {
                   message={m}
                   feedback={m.id ? feedback[m.id] : undefined}
                   onFeedback={(rating) => handleFeedback(m.id, rating)}
+                  onExport={() => handleExportSingle(i)}
                 />
               ))}
               {isThinking && (

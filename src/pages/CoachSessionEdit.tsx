@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Lock, Users, Globe } from 'lucide-react';
+import { ArrowLeft, Lock, Users, Globe, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { strategies, disciplines as DISCIPLINES } from '@/config/dropdownOptions';
 import { useUserLists } from '@/hooks/useUserLists';
@@ -17,6 +17,8 @@ import { StudentOfferPicker } from '@/components/coach/StudentOfferPicker';
 import { SharedCoachesPicker, CoachShare } from '@/components/coach/SharedCoachesPicker';
 import { StudentSaveStatus } from '@/components/coach/StudentSaveStatus';
 import { CoachNoteComments } from '@/components/coach/CoachNoteComments';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const TARGET_GROUPS = [
   { value: 'all_students', label: 'All Students' },
@@ -66,6 +68,66 @@ export default function CoachSessionEdit() {
   const [existingOfferStudentIds, setExistingOfferStudentIds] = useState<Set<string>>(new Set());
 
   const [saving, setSaving] = useState(false);
+
+  // AI draft
+  const { isPro } = useSubscription();
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const handleAiDraft = async () => {
+    if (!aiPrompt.trim()) { toast.error('Tell the AI what the session is about'); return; }
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-coach-note-draft', {
+        body: {
+          noteType,
+          discipline: form.discipline,
+          prompt: aiPrompt.trim(),
+          current: { ...form, tags },
+        },
+      });
+      if (error) {
+        const msg = (error as any)?.context?.error || (error as any)?.message || 'AI draft failed';
+        toast.error(String(msg));
+        setAiLoading(false);
+        return;
+      }
+      const draft = (data as any)?.draft;
+      if (!draft) { toast.error('No draft returned'); setAiLoading(false); return; }
+
+      setForm(prev => ({
+        ...prev,
+        title: draft.title || prev.title,
+        discipline: draft.discipline || prev.discipline,
+        // class plan
+        session_plan: draft.session_plan ?? prev.session_plan,
+        drills: draft.drills ?? prev.drills,
+        duration_minutes: draft.duration_minutes ?? prev.duration_minutes,
+        target_group: draft.target_group ?? prev.target_group,
+        // technical note
+        technique: draft.technique ?? prev.technique,
+        tactic: draft.tactic ?? prev.tactic,
+        first_movement: draft.first_movement ?? prev.first_movement,
+        opponent_action: draft.opponent_action ?? prev.opponent_action,
+        second_movement: draft.second_movement ?? prev.second_movement,
+        target_level: draft.target_level ?? prev.target_level,
+        // shared
+        notes: draft.notes ?? prev.notes,
+      }));
+      if (Array.isArray(draft.tags) && draft.tags.length > 0) {
+        const merged = Array.from(new Set([...tags, ...draft.tags.map(String)]));
+        setTags(merged);
+      }
+      toast.success('AI draft applied — review and edit before saving');
+      setAiOpen(false);
+      setAiPrompt('');
+    } catch (e: any) {
+      toast.error(e?.message || 'AI draft failed');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) { navigate('/auth'); return; }
@@ -243,6 +305,19 @@ export default function CoachSessionEdit() {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-2xl space-y-5">
+        {/* AI Draft button (Pro only) */}
+        {isPro && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setAiOpen(true)}
+            className="w-full h-11 border-primary/40 text-primary hover:bg-primary/10"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            Draft this note with AI
+          </Button>
+        )}
+
         {/* Note Type Switcher */}
         <Tabs value={noteType} onValueChange={(v) => setNoteType(v as NoteType)}>
           <TabsList className="grid grid-cols-2 w-full">
@@ -498,6 +573,43 @@ export default function CoachSessionEdit() {
           </Button>
         </div>
       </main>
+
+      {/* AI Draft dialog */}
+      <Dialog open={aiOpen} onOpenChange={setAiOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" /> Draft with AI
+            </DialogTitle>
+            <DialogDescription>
+              Tell the AI what this {noteType === 'class_plan' ? 'class' : 'technical note'} is about. It will fill the form — you can edit before saving.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-xs text-muted-foreground">
+              Discipline: <span className="text-foreground font-semibold">{form.discipline}</span> · Type:{' '}
+              <span className="text-foreground font-semibold">{noteType === 'class_plan' ? 'Class Plan' : 'Technical Note'}</span>
+            </div>
+            <Textarea
+              autoFocus
+              rows={4}
+              value={aiPrompt}
+              onChange={e => setAiPrompt(e.target.value)}
+              placeholder={
+                noteType === 'class_plan'
+                  ? 'e.g. 60-min beginner Muay Thai class focused on teep defense and counter low-kicks'
+                  : 'e.g. Closing distance with the jab against a taller opponent, finish with a left hook'
+              }
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setAiOpen(false)} disabled={aiLoading}>Cancel</Button>
+            <Button onClick={handleAiDraft} disabled={aiLoading}>
+              {aiLoading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Drafting…</> : <><Sparkles className="h-4 w-4 mr-2" /> Generate</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,49 +1,51 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./hooks/useAuth";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { UserSettingsProvider } from "./hooks/useUserSettings";
 import { AppModeProvider } from "./hooks/useAppMode";
 import { BottomNav } from "./components/BottomNav";
-import Dashboard from "./pages/Dashboard";
-import Landing from "./pages/Landing";
-import Auth from "./pages/Auth";
-
-import { useAuth } from "./hooks/useAuth";
-import SessionEdit from "./pages/SessionEdit";
-import SessionDetail from "./pages/SessionDetail";
-import Profile from "./pages/Profile";
-import StrengthTraining from "./pages/StrengthTraining";
-import WorkoutSessionPage from "./pages/WorkoutSessionPage";
-import Onboarding from "./pages/Onboarding";
-import BeginnerDashboard from "./pages/BeginnerDashboard";
-import GuidedSession from "./pages/GuidedSession";
-import MyPathway from "./pages/MyPathway";
-import FighterDashboard from "./pages/FighterDashboard";
-import FighterSessionEdit from "./pages/FighterSessionEdit";
-import FighterSessionDetail from "./pages/FighterSessionDetail";
-import FighterPathway from "./pages/FighterPathway";
-import CoachDashboard from "./pages/CoachDashboard";
-import CoachSessionEdit from "./pages/CoachSessionEdit";
-import StudentSaveCoachNote from "./pages/StudentSaveCoachNote";
-import TechniqueLibrary from "./pages/TechniqueLibrary";
-import Records from "./pages/Records";
-import Trends from "./pages/Trends";
-import Reflection from "./pages/Reflection";
-import Award from "./pages/Award";
-
-import AIFighterAssistant from "./pages/AIFighterAssistant";
-import NotFound from "./pages/NotFound";
-import AdminAnalytics from "./pages/AdminAnalytics";
-import AdminDashboard from "./pages/AdminDashboard";
+import { ErrorBoundary, GlobalErrorListener } from "./components/ErrorBoundary";
 import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
 import { useAnalytics } from "./hooks/useAnalytics";
-import { ErrorBoundary, GlobalErrorListener } from "./components/ErrorBoundary";
 import { useSubscription } from "./hooks/useSubscription";
-import { Navigate, useLocation } from "react-router-dom";
+
+// Eager: critical first-paint routes
+import Landing from "./pages/Landing";
+import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+
+// Lazy: everything else (code-split for faster initial load)
+const SessionEdit = lazy(() => import("./pages/SessionEdit"));
+const SessionDetail = lazy(() => import("./pages/SessionDetail"));
+const Profile = lazy(() => import("./pages/Profile"));
+const StrengthTraining = lazy(() => import("./pages/StrengthTraining"));
+const WorkoutSessionPage = lazy(() => import("./pages/WorkoutSessionPage"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const BeginnerDashboard = lazy(() => import("./pages/BeginnerDashboard"));
+const GuidedSession = lazy(() => import("./pages/GuidedSession"));
+const MyPathway = lazy(() => import("./pages/MyPathway"));
+const FighterDashboard = lazy(() => import("./pages/FighterDashboard"));
+const FighterSessionEdit = lazy(() => import("./pages/FighterSessionEdit"));
+const FighterSessionDetail = lazy(() => import("./pages/FighterSessionDetail"));
+const FighterPathway = lazy(() => import("./pages/FighterPathway"));
+const CoachDashboard = lazy(() => import("./pages/CoachDashboard"));
+const CoachSessionEdit = lazy(() => import("./pages/CoachSessionEdit"));
+const StudentSaveCoachNote = lazy(() => import("./pages/StudentSaveCoachNote"));
+const TechniqueLibrary = lazy(() => import("./pages/TechniqueLibrary"));
+const Records = lazy(() => import("./pages/Records"));
+const Trends = lazy(() => import("./pages/Trends"));
+const Reflection = lazy(() => import("./pages/Reflection"));
+const Award = lazy(() => import("./pages/Award"));
+const AIFighterAssistant = lazy(() => import("./pages/AIFighterAssistant"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+
 
 const queryClient = new QueryClient();
 
@@ -77,6 +79,7 @@ function AppShell() {
     <div className="h-[100dvh] flex flex-col overflow-hidden bg-background">
       <main className="flex-1 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))]">
       <AdminLockGate>
+      <Suspense fallback={<LoadingScreen />}>
       <Routes>
         <Route path="/" element={<RootRoute />} />
         <Route path="/auth" element={<Auth />} />
@@ -112,6 +115,7 @@ function AppShell() {
         <Route path="/admin/analytics" element={<AdminAnalytics />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
       </AdminLockGate>
       </main>
       <BottomNav />

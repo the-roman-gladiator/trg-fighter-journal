@@ -1252,32 +1252,47 @@ function ChatBubble({
             </div>
           )}
         </div>
-        {!isUser && message.content && (
+        {message.content && (
           <div className="flex items-center gap-1 mt-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                'h-6 w-6',
-                feedback === 'thumbs_up' && 'text-primary bg-primary/10',
-              )}
-              onClick={() => onFeedback('thumbs_up')}
-              title="Helpful"
-            >
-              <ThumbsUp className="h-3 w-3" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                'h-6 w-6',
-                feedback === 'thumbs_down' && 'text-destructive bg-destructive/10',
-              )}
-              onClick={() => onFeedback('thumbs_down')}
-              title="Not helpful"
-            >
-              <ThumbsDown className="h-3 w-3" />
-            </Button>
+            {!isUser && (
+              <>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={cn(
+                    'h-6 w-6',
+                    feedback === 'thumbs_up' && 'text-primary bg-primary/10',
+                  )}
+                  onClick={() => onFeedback('thumbs_up')}
+                  title="Helpful"
+                >
+                  <ThumbsUp className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={cn(
+                    'h-6 w-6',
+                    feedback === 'thumbs_down' && 'text-destructive bg-destructive/10',
+                  )}
+                  onClick={() => onFeedback('thumbs_down')}
+                  title="Not helpful"
+                >
+                  <ThumbsDown className="h-3 w-3" />
+                </Button>
+              </>
+            )}
+            {onExport && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6"
+                onClick={onExport}
+                title="Export this message as PDF"
+              >
+                <FileText className="h-3 w-3" />
+              </Button>
+            )}
           </div>
         )}
       </div>

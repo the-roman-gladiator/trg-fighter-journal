@@ -1,3 +1,4 @@
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -132,7 +133,7 @@ export default function FighterSessionEdit() {
     }
   };
 
-  if (fpLoading) return <div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>;
+  if (fpLoading) return <LoadingScreen />;
 
   if (!isFighterApproved) {
     return (

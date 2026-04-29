@@ -1,3 +1,4 @@
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -165,7 +166,7 @@ export default function MyPathway() {
   const disciplines = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
   const strategies = ['Attacking', 'Defending', 'Countering', 'Intercepting', 'Transition', 'Control'];
 
-  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>;
+  if (loading) return <LoadingScreen />;
 
   const SessionCard = ({ session, onOpen }: { session: any; onOpen?: (s: any) => void }) => {
     const chain = [session.first_movement, session.opponent_action, session.second_movement].filter(Boolean).join(' → ');

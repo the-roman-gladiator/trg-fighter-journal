@@ -1,3 +1,4 @@
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -95,7 +96,7 @@ export default function SessionDetail() {
     navigate('/');
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>;
+  if (loading) return <LoadingScreen />;
   if (!session) return null;
 
   const hasMovementChain = session.first_movement || session.opponent_action || session.second_movement;

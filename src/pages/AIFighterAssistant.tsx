@@ -999,7 +999,7 @@ export default function AIFighterAssistant() {
 
         {/* Export PDF dialog */}
         <Dialog open={exportOpen} onOpenChange={setExportOpen}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-primary" /> Export to PDF
@@ -1052,7 +1052,7 @@ export default function AIFighterAssistant() {
                     </Button>
                   </div>
                 </div>
-                <ScrollArea className="max-h-[40vh] pr-2">
+                <ScrollArea className="h-[40vh] pr-3 rounded-md border">
                   <div className="space-y-1.5">
                     {chat.map((m, i) => {
                       const checked = exportSelected.has(i);

@@ -130,6 +130,9 @@ export default function AIFighterAssistant() {
   const [importable, setImportable] = useState<ImportableNote[]>([]);
   const [loadingImports, setLoadingImports] = useState(false);
   const [feedback, setFeedback] = useState<Record<string, 'thumbs_up' | 'thumbs_down'>>({});
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportMode, setExportMode] = useState<'all' | 'custom'>('all');
+  const [exportSelected, setExportSelected] = useState<Set<number>>(new Set());
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);

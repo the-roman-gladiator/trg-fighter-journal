@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { DialogFooter } from '@/components/ui/dialog';
 import {
   Sheet,
   SheetContent,
@@ -993,6 +996,112 @@ export default function AIFighterAssistant() {
             {!isPro && <Lock className="h-3 w-3 ml-1 opacity-70" />}
           </Button>
         </div>
+
+        {/* Export PDF dialog */}
+        <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" /> Export to PDF
+              </DialogTitle>
+            </DialogHeader>
+
+            <RadioGroup value={exportMode} onValueChange={(v) => setExportMode(v as 'all' | 'custom')}>
+              <div className="flex items-start gap-2 rounded-md border p-3 hover:border-primary/40">
+                <RadioGroupItem value="all" id="export-all" className="mt-0.5" />
+                <Label htmlFor="export-all" className="flex-1 cursor-pointer">
+                  <p className="text-sm font-semibold">Full conversation</p>
+                  <p className="text-xs text-muted-foreground">
+                    All {chat.length} message{chat.length !== 1 ? 's' : ''}{analysis ? ' + technical analysis' : ''}
+                  </p>
+                </Label>
+              </div>
+              <div className="flex items-start gap-2 rounded-md border p-3 hover:border-primary/40">
+                <RadioGroupItem value="custom" id="export-custom" className="mt-0.5" />
+                <Label htmlFor="export-custom" className="flex-1 cursor-pointer">
+                  <p className="text-sm font-semibold">Custom selection</p>
+                  <p className="text-xs text-muted-foreground">
+                    Pick specific messages to include
+                  </p>
+                </Label>
+              </div>
+            </RadioGroup>
+
+            {exportMode === 'custom' && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    {exportSelected.size} of {chat.length} selected
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-xs"
+                      onClick={() => setExportSelected(new Set(chat.map((_, i) => i)))}
+                    >
+                      Select all
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-xs"
+                      onClick={() => setExportSelected(new Set())}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+                <ScrollArea className="max-h-[40vh] pr-2">
+                  <div className="space-y-1.5">
+                    {chat.map((m, i) => {
+                      const checked = exportSelected.has(i);
+                      const preview = (m.content || '').slice(0, 120);
+                      return (
+                        <label
+                          key={m.id ?? i}
+                          className={cn(
+                            'flex items-start gap-2 rounded-md border p-2 cursor-pointer transition',
+                            checked ? 'border-primary/50 bg-primary/5' : 'hover:border-primary/30',
+                          )}
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => toggleExportSelection(i)}
+                            className="mt-0.5"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              {m.role === 'user' ? 'You' : 'Gladius'} · #{i + 1}
+                            </p>
+                            <p className="text-xs text-foreground line-clamp-2">
+                              {preview || '(empty)'}
+                              {(m.content || '').length > 120 ? '…' : ''}
+                            </p>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+
+            <p className="text-[11px] text-muted-foreground">
+              Tip: you can also export a single message directly using the
+              <FileText className="inline h-3 w-3 mx-1" />
+              icon under any message.
+            </p>
+
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setExportOpen(false)}>Cancel</Button>
+              <Button onClick={handleConfirmExport}>
+                <FileText className="h-4 w-4 mr-1" />
+                Export PDF
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Chat */}
         <Card className="border-primary/20 bg-card/60 backdrop-blur">

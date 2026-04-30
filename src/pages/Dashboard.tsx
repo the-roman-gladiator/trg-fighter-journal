@@ -106,6 +106,23 @@ export default function Dashboard() {
     const uniqueDays = new Set((yearSessions || []).map((s: any) => s.date));
     setYearlyStreak(uniqueDays.size);
 
+    // Longest consecutive-day streak this year
+    const sortedDays = Array.from(uniqueDays).sort();
+    let best = 0;
+    let run = 0;
+    let prev: Date | null = null;
+    for (const d of sortedDays) {
+      const cur = new Date(d as string);
+      if (prev && (cur.getTime() - prev.getTime()) === 86400000) {
+        run += 1;
+      } else {
+        run = 1;
+      }
+      if (run > best) best = run;
+      prev = cur;
+    }
+    setLongestStreak(best);
+
     // Fetch ALL sessions for pie chart (class_type distribution)
     const { data: allSessions } = await supabase
       .from('training_sessions')

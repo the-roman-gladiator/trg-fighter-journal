@@ -1499,11 +1499,23 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   </div>
                   <div>
                     <Label className="text-xs">Emotion</Label>
-                    <ChipSelect options={emotionOptions} value={beforeEmotion} onChange={setBeforeEmotion} />
+                    <Select value={beforeEmotion || undefined} onValueChange={(v) => setBeforeEmotion(v === '__clear__' ? '' : v)}>
+                      <SelectTrigger><SelectValue placeholder="Select emotion" /></SelectTrigger>
+                      <SelectContent>
+                        {beforeEmotion && <SelectItem value="__clear__">Clear selection</SelectItem>}
+                        {emotionOptions.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label className="text-xs">Mindset</Label>
-                    <ChipSelect options={mindsetOptions} value={beforeMindset} onChange={setBeforeMindset} />
+                    <Select value={beforeMindset || undefined} onValueChange={(v) => setBeforeMindset(v === '__clear__' ? '' : v)}>
+                      <SelectTrigger><SelectValue placeholder="Select mindset" /></SelectTrigger>
+                      <SelectContent>
+                        {beforeMindset && <SelectItem value="__clear__">Clear selection</SelectItem>}
+                        {mindsetOptions.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -1516,11 +1528,23 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   </div>
                   <div>
                     <Label className="text-xs">Emotion</Label>
-                    <ChipSelect options={emotionOptions} value={afterEmotion} onChange={setAfterEmotion} />
+                    <Select value={afterEmotion || undefined} onValueChange={(v) => setAfterEmotion(v === '__clear__' ? '' : v)}>
+                      <SelectTrigger><SelectValue placeholder="Select emotion" /></SelectTrigger>
+                      <SelectContent>
+                        {afterEmotion && <SelectItem value="__clear__">Clear selection</SelectItem>}
+                        {emotionOptions.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label className="text-xs">Mindset</Label>
-                    <ChipSelect options={mindsetOptions} value={afterMindset} onChange={setAfterMindset} />
+                    <Select value={afterMindset || undefined} onValueChange={(v) => setAfterMindset(v === '__clear__' ? '' : v)}>
+                      <SelectTrigger><SelectValue placeholder="Select mindset" /></SelectTrigger>
+                      <SelectContent>
+                        {afterMindset && <SelectItem value="__clear__">Clear selection</SelectItem>}
+                        {mindsetOptions.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardContent>

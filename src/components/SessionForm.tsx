@@ -472,9 +472,13 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     </div>
   );
 
-  const technical = isTechnicalType(classType);
-  const cardio = isCardioType(classType);
-  const strength = isStrengthType(classType);
+  const category = classTypeCategory(classType);
+  const technical = category === 'technical';
+  const sparring = category === 'sparring';
+  const cardio = category === 'cardio';
+  const strength = category === 'strength';
+  // Sparring reuses the technical entry surface (discipline + tactic + technique + movement chain)
+  const showTechnicalEntry = technical || sparring;
   const showDistance = cardio && DISTANCE_ACTIVITIES.has(cardioActivity);
 
   const loadTemplateIntoForm = async (templateId: string) => {

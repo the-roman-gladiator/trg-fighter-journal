@@ -420,6 +420,8 @@ export default function Dashboard() {
           discipline={myDisciplines.join(', ') || profile?.discipline || undefined}
           level={profile?.level}
           statement={myStatement}
+          weeklySessions={weeklySessions}
+          longestStreak={longestStreak}
         />
 
         {/* Daily Motivation */}

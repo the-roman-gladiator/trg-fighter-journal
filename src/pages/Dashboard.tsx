@@ -223,7 +223,7 @@ export default function Dashboard() {
   const fighterBg = settings.theme_mode === 'light' ? fighterBgLight : fighterBgDark;
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background dark:bg-transparent relative">
       {/* Dashboard-only fighter background graphic */}
       <div
         aria-hidden="true"

@@ -8,13 +8,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
-import { MartialArtsDiscipline, Strategy } from '@/types/training';
+import { MartialArtsDiscipline, Strategy, StrengthExerciseState, StrengthWorkoutTotals, WorkoutMode } from '@/types/training';
 import { Badge } from '@/components/ui/badge';
 import { disciplines, strategies } from '@/config/dropdownOptions';
 import { PredictiveTagInput } from './PredictiveTagInput';
 import { MultiDisciplineSelect } from './MultiDisciplineSelect';
-import { Brain, Heart, Zap, Swords } from 'lucide-react';
+import { StrengthWorkoutForm } from './StrengthWorkoutForm';
+import { Brain, Heart, Zap, Swords, Dumbbell, Activity, ListChecks } from 'lucide-react';
 import { useUserLists, DEFAULT_CLASS_TYPES, DEFAULT_EMOTIONS, DEFAULT_MINDSETS } from '@/hooks/useUserLists';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useFighterProfile } from '@/hooks/useFighterProfile';
@@ -37,6 +40,29 @@ const effortToScore = (level: string): number => {
   }
 };
 
+const CARDIO_ACTIVITIES = [
+  'Running', 'Cycling', 'Rowing',
+  'Jump Rope', 'Swimming', 'Boxing Bag',
+  'Kickboxing', 'Grappling Conditioning', 'Functional Training',
+  'HIIT', 'Circuit Training', 'Assault Bike',
+  'Stair Climber', 'Hiking', 'Walking',
+  'Other',
+];
+
+const DISTANCE_ACTIVITIES = new Set(['Running', 'Cycling', 'Rowing', 'Swimming', 'Walking', 'Hiking']);
+
+const isCardioType = (ct: string) => ct === 'Cardio / Endurance' || ct === 'Cardio/Endurance';
+const isStrengthType = (ct: string) => ct === 'Strength / Conditioning' || ct === 'Strength/Conditioning';
+const isTechnicalType = (ct: string) =>
+  !!ct && !isCardioType(ct) && !isStrengthType(ct);
+
+function rpeLabel(rpe: number): string {
+  if (rpe <= 3) return 'Easy';
+  if (rpe <= 6) return 'Moderate';
+  if (rpe <= 8) return 'Hard';
+  return 'Max';
+}
+
 export function SessionForm({ sessionId }: SessionFormProps) {
   const { user, profile } = useAuth();
   const { getActive } = useUserLists();
@@ -53,7 +79,6 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  // Multi-select disciplines. First selected stays as the primary `discipline` for backward compat.
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>(
     profileDisciplines.length === 1 ? [profileDisciplines[0]] : []
   );
@@ -85,16 +110,56 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [physicalEffortExecution, setPhysicalEffortExecution] = useState('');
   const [mindsetEffortExecution, setMindsetEffortExecution] = useState('');
 
+  // Cardio fields
+  const [cardioActivity, setCardioActivity] = useState<string>('');
+  const [cardioActivityOther, setCardioActivityOther] = useState<string>('');
+  const [cardioHours, setCardioHours] = useState<string>('');
+  const [cardioMinutes, setCardioMinutes] = useState<string>('');
+  const [cardioSeconds, setCardioSeconds] = useState<string>('');
+  const [cardioDistance, setCardioDistance] = useState<string>('');
+  const [cardioCalories, setCardioCalories] = useState<string>('');
+  const [cardioAvgHr, setCardioAvgHr] = useState<string>('');
+  const [cardioMaxHr, setCardioMaxHr] = useState<string>('');
+  const [cardioRpe, setCardioRpe] = useState<number>(5);
+
+  // Strength fields (rendered through StrengthWorkoutForm; not persisted as exercises here)
+  const [workoutName, setWorkoutName] = useState<string>('');
+  const [workoutType, setWorkoutType] = useState<string>('');
+  const [workoutMode, setWorkoutMode] = useState<WorkoutMode>('manual');
+  const [exercises, setExercises] = useState<StrengthExerciseState[]>([]);
+  const [strengthTab, setStrengthTab] = useState<'live' | 'program'>('live');
+  const [templates, setTemplates] = useState<any[]>([]);
+
   const attemptsNum = parseInt(attemptsCount) || 0;
   const executedNum = parseInt(executedCount) || 0;
   const executionRate = attemptsNum > 0 ? Math.round((executedNum / attemptsNum) * 100) : 0;
   const rateColor = executionRate >= 86 ? 'bg-emerald-500' : executionRate >= 66 ? 'bg-amber-500' : 'bg-destructive';
+
+  const strengthTotals: StrengthWorkoutTotals = {
+    totalLoad: exercises.reduce((sum, ex) => sum + ex.sets.reduce((s, st) => s + (st.reps || 0) * (st.weight || 0), 0), 0),
+    totalReps: exercises.reduce((sum, ex) => sum + ex.sets.reduce((s, st) => s + (st.reps || 0), 0), 0),
+    totalSets: exercises.reduce((sum, ex) => sum + ex.sets.length, 0),
+    totalExercises: exercises.length,
+  };
 
   useEffect(() => {
     if (sessionId && sessionId !== 'new') {
       fetchSession();
     }
   }, [sessionId]);
+
+  // Fetch templates list when user picks Strength path (for the "Load program" tab)
+  useEffect(() => {
+    if (!user) return;
+    if (!isStrengthType(classType)) return;
+    (async () => {
+      const { data } = await supabase
+        .from('workout_templates')
+        .select('*')
+        .order('name');
+      if (data) setTemplates(data);
+    })();
+  }, [user, classType]);
 
   const fetchSession = async () => {
     if (!sessionId || sessionId === 'new') return;
@@ -139,6 +204,30 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setPhysicalEffortExecution((session as any).physical_effort_execution || '');
       setMindsetEffortExecution((session as any).mindset_effort_execution || '');
 
+      // Cardio fields prefill
+      const existingActivity = (session as any).cardio_activity_name || '';
+      if (existingActivity) {
+        if (CARDIO_ACTIVITIES.includes(existingActivity)) {
+          setCardioActivity(existingActivity);
+        } else {
+          setCardioActivity('Other');
+          setCardioActivityOther(existingActivity);
+        }
+      }
+      const dur = (session as any).duration_seconds || 0;
+      if (dur > 0) {
+        setCardioHours(String(Math.floor(dur / 3600)));
+        setCardioMinutes(String(Math.floor((dur % 3600) / 60)));
+        setCardioSeconds(String(dur % 60));
+      }
+      if ((session as any).distance_meters != null) setCardioDistance(String((session as any).distance_meters));
+      if ((session as any).calories != null) setCardioCalories(String((session as any).calories));
+      if ((session as any).avg_heart_rate != null) setCardioAvgHr(String((session as any).avg_heart_rate));
+      if ((session as any).max_heart_rate != null) setCardioMaxHr(String((session as any).max_heart_rate));
+      if ((session as any).effort_score != null && isCardioType((session as any).class_type || '')) {
+        setCardioRpe(Math.round(Number((session as any).effort_score) * 2));
+      }
+
       const { data: sessionTagsData } = await supabase
         .from('session_tags')
         .select('tag_id, tags(name)')
@@ -153,20 +242,29 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     e.preventDefault();
     if (!user) return;
 
+    if (!classType) {
+      toast({ title: 'Validation', description: 'Please select a session type', variant: 'destructive' });
+      return;
+    }
+
     if (selectedDisciplines.length === 0) {
       toast({ title: 'Validation', description: 'Please select at least one discipline', variant: 'destructive' });
       return;
     }
 
+    const technical = isTechnicalType(classType);
+    const cardio = isCardioType(classType);
+    const strength = isStrengthType(classType);
+
     const resolvedTechnique = technique === '__custom__' ? customTechnique.trim() : technique;
 
-    if (!resolvedTechnique) {
+    if (technical && !resolvedTechnique) {
       toast({ title: 'Validation', description: 'Please select or enter a technique', variant: 'destructive' });
       return;
     }
 
-    // Fighter Note validation
-    if (makeFighterNote) {
+    // Fighter Note validation (only relevant for technical types where the section is rendered)
+    if (technical && makeFighterNote) {
       if (attemptsCount === '' || executedCount === '') {
         toast({ title: 'Validation', description: 'Attempts and Executed are required for a Fighter Note', variant: 'destructive' });
         return;
@@ -185,12 +283,24 @@ export function SessionForm({ sessionId }: SessionFormProps) {
 
     // Calculate effort score
     let effortScore: number | null = null;
-    if (physicalEffort || mentalEffort) {
+    if (cardio) {
+      // Map RPE 1-10 → effort_score 0.5-5
+      effortScore = cardioRpe / 2;
+    } else if (physicalEffort || mentalEffort) {
       const pScore = effortToScore(physicalEffort);
       const mScore = effortToScore(mentalEffort);
       const count = (pScore > 0 ? 1 : 0) + (mScore > 0 ? 1 : 0);
       effortScore = count > 0 ? (pScore + mScore) / count : null;
     }
+
+    // Cardio derived values
+    const cardioDurationSeconds = cardio
+      ? ((parseInt(cardioHours) || 0) * 3600 + (parseInt(cardioMinutes) || 0) * 60 + (parseInt(cardioSeconds) || 0)) || null
+      : null;
+    const resolvedCardioActivity = cardio
+      ? (cardioActivity === 'Other' ? cardioActivityOther.trim() : cardioActivity) || null
+      : null;
+    const showDistance = cardio && DISTANCE_ACTIVITIES.has(cardioActivity);
 
     try {
       const sessionData: any = {
@@ -198,44 +308,50 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         date,
         time: startTime || null,
         session_type: 'Completed',
-        discipline, // primary (first selected) — kept for backward compat
-        disciplines: selectedDisciplines, // full multi-discipline list
+        discipline,
+        disciplines: selectedDisciplines,
         title: title || null,
         notes: notes || null,
         video_url: videoUrl.trim() || null,
-        strategy: strategy || null,
-        technique: resolvedTechnique || null,
-        first_movement: firstMovement || null,
-        opponent_action: opponentReaction || null,
-        second_movement: thirdMovement || null,
+        strategy: technical ? (strategy || null) : null,
+        technique: technical ? (resolvedTechnique || null) : null,
+        first_movement: technical ? (firstMovement || null) : null,
+        opponent_action: technical ? (opponentReaction || null) : null,
+        second_movement: technical ? (thirdMovement || null) : null,
         before_emotion: beforeEmotion || null,
         before_mindset: beforeMindset || null,
         after_emotion: afterEmotion || null,
         after_mindset: afterMindset || null,
-        physical_effort_level: physicalEffort || null,
-        mental_effort_level: mentalEffort || null,
+        physical_effort_level: cardio ? null : (physicalEffort || null),
+        mental_effort_level: cardio ? null : (mentalEffort || null),
         effort_score: effortScore,
         class_type: classType || null,
-        // Fighter Note fields
-        make_fighter_note: makeFighterNote,
-        fighter_profile_id: makeFighterNote ? (fighterProfile?.id || null) : null,
-        attempts_count: makeFighterNote ? attemptsNum : null,
-        executed_count: makeFighterNote ? executedNum : null,
-        physical_effort_execution: makeFighterNote ? (physicalEffortExecution || null) : null,
-        mindset_effort_execution: makeFighterNote ? (mindsetEffortExecution || null) : null,
+        // Fighter Note (only on technical sessions)
+        make_fighter_note: technical ? makeFighterNote : false,
+        fighter_profile_id: technical && makeFighterNote ? (fighterProfile?.id || null) : null,
+        attempts_count: technical && makeFighterNote ? attemptsNum : null,
+        executed_count: technical && makeFighterNote ? executedNum : null,
+        physical_effort_execution: technical && makeFighterNote ? (physicalEffortExecution || null) : null,
+        mindset_effort_execution: technical && makeFighterNote ? (mindsetEffortExecution || null) : null,
+        // Cardio columns
+        cardio_activity_name: resolvedCardioActivity,
+        duration_seconds: cardioDurationSeconds,
+        distance_meters: cardio && showDistance && cardioDistance !== '' ? Number(cardioDistance) : null,
+        calories: cardio && cardioCalories !== '' ? Number(cardioCalories) : null,
+        avg_heart_rate: cardio && cardioAvgHr !== '' ? Number(cardioAvgHr) : null,
+        max_heart_rate: cardio && cardioMaxHr !== '' ? Number(cardioMaxHr) : null,
       };
 
       let savedSessionId = sessionId;
 
       if (sessionId && sessionId !== 'new') {
-        // When a user edits a session that originated from a coach plan,
-        // detach the coach link so it becomes their own personal note.
         sessionData.coach_session_id = null;
         const { error } = await supabase.from('training_sessions').update(sessionData).eq('id', sessionId);
         if (error) throw error;
         logEvent('session_updated', {
           discipline: sessionData.discipline,
           session_type: sessionData.session_type,
+          class_type: classType,
         }, 'session');
       } else {
         const { data, error } = await supabase.from('training_sessions').insert([sessionData]).select().single();
@@ -244,17 +360,23 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         logEvent('session_created', {
           discipline: sessionData.discipline,
           session_type: sessionData.session_type,
+          class_type: classType,
           has_chains: false,
         }, 'session');
       }
 
       // Build auto-tags from all fields (one tag per selected discipline)
       const autoTags: string[] = [...selectedDisciplines];
-      if (strategy) autoTags.push(strategy);
-      if (resolvedTechnique) autoTags.push(resolvedTechnique);
-      if (firstMovement) autoTags.push(firstMovement);
-      if (opponentReaction) autoTags.push(opponentReaction);
-      if (thirdMovement) autoTags.push(thirdMovement);
+      if (classType) autoTags.push(classType);
+      if (technical) {
+        if (strategy) autoTags.push(strategy);
+        if (resolvedTechnique) autoTags.push(resolvedTechnique);
+        if (firstMovement) autoTags.push(firstMovement);
+        if (opponentReaction) autoTags.push(opponentReaction);
+        if (thirdMovement) autoTags.push(thirdMovement);
+      }
+      if (cardio && resolvedCardioActivity) autoTags.push(resolvedCardioActivity);
+      if (strength && workoutName) autoTags.push(workoutName);
 
       const allTagNames = [...autoTags, ...selectedTags];
       const uniqueTags: string[] = [];
@@ -269,7 +391,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
 
       if (savedSessionId) {
         await supabase.from('session_tags').delete().eq('session_id', savedSessionId);
-        
+
         for (const tagName of uniqueTags) {
           let { data: existingTag } = await supabase.from('tags').select('id').eq('name', tagName).single();
           if (!existingTag) {
@@ -331,8 +453,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
           key={opt}
           variant={value === opt ? 'default' : 'outline'}
           className={`cursor-pointer text-xs px-2.5 py-1 transition-colors ${
-            value === opt 
-              ? 'bg-primary text-primary-foreground' 
+            value === opt
+              ? 'bg-primary text-primary-foreground'
               : 'border-border hover:border-primary/40 hover:bg-primary/5'
           }`}
           onClick={() => onChange(value === opt ? '' : opt)}
@@ -343,106 +465,61 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     </div>
   );
 
+  const technical = isTechnicalType(classType);
+  const cardio = isCardioType(classType);
+  const strength = isStrengthType(classType);
+  const showDistance = cardio && DISTANCE_ACTIVITIES.has(cardioActivity);
+
+  const loadTemplateIntoForm = async (templateId: string) => {
+    const { data: tmpl } = await supabase.from('workout_templates').select('*').eq('id', templateId).single();
+    const { data: tmplExs } = await supabase
+      .from('workout_template_exercises')
+      .select('*')
+      .eq('workout_template_id', templateId)
+      .order('exercise_order');
+
+    if (tmpl && tmplExs) {
+      setWorkoutName(tmpl.name);
+      setWorkoutType(tmpl.workout_type || '');
+      const loaded: StrengthExerciseState[] = tmplExs.map((te: any) => {
+        const sets = [];
+        for (let i = 0; i < (te.default_sets || 3); i++) {
+          sets.push({
+            setNumber: i + 1,
+            reps: te.default_reps || null,
+            weight: te.default_weight || null,
+          });
+        }
+        return {
+          exerciseName: te.exercise_name,
+          exerciseLibraryId: te.exercise_library_id || undefined,
+          sets,
+        };
+      });
+      setExercises(loaded);
+      setStrengthTab('live');
+      toast({ title: 'Program loaded', description: `Loaded "${tmpl.name}" — edit freely` });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Session Details */}
+        {/* Class Type — TOP of form */}
         <Card>
           <CardHeader>
-            <CardTitle>Session Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="title">Session Title / Strategy Name</Label>
-              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Jab timing study" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="date">Date</Label>
-                <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-              </div>
-              <div>
-                <Label htmlFor="startTime">Start Time</Label>
-                <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="endTime">End Time</Label>
-                <Input id="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-              </div>
-              <div>
-                <Label>Duration</Label>
-                <p className="text-sm font-medium mt-2 text-muted-foreground">{getDuration() || '—'}</p>
-              </div>
-            </div>
-
-            <MultiDisciplineSelect
-              options={availableDisciplines}
-              value={selectedDisciplines}
-              onChange={(next) => {
-                setSelectedDisciplines(next);
-                // Clear technique if its discipline is no longer selected
-                setTechnique('');
-              }}
-              helper={profileDisciplines.length > 0 ? 'From your profile — pick one or more for this session.' : undefined}
-            />
-
-            <div>
-              <Label>Tactic</Label>
-              <Select value={strategy} onValueChange={(v: Strategy) => setStrategy(v)}>
-                <SelectTrigger><SelectValue placeholder="Select tactic" /></SelectTrigger>
-                <SelectContent>
-                  {strategies.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Technique</Label>
-              <Select
-                value={technique === '__custom__' || (technique && !techniqueOptions.includes(technique)) ? '__custom__' : technique}
-                onValueChange={(v) => {
-                  if (v === '__custom__') {
-                    setTechnique('__custom__');
-                    setCustomTechnique('');
-                  } else {
-                    setTechnique(v);
-                    setCustomTechnique('');
-                  }
-                }}
-              >
-                <SelectTrigger><SelectValue placeholder="Select technique" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__custom__">+ Custom (type your own)</SelectItem>
-                  {techniqueOptions.map((t) => (<SelectItem key={t} value={t}>{t}</SelectItem>))}
-                </SelectContent>
-              </Select>
-              {technique === '__custom__' && (
-                <Input
-                  className="mt-2"
-                  value={customTechnique}
-                  onChange={(e) => setCustomTechnique(e.target.value)}
-                  placeholder="Type your custom technique (will create a pathway node)"
-                />
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Type Classes */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Type Classes</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <ListChecks className="h-4 w-4 text-primary" />
+              Session Type
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {classTypeOptions.map((ct) => (
                 <Badge
                   key={ct}
                   variant={classType === ct ? 'default' : 'outline'}
-                  className={`cursor-pointer text-xs px-2.5 py-1.5 transition-colors ${
+                  className={`cursor-pointer text-sm px-3 py-2 transition-colors ${
                     classType === ct
                       ? 'bg-primary text-primary-foreground'
                       : 'border-border hover:border-primary/40 hover:bg-primary/5'
@@ -456,247 +533,522 @@ export function SessionForm({ sessionId }: SessionFormProps) {
           </CardContent>
         </Card>
 
-        {/* Movement Chain */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Movement Chain</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="firstMovement">1st Movement <span className="text-muted-foreground text-xs">(How did you start?)</span></Label>
-              <Input id="firstMovement" value={firstMovement} onChange={(e) => setFirstMovement(e.target.value)} placeholder="e.g., Jab entry, Level change, Feint low kick" />
-            </div>
-            <div>
-              <Label htmlFor="opponentReaction">2nd Movement <span className="text-muted-foreground text-xs">(Opponent reaction)</span></Label>
-              <Input id="opponentReaction" value={opponentReaction} onChange={(e) => setOpponentReaction(e.target.value)} placeholder="e.g., Stepped back, Parried, Sprawled" />
-            </div>
-            <div>
-              <Label htmlFor="thirdMovement">3rd Movement <span className="text-muted-foreground text-xs">(What did I capitalize with?)</span></Label>
-              <Input id="thirdMovement" value={thirdMovement} onChange={(e) => setThirdMovement(e.target.value)} placeholder="e.g., Low kick, Double leg finish, Back take" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* My Performance */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="h-4 w-4 text-primary" />
-              My Performance
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Before Training */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue-500" />
-                <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Before Training</p>
-              </div>
-              <div>
-                <Label className="text-xs">Emotion</Label>
-                <ChipSelect options={emotionOptions} value={beforeEmotion} onChange={setBeforeEmotion} />
-              </div>
-              <div>
-                <Label className="text-xs">Mindset</Label>
-                <ChipSelect options={mindsetOptions} value={beforeMindset} onChange={setBeforeMindset} />
-              </div>
-            </div>
-
-            <div className="border-t border-border" />
-
-            {/* After Training */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-red-500" />
-                <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">After Training</p>
-              </div>
-              <div>
-                <Label className="text-xs">Emotion</Label>
-                <ChipSelect options={emotionOptions} value={afterEmotion} onChange={setAfterEmotion} />
-              </div>
-              <div>
-                <Label className="text-xs">Mindset</Label>
-                <ChipSelect options={mindsetOptions} value={afterMindset} onChange={setAfterMindset} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Effort */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-primary" />
-              Effort
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label className="text-xs mb-2 block">Physical Effort Level</Label>
-              <div className="flex gap-1.5">
-                {effortLevels.map((level) => (
-                  <EffortButton key={level} label={level} selected={physicalEffort === level}
-                    onClick={() => setPhysicalEffort(physicalEffort === level ? '' : level)} />
-                ))}
-              </div>
-            </div>
-            <div>
-              <Label className="text-xs mb-2 block">Mental Effort Level</Label>
-              <div className="flex gap-1.5">
-                {effortLevels.map((level) => (
-                  <EffortButton key={level} label={level} selected={mentalEffort === level}
-                    onClick={() => setMentalEffort(mentalEffort === level ? '' : level)} />
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Fighter Note (optional) */}
-        {isFighterApproved && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Swords className="h-4 w-4 text-primary" />
-                Fighter Note
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <Checkbox
-                  checked={makeFighterNote}
-                  onCheckedChange={(v) => setMakeFighterNote(v === true)}
-                  className="mt-0.5"
-                />
-                <div>
-                  <p className="text-sm font-medium">Make this a Fighter Note</p>
-                  <p className="text-xs text-muted-foreground">
-                    Also link to your Fighter Profile and feed Fighter Statistics.
-                  </p>
-                </div>
-              </label>
-
-              {makeFighterNote && (
-                <div className="space-y-4 pt-2 border-t border-border">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="attempts" className="text-xs">Attempts</Label>
-                      <Input
-                        id="attempts"
-                        type="number"
-                        min={0}
-                        step={1}
-                        inputMode="numeric"
-                        value={attemptsCount}
-                        onChange={(e) => setAttemptsCount(e.target.value.replace(/[^0-9]/g, ''))}
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="executed" className="text-xs">Executed</Label>
-                      <Input
-                        id="executed"
-                        type="number"
-                        min={0}
-                        step={1}
-                        inputMode="numeric"
-                        value={executedCount}
-                        onChange={(e) => setExecutedCount(e.target.value.replace(/[^0-9]/g, ''))}
-                        placeholder="0"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-xs mb-2 block">Execution Rate</Label>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-3 rounded-full bg-secondary overflow-hidden">
-                        <div
-                          className={`h-full ${rateColor} transition-all`}
-                          style={{ width: `${attemptsNum > 0 ? executionRate : 0}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-semibold tabular-nums w-16 text-right">
-                        {attemptsNum > 0 ? `${executionRate}%` : 'No data'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-xs mb-2 block">Physical Effort of Execution</Label>
-                    <div className="flex gap-1.5">
-                      {effortLevels.map((level) => (
-                        <EffortButton
-                          key={level}
-                          label={level}
-                          selected={physicalEffortExecution === level}
-                          onClick={() =>
-                            setPhysicalEffortExecution(physicalEffortExecution === level ? '' : level)
-                          }
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-xs mb-2 block">Mindset Effort of Execution</Label>
-                    <ChipSelect
-                      options={mindsetOptions}
-                      value={mindsetEffortExecution}
-                      onChange={setMindsetEffortExecution}
-                    />
-                  </div>
-                </div>
-              )}
+        {/* Placeholder when no type selected */}
+        {!classType && (
+          <Card className="border-dashed">
+            <CardContent className="py-10">
+              <p className="text-center text-sm text-muted-foreground">
+                Select a session type above to continue
+              </p>
             </CardContent>
           </Card>
         )}
 
-        {/* Notes & Tags */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-4 w-4 text-primary" />
-              Notes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Notes</Label>
-              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={5} placeholder="What happened? What worked? What needs improvement?" />
-            </div>
+        {/* Everything below requires a classType */}
+        {classType && (
+          <>
+            {/* Session Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Session Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Session Title</Label>
+                  <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Jab timing study" />
+                </div>
 
-            <div>
-              <Label>YouTube / Video URL (optional)</Label>
-              <Input
-                type="url"
-                inputMode="url"
-                maxLength={500}
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://youtube.com/watch?v=..."
-              />
-            </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="date">Date</Label>
+                    <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="startTime">Start Time</Label>
+                    <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="endTime">End Time</Label>
+                    <Input id="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Duration</Label>
+                    <p className="text-sm font-medium mt-2 text-muted-foreground">{getDuration() || '—'}</p>
+                  </div>
+                </div>
 
-            <PredictiveTagInput
-              selectedTags={selectedTags}
-              onTagsChange={setSelectedTags}
-              disciplines={selectedDisciplines}
-            />
-          </CardContent>
-        </Card>
+                <MultiDisciplineSelect
+                  options={availableDisciplines}
+                  value={selectedDisciplines}
+                  onChange={(next) => {
+                    setSelectedDisciplines(next);
+                    setTechnique('');
+                  }}
+                  helper={profileDisciplines.length > 0 ? 'From your profile — pick one or more for this session.' : undefined}
+                />
 
-        {/* Save Session box — sits at the bottom of all page content */}
-        <Card>
-          <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? 'Saving…' : 'Save Session'}
-            </Button>
-            <Button type="button" variant="outline" onClick={() => navigate(-1)}>
-              Cancel
-            </Button>
-          </CardContent>
-        </Card>
+                {/* Tactic & Technique only for technical sessions */}
+                {technical && (
+                  <>
+                    <div>
+                      <Label>Tactic</Label>
+                      <Select value={strategy} onValueChange={(v: Strategy) => setStrategy(v)}>
+                        <SelectTrigger><SelectValue placeholder="Select tactic" /></SelectTrigger>
+                        <SelectContent>
+                          {strategies.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Technique</Label>
+                      <Select
+                        value={technique === '__custom__' || (technique && !techniqueOptions.includes(technique)) ? '__custom__' : technique}
+                        onValueChange={(v) => {
+                          if (v === '__custom__') {
+                            setTechnique('__custom__');
+                            setCustomTechnique('');
+                          } else {
+                            setTechnique(v);
+                            setCustomTechnique('');
+                          }
+                        }}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select technique" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__custom__">+ Custom (type your own)</SelectItem>
+                          {techniqueOptions.map((t) => (<SelectItem key={t} value={t}>{t}</SelectItem>))}
+                        </SelectContent>
+                      </Select>
+                      {technique === '__custom__' && (
+                        <Input
+                          className="mt-2"
+                          value={customTechnique}
+                          onChange={(e) => setCustomTechnique(e.target.value)}
+                          placeholder="Type your custom technique (will create a pathway node)"
+                        />
+                      )}
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Movement Chain — technical only */}
+            {technical && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Movement Chain</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="firstMovement">1st Movement <span className="text-muted-foreground text-xs">(How did you start?)</span></Label>
+                    <Input id="firstMovement" value={firstMovement} onChange={(e) => setFirstMovement(e.target.value)} placeholder="e.g., Jab entry, Level change, Feint low kick" />
+                  </div>
+                  <div>
+                    <Label htmlFor="opponentReaction">2nd Movement <span className="text-muted-foreground text-xs">(Opponent reaction)</span></Label>
+                    <Input id="opponentReaction" value={opponentReaction} onChange={(e) => setOpponentReaction(e.target.value)} placeholder="e.g., Stepped back, Parried, Sprawled" />
+                  </div>
+                  <div>
+                    <Label htmlFor="thirdMovement">3rd Movement <span className="text-muted-foreground text-xs">(What did I capitalize with?)</span></Label>
+                    <Input id="thirdMovement" value={thirdMovement} onChange={(e) => setThirdMovement(e.target.value)} placeholder="e.g., Low kick, Double leg finish, Back take" />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Cardio: Activity grid + Session Metrics */}
+            {cardio && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-primary" />
+                      Activity
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-3 gap-2">
+                      {CARDIO_ACTIVITIES.map((a) => (
+                        <Button
+                          key={a}
+                          type="button"
+                          size="sm"
+                          variant={cardioActivity === a ? 'default' : 'outline'}
+                          className={`text-xs h-10 ${cardioActivity === a ? '' : 'border-border'}`}
+                          onClick={() => setCardioActivity(cardioActivity === a ? '' : a)}
+                        >
+                          {a}
+                        </Button>
+                      ))}
+                    </div>
+                    {cardioActivity === 'Other' && (
+                      <div>
+                        <Label className="text-xs">Specify activity</Label>
+                        <Input
+                          value={cardioActivityOther}
+                          onChange={(e) => setCardioActivityOther(e.target.value)}
+                          placeholder="Custom activity name"
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Session Metrics</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label>Duration</Label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Input type="number" min="0" placeholder="Hours" value={cardioHours} onChange={(e) => setCardioHours(e.target.value)} />
+                        <Input type="number" min="0" max="59" placeholder="Min" value={cardioMinutes} onChange={(e) => setCardioMinutes(e.target.value)} />
+                        <Input type="number" min="0" max="59" placeholder="Sec" value={cardioSeconds} onChange={(e) => setCardioSeconds(e.target.value)} />
+                      </div>
+                    </div>
+
+                    {showDistance && (
+                      <div>
+                        <Label>Distance (meters)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          value={cardioDistance}
+                          onChange={(e) => setCardioDistance(e.target.value)}
+                          placeholder="e.g., 5000"
+                        />
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>Calories</Label>
+                        <Input type="number" min="0" value={cardioCalories} onChange={(e) => setCardioCalories(e.target.value)} placeholder="kcal (optional)" />
+                      </div>
+                      <div>
+                        <Label>Avg Heart Rate</Label>
+                        <Input type="number" min="0" value={cardioAvgHr} onChange={(e) => setCardioAvgHr(e.target.value)} placeholder="bpm (optional)" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label>Max Heart Rate</Label>
+                      <Input type="number" min="0" value={cardioMaxHr} onChange={(e) => setCardioMaxHr(e.target.value)} placeholder="bpm (optional)" />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label>RPE (Rate of Perceived Exertion)</Label>
+                        <span className="text-sm font-semibold tabular-nums">{cardioRpe} — {rpeLabel(cardioRpe)}</span>
+                      </div>
+                      <Slider
+                        min={1}
+                        max={10}
+                        step={1}
+                        value={[cardioRpe]}
+                        onValueChange={(v) => setCardioRpe(v[0])}
+                      />
+                      <div className="flex justify-between text-[10px] text-muted-foreground mt-2">
+                        <span>1–3 Easy</span>
+                        <span>4–6 Moderate</span>
+                        <span>7–8 Hard</span>
+                        <span>9–10 Max</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            {/* Strength: Workout card with two tabs */}
+            {strength && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Dumbbell className="h-4 w-4 text-primary" />
+                    Workout
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Tabs value={strengthTab} onValueChange={(v) => setStrengthTab(v as 'live' | 'program')}>
+                    <TabsList className="grid grid-cols-2 w-full">
+                      <TabsTrigger value="live">Build live</TabsTrigger>
+                      <TabsTrigger value="program">Load program</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="live" className="mt-4">
+                      <StrengthWorkoutForm
+                        sessionId={sessionId}
+                        userId={user?.id || ''}
+                        workoutName={workoutName}
+                        setWorkoutName={setWorkoutName}
+                        workoutType={workoutType}
+                        setWorkoutType={setWorkoutType}
+                        workoutMode={workoutMode}
+                        setWorkoutMode={setWorkoutMode}
+                        exercises={exercises}
+                        setExercises={setExercises}
+                        totals={strengthTotals}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="program" className="mt-4">
+                      {templates.length === 0 ? (
+                        <p className="text-sm text-muted-foreground py-4 text-center">
+                          No saved programs yet. Build one in the "Build live" tab and save it as a template.
+                        </p>
+                      ) : (
+                        <div className="space-y-2">
+                          {templates.map((tmpl) => (
+                            <Button
+                              key={tmpl.id}
+                              type="button"
+                              variant="outline"
+                              className="w-full justify-start h-auto py-3 text-left"
+                              onClick={() => loadTemplateIntoForm(tmpl.id)}
+                            >
+                              <div>
+                                <p className="font-medium">{tmpl.name}</p>
+                                {tmpl.workout_type && (
+                                  <p className="text-xs text-muted-foreground">{tmpl.workout_type}</p>
+                                )}
+                              </div>
+                            </Button>
+                          ))}
+                        </div>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* My Performance — universal */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="h-4 w-4 text-primary" />
+                  My Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-blue-500" />
+                    <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Before Training</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Emotion</Label>
+                    <ChipSelect options={emotionOptions} value={beforeEmotion} onChange={setBeforeEmotion} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Mindset</Label>
+                    <ChipSelect options={mindsetOptions} value={beforeMindset} onChange={setBeforeMindset} />
+                  </div>
+                </div>
+
+                <div className="border-t border-border" />
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-red-500" />
+                    <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">After Training</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Emotion</Label>
+                    <ChipSelect options={emotionOptions} value={afterEmotion} onChange={setAfterEmotion} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Mindset</Label>
+                    <ChipSelect options={mindsetOptions} value={afterMindset} onChange={setAfterMindset} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Effort — universal (cardio uses RPE so we keep the section but it's still useful as supplementary) */}
+            {!cardio && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-primary" />
+                    Effort
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-xs mb-2 block">Physical Effort Level</Label>
+                    <div className="flex gap-1.5">
+                      {effortLevels.map((level) => (
+                        <EffortButton key={level} label={level} selected={physicalEffort === level}
+                          onClick={() => setPhysicalEffort(physicalEffort === level ? '' : level)} />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs mb-2 block">Mental Effort Level</Label>
+                    <div className="flex gap-1.5">
+                      {effortLevels.map((level) => (
+                        <EffortButton key={level} label={level} selected={mentalEffort === level}
+                          onClick={() => setMentalEffort(mentalEffort === level ? '' : level)} />
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Fighter Note — technical only */}
+            {technical && isFighterApproved && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Swords className="h-4 w-4 text-primary" />
+                    Fighter Note
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <Checkbox
+                      checked={makeFighterNote}
+                      onCheckedChange={(v) => setMakeFighterNote(v === true)}
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <p className="text-sm font-medium">Make this a Fighter Note</p>
+                      <p className="text-xs text-muted-foreground">
+                        Also link to your Fighter Profile and feed Fighter Statistics.
+                      </p>
+                    </div>
+                  </label>
+
+                  {makeFighterNote && (
+                    <div className="space-y-4 pt-2 border-t border-border">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label htmlFor="attempts" className="text-xs">Attempts</Label>
+                          <Input
+                            id="attempts"
+                            type="number"
+                            min={0}
+                            step={1}
+                            inputMode="numeric"
+                            value={attemptsCount}
+                            onChange={(e) => setAttemptsCount(e.target.value.replace(/[^0-9]/g, ''))}
+                            placeholder="0"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="executed" className="text-xs">Executed</Label>
+                          <Input
+                            id="executed"
+                            type="number"
+                            min={0}
+                            step={1}
+                            inputMode="numeric"
+                            value={executedCount}
+                            onChange={(e) => setExecutedCount(e.target.value.replace(/[^0-9]/g, ''))}
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-xs mb-2 block">Execution Rate</Label>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-3 rounded-full bg-secondary overflow-hidden">
+                            <div
+                              className={`h-full ${rateColor} transition-all`}
+                              style={{ width: `${attemptsNum > 0 ? executionRate : 0}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-semibold tabular-nums w-16 text-right">
+                            {attemptsNum > 0 ? `${executionRate}%` : 'No data'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-xs mb-2 block">Physical Effort of Execution</Label>
+                        <div className="flex gap-1.5">
+                          {effortLevels.map((level) => (
+                            <EffortButton
+                              key={level}
+                              label={level}
+                              selected={physicalEffortExecution === level}
+                              onClick={() =>
+                                setPhysicalEffortExecution(physicalEffortExecution === level ? '' : level)
+                              }
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-xs mb-2 block">Mindset Effort of Execution</Label>
+                        <ChipSelect
+                          options={mindsetOptions}
+                          value={mindsetEffortExecution}
+                          onChange={setMindsetEffortExecution}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Notes & Tags — universal */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-primary" />
+                  Notes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Notes</Label>
+                  <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={5} placeholder="What happened? What worked? What needs improvement?" />
+                </div>
+
+                <div>
+                  <Label>YouTube / Video URL (optional)</Label>
+                  <Input
+                    type="url"
+                    inputMode="url"
+                    maxLength={500}
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    placeholder="https://youtube.com/watch?v=..."
+                  />
+                </div>
+
+                <PredictiveTagInput
+                  selectedTags={selectedTags}
+                  onTagsChange={setSelectedTags}
+                  disciplines={selectedDisciplines}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Save / Cancel — universal */}
+            <Card>
+              <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
+                <Button type="submit" disabled={loading} className="flex-1">
+                  {loading ? 'Saving…' : 'Save Session'}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+                  Cancel
+                </Button>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </form>
     </div>
   );

@@ -17,11 +17,12 @@ export interface CustomListItem {
 }
 
 export const DEFAULT_CLASS_TYPES = [
-  'Cardio/Endurance',
-  'Strength/Conditioning',
   'Technical Skills',
-  'Sparring',
+  'Sparring / Rolling',
   '1o1 PT',
+  'Fight Review',
+  'Cardio / Endurance',
+  'Strength / Conditioning',
 ];
 
 export const DEFAULT_EMOTIONS = [

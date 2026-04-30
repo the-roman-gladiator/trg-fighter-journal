@@ -579,16 +579,17 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   </div>
                 </div>
 
-                <MultiDisciplineSelect
-                  options={availableDisciplines}
-                  value={selectedDisciplines}
-                  onChange={(next) => {
-                    setSelectedDisciplines(next);
-                    setTechnique('');
-                  }}
-                  helper={profileDisciplines.length > 0 ? 'From your profile — pick one or more for this session.' : undefined}
-                />
-
+                {!cardio && !strength && (
+                  <MultiDisciplineSelect
+                    options={availableDisciplines}
+                    value={selectedDisciplines}
+                    onChange={(next) => {
+                      setSelectedDisciplines(next);
+                      setTechnique('');
+                    }}
+                    helper={profileDisciplines.length > 0 ? 'From your profile — pick one or more for this session.' : undefined}
+                  />
+                )}
                 {/* Tactic & Technique only for technical sessions */}
                 {technical && (
                   <>

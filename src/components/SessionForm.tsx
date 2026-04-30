@@ -1351,6 +1351,12 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                         )}
                       </div>
                     )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Session Metrics</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>

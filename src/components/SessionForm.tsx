@@ -236,6 +236,11 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         }
       }
 
+      // Stretching & Mobility prefill
+      const sFA = (session as any).stretching_focus_areas;
+      const sEx = (session as any).stretching_exercises;
+      if (Array.isArray(sFA)) setStretchFocusAreas(sFA);
+      if (Array.isArray(sEx)) setStretchExercises(sEx as StretchExercise[]);
       // Cardio fields prefill
       const existingActivity = (session as any).cardio_activity_name || '';
       if (existingActivity) {

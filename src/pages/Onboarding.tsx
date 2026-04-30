@@ -60,7 +60,7 @@ export default function Onboarding() {
 
   const canProceed = () => {
     switch (step) {
-      case 0: return !!discipline;
+      case 0: return disciplines.length > 0;
       case 1: return true;
       case 2: return heightCm > 0 && weightKg > 0 && age > 0;
       default: return true;

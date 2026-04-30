@@ -18,7 +18,7 @@ import { PredictiveTagInput } from './PredictiveTagInput';
 import { MultiDisciplineSelect } from './MultiDisciplineSelect';
 import { StrengthWorkoutForm } from './StrengthWorkoutForm';
 import { Brain, Heart, Zap, Swords, Dumbbell, Activity, ListChecks } from 'lucide-react';
-import { useUserLists, DEFAULT_CLASS_TYPES, DEFAULT_EMOTIONS, DEFAULT_MINDSETS } from '@/hooks/useUserLists';
+import { useUserLists, DEFAULT_CLASS_TYPES, DEFAULT_EMOTIONS, DEFAULT_MINDSETS, classTypeCategory } from '@/hooks/useUserLists';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useFighterProfile } from '@/hooks/useFighterProfile';
 import { logEvent } from '@/hooks/useAnalytics';

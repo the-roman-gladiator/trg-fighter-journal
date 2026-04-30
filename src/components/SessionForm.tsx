@@ -397,6 +397,31 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         // Stretching & Mobility
         stretching_focus_areas: stretching && stretchFocusAreas.length > 0 ? stretchFocusAreas : null,
         stretching_exercises: stretching && stretchExercises.length > 0 ? stretchExercises : null,
+        // My Fight Review
+        fight_type: fightReview ? (fightType || null) : null,
+        fight_event: fightReview ? (fightEvent.trim() || null) : null,
+        fight_result: fightReview ? (fightResult || null) : null,
+        fight_method: fightReview && (fightResult === 'Win' || fightResult === 'Loss') ? (fightMethod || null) : null,
+        fight_round_count: fightReview && fightRoundCount !== ''
+          ? parseInt(fightRoundCount)
+          : (sparring && sparringRounds !== '' ? parseInt(sparringRounds) : null),
+        fight_duration: fightReview && fightRoundDuration.trim()
+          ? fightRoundDuration.trim()
+          : (sparring && sparringRoundLength.trim() ? sparringRoundLength.trim() : null),
+        fight_opponent: fightReview
+          ? {
+              name: fightOpponentName.trim() || null,
+              style: fightOpponentStyle || null,
+              stance: fightOpponentStance || null,
+              weight: fightOpponentWeight.trim() || null,
+              notes: fightOpponentNotes.trim() || null,
+            }
+          : (sparring && sparringPartnerLevel ? { partner_level: sparringPartnerLevel } : null),
+        fight_rounds: fightReview && fightRounds.length > 0 ? fightRounds : null,
+        fight_emotion_before: fightReview ? (beforeEmotion || null) : null,
+        fight_emotion_after: fightReview ? (afterEmotion || null) : null,
+        fight_mindset: fightReview ? (fightMindset || null) : null,
+        fight_free_comment: fightReview ? (fightFreeComment.trim() || null) : null,
         // Fighter Note (only on technical sessions)
         make_fighter_note: technical ? makeFighterNote : false,
         fighter_profile_id: technical && makeFighterNote ? (fighterProfile?.id || null) : null,

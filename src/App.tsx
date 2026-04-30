@@ -14,6 +14,7 @@ import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
 import { useAnalytics } from "./hooks/useAnalytics";
 import { useSubscription } from "./hooks/useSubscription";
 import globalBgDark from "@/assets/dashboard-bg-octagon.png";
+import globalBgLight from "@/assets/global-bg-octagon-light.png";
 
 // Eager: critical first-paint routes
 import Landing from "./pages/Landing";
@@ -83,6 +84,7 @@ function GlobalDarkBackground() {
   if (pathname.startsWith('/profile')) return null;
   return (
     <>
+      {/* Dark mode background */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0 hidden dark:block"
@@ -98,6 +100,22 @@ function GlobalDarkBackground() {
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0 hidden dark:block bg-gradient-to-b from-background/55 via-background/35 to-background/85"
       />
+      {/* Light mode background */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 dark:hidden"
+        style={{
+          backgroundImage: `url(${globalBgLight})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.42,
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 dark:hidden bg-gradient-to-b from-background/55 via-background/35 to-background/85"
+      />
     </>
   );
 }
@@ -108,7 +126,7 @@ function AppShell() {
   const { pathname } = useLocation();
   const excludeBg = pathname.startsWith('/profile');
   return (
-    <div className={`h-[100dvh] flex flex-col overflow-hidden ${excludeBg ? 'bg-background' : 'bg-background dark:bg-transparent'} relative`}>
+    <div className={`h-[100dvh] flex flex-col overflow-hidden ${excludeBg ? 'bg-background' : 'bg-transparent'} relative`}>
       <GlobalDarkBackground />
       <main className="flex-1 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] relative z-10">
       <AdminLockGate>

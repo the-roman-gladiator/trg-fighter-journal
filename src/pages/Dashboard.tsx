@@ -16,6 +16,7 @@ import fighterBgDark from '@/assets/dashboard-fighter-bg.jpg';
 import fighterBgLight from '@/assets/dashboard-fighter-bg-light.png';
 import { CoachNoteOffersInbox } from '@/components/coach/CoachNoteOffersInbox';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { FighterCard } from '@/components/FighterCard';
 
 const MARTIAL_ARTS = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
 
@@ -394,32 +395,26 @@ export default function Dashboard() {
           </h2>
         </div>
 
-        {/* Combined Daily Motivation + My Statement — outstanding top block */}
-        {(dailyMotivation || myStatement) && (
-          <Card className="border-primary/40 bg-gradient-to-br from-primary/10 via-card to-card shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.35)]">
-            <CardContent className="pt-5 pb-5 space-y-4">
-              {myStatement && (
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Swords className="h-4 w-4 text-primary" />
-                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">My Statement</p>
-                  </div>
-                  <p className="text-base sm:text-lg font-bold text-foreground italic leading-snug">
-                    "{myStatement}"
-                  </p>
-                </div>
-              )}
-              {dailyMotivation && (
-                <div className={myStatement ? 'pt-3 border-t border-primary/20' : ''}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Quote className="h-4 w-4 text-primary" />
-                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">Daily Motivation</p>
-                  </div>
-                  <p className="text-sm sm:text-base font-medium text-foreground leading-snug">
-                    {dailyMotivation}
-                  </p>
-                </div>
-              )}
+        {/* Fighter Card — nickname / discipline / level / statement */}
+        <FighterCard
+          nickname={profile?.nickname || undefined}
+          name={profile?.name || undefined}
+          discipline={myDisciplines.join(', ') || profile?.discipline || undefined}
+          level={profile?.level}
+          statement={myStatement}
+        />
+
+        {/* Daily Motivation */}
+        {dailyMotivation && (
+          <Card className="border-primary/30 bg-gradient-to-br from-primary/5 via-card to-card">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Quote className="h-4 w-4 text-primary" />
+                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">Daily Motivation</p>
+              </div>
+              <p className="text-sm sm:text-base font-medium text-foreground leading-snug">
+                {dailyMotivation}
+              </p>
             </CardContent>
           </Card>
         )}

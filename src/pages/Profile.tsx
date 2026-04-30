@@ -219,6 +219,19 @@ export default function Profile() {
     setDiscColors(settings.discipline_colors);
   }, [settings]);
 
+  // Auto-derive fitness level from assessment fitness test inputs
+  useEffect(() => {
+    const derived = deriveFitnessLevel(
+      Number(aPushups) || 0,
+      Number(aSitups) || 0,
+      Number(aSquats) || 0,
+      Number(aPlank) || 0,
+    );
+    if (derived && derived !== fitnessLevel) {
+      setFitnessLevel(derived);
+    }
+  }, [aPushups, aSitups, aSquats, aPlank]);
+
   const toggleDiscipline = (d: string) => {
     setSelectedDisciplines(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
   };

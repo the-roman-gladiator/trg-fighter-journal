@@ -227,21 +227,37 @@ export default function Dashboard() {
       {/* Dashboard-only fighter background graphic */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0"
+        className="pointer-events-none fixed inset-0 z-0 hidden dark:block"
         style={{
-          backgroundImage: `url(${fighterBg})`,
+          backgroundImage: `url(${fighterBgDark})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.42,
+        }}
+      />
+      {/* Light-mode soft background (kept) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 dark:hidden"
+        style={{
+          backgroundImage: `url(${fighterBgLight})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',
           opacity: 0.18,
-          filter: 'blur(0.5px) saturate(1.1)',
           maskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 80%)',
           WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 80%)',
         }}
       />
+      {/* Subtle dark-mode vignette to keep cards readable */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-background/60 via-background/40 to-background"
+        className="pointer-events-none fixed inset-0 z-0 hidden dark:block bg-gradient-to-b from-background/55 via-background/35 to-background/85"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 dark:hidden bg-gradient-to-b from-background/60 via-background/40 to-background"
       />
 
       {/* Premium hero header — bold sports-headline */}

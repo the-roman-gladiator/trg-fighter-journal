@@ -166,6 +166,7 @@ function AppShell() {
         <Route path="/ai-assistant" element={<AIFighterAssistant />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/analytics" element={<AdminAnalytics />} />
+        <Route path="/mockup-dashboard" element={<MockupDashboard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       </Suspense>

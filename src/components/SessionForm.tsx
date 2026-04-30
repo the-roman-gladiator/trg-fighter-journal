@@ -273,10 +273,12 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     }
 
     const technical = isTechnicalType(classType);
+    const sparring = classTypeCategory(classType) === 'sparring';
     const cardio = isCardioType(classType);
     const strength = isStrengthType(classType);
+    const showTechnicalEntry = technical || sparring;
 
-    if (technical && selectedDisciplines.length === 0) {
+    if (showTechnicalEntry && selectedDisciplines.length === 0) {
       toast({ title: 'Validation', description: 'Please select at least one discipline', variant: 'destructive' });
       return;
     }

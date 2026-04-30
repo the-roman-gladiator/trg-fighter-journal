@@ -313,6 +313,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     if (cardio) {
       // Map RPE 1-10 → effort_score 0.5-5
       effortScore = cardioRpe / 2;
+    } else if (sparring) {
+      // Map sparring intensity 1-10 → effort_score 0.5-5
+      effortScore = sparringIntensity / 2;
     } else if (physicalEffort || mentalEffort) {
       const pScore = effortToScore(physicalEffort);
       const mScore = effortToScore(mentalEffort);

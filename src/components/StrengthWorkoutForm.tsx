@@ -259,32 +259,32 @@ export function StrengthWorkoutForm({
         <Card key={exIdx}>
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Dumbbell className="h-4 w-4 text-primary" />
+              <CardTitle className="text-sm flex items-center gap-2 uppercase tracking-wide">
+                <Dumbbell className="h-3.5 w-3.5 text-primary" />
                 {exercise.exerciseName}
               </CardTitle>
-              <Button type="button" variant="ghost" size="sm" onClick={() => removeExercise(exIdx)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
+              <Button type="button" variant="ghost" size="sm" onClick={() => removeExercise(exIdx)} className="h-7 w-7 p-0">
+                <Trash2 className="h-3.5 w-3.5 text-destructive" />
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-2 items-center text-xs text-muted-foreground font-medium">
-              <span className="w-8 text-center">Set</span>
+          <CardContent className="space-y-1.5">
+            <div className="grid grid-cols-[28px_1fr_1fr_28px] gap-2 items-center text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
+              <span className="text-center">Set</span>
               <span>Reps</span>
               <span>Weight (kg)</span>
-              <span className="w-8"></span>
+              <span></span>
             </div>
             {exercise.sets.map((set, setIdx) => (
-              <div key={setIdx} className="grid grid-cols-[auto_1fr_1fr_auto] gap-2 items-center">
-                <span className="w-8 text-center text-sm font-medium text-muted-foreground">{set.setNumber}</span>
+              <div key={setIdx} className="grid grid-cols-[28px_1fr_1fr_28px] gap-2 items-center">
+                <span className="text-center text-xs font-bold text-primary bg-primary/10 rounded-md py-1.5">{set.setNumber}</span>
                 <Input
                   type="number"
                   min="0"
                   value={set.reps ?? ''}
                   onChange={e => updateSet(exIdx, setIdx, 'reps', e.target.value)}
                   placeholder="Reps"
-                  className="h-9"
+                  className="h-8 text-sm"
                 />
                 <Input
                   type="number"
@@ -293,20 +293,25 @@ export function StrengthWorkoutForm({
                   value={set.weight ?? ''}
                   onChange={e => updateSet(exIdx, setIdx, 'weight', e.target.value)}
                   placeholder="kg"
-                  className="h-9"
+                  className="h-8 text-sm"
                 />
                 <Button
                   type="button" variant="ghost" size="sm"
                   onClick={() => removeSet(exIdx, setIdx)}
-                  className="w-8 h-8 p-0"
+                  className="w-7 h-7 p-0"
                   disabled={exercise.sets.length <= 1}
                 >
                   <Trash2 className="h-3 w-3" />
                 </Button>
               </div>
             ))}
-            <Button type="button" variant="outline" size="sm" onClick={() => addSet(exIdx)} className="w-full">
-              <Plus className="h-3 w-3 mr-1" /> Add Set
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => addSet(exIdx)}
+              className="w-full h-8 mt-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" /> Add Set
             </Button>
           </CardContent>
         </Card>

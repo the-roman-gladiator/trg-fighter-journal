@@ -186,30 +186,40 @@ export function FighterCard({
             {displayName}
           </h2>
 
-          {/* 2. DISCIPLINES — tag row */}
+          {/* Secondary lines — same level / same font / same weight / same spacing */}
           {disciplineTags.length > 0 && (
             <p
-              className="mt-3 text-white/55 text-[11px] sm:text-[12px] font-semibold tracking-[0.18em] uppercase break-words"
+              className="mt-4 text-white text-[13px] sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2"
               style={displayFont}
             >
               {disciplineTags.join(' • ')}
             </p>
           )}
 
-          {/* 3. TARGET — mission (wraps to 2 lines if long) */}
           {target && (
             <p
-              className="mt-4 text-white font-semibold leading-snug text-[14px] sm:text-[15px] line-clamp-2"
+              className="mt-3 text-white text-[13px] sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2"
               style={displayFont}
             >
               {target}
             </p>
           )}
 
-          {/* 4. STATEMENT — identity (italic, up to 2 lines) */}
           {statement && (
-            <p className="mt-3 text-white/70 italic font-light text-[13px] sm:text-[14px] leading-snug line-clamp-2">
-              "{statement}"
+            <p
+              className="mt-3 text-white text-[13px] sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2"
+              style={displayFont}
+            >
+              {statement}
+            </p>
+          )}
+
+          {level && (
+            <p
+              className="mt-3 text-white text-[13px] sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2"
+              style={displayFont}
+            >
+              {level}
             </p>
           )}
         </div>

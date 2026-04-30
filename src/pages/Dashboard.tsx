@@ -224,18 +224,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background dark:bg-transparent relative">
-      {/* Dashboard-only fighter background graphic */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 hidden dark:block"
-        style={{
-          backgroundImage: `url(${fighterBgDark})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center top',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.42,
-        }}
-      />
       {/* Light-mode soft background (kept) */}
       <div
         aria-hidden="true"
@@ -249,11 +237,6 @@ export default function Dashboard() {
           maskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 80%)',
           WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 80%)',
         }}
-      />
-      {/* Subtle dark-mode vignette to keep cards readable */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 hidden dark:block bg-gradient-to-b from-background/55 via-background/35 to-background/85"
       />
       <div
         aria-hidden="true"

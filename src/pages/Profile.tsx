@@ -41,6 +41,17 @@ const ALL_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJ
 
 const FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
 
+// Derive fitness level from assessment fitness test inputs.
+// Sum of push-ups + sit-ups + squats maps to a tier.
+function deriveFitnessLevel(pushups: number, situps: number, squats: number, plank: number): FitnessLevel | null {
+  const total = (pushups || 0) + (situps || 0) + (squats || 0);
+  if (total <= 0 && !plank) return null;
+  if (total >= 180 || plank >= 180) return 'Very Active';
+  if (total >= 120 || plank >= 120) return 'Active';
+  if (total >= 60 || plank >= 60) return 'Moderate';
+  return 'Beginner';
+}
+
 export default function Profile() {
   const { user, profile, refreshProfile } = useAuth();
   const { isAdmin } = useSubscription();

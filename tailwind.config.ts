@@ -65,7 +65,13 @@ export default {
           control: 'hsl(var(--strategy-control))',
           transitions: 'hsl(var(--strategy-transitions))',
           intercepting: 'hsl(var(--strategy-intercepting))',
-        }
+        },
+        // Fighter Journal combat semantic palette
+        combat: {
+          danger: 'hsl(var(--combat-danger))',
+          success: 'hsl(var(--combat-success))',
+          warning: 'hsl(var(--combat-warning))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

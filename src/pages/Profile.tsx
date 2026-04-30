@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote, Library, Bell, LifeBuoy, Shield } from 'lucide-react';
+import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote, Library, Bell, LifeBuoy, Shield, Activity } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { AccountType, FitnessLevel } from '@/types/training';
 import { disciplines } from '@/config/dropdownOptions';

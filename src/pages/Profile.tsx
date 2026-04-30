@@ -115,6 +115,7 @@ export default function Profile() {
 
   // My Statement & Motivation
   const [myStatement, setMyStatement] = useState('');
+  const [target, setTarget] = useState('');
   const [motivationMode, setMotivationMode] = useState<'random' | 'fixed_library' | 'custom'>('random');
   const [fixedMotivationId, setFixedMotivationId] = useState<string | null>(null);
   const [customMotivation, setCustomMotivation] = useState('');
@@ -165,11 +166,12 @@ export default function Profile() {
     const loadMotivationData = async () => {
       const { data: prof } = await supabase
         .from('profiles')
-        .select('my_statement, daily_motivation_mode, fixed_motivation_id, custom_motivation_text')
+        .select('my_statement, target, daily_motivation_mode, fixed_motivation_id, custom_motivation_text')
         .eq('id', user.id)
         .maybeSingle();
       if (prof) {
         setMyStatement(prof.my_statement || '');
+        setTarget((prof as any).target || '');
         setMotivationMode((prof.daily_motivation_mode as any) || 'random');
         setFixedMotivationId(prof.fixed_motivation_id || null);
         setCustomMotivation(prof.custom_motivation_text || '');
@@ -283,7 +285,7 @@ export default function Profile() {
   const profileSnapshot = {
     name, middleName, surname, nickname, accountType,
     selectedDisciplines, martialLevel, fitnessLevel,
-    myStatement, motivationMode, fixedMotivationId, customMotivation,
+    myStatement, target, motivationMode, fixedMotivationId, customMotivation,
   };
   const { status: autosaveStatus } = useAutosave({
     value: profileSnapshot,
@@ -304,6 +306,7 @@ export default function Profile() {
           level: dbLevel as any,
           fitness_level: fitnessLevel,
           my_statement: myStatement || null,
+          target: target || null,
           daily_motivation_mode: motivationMode,
           fixed_motivation_id: motivationMode === 'fixed_library' ? fixedMotivationId : null,
           custom_motivation_text: motivationMode === 'custom' ? customMotivation : null,
@@ -354,6 +357,7 @@ export default function Profile() {
           discipline: selectedDisciplines.join(', '),
           level: dbLevel as any, fitness_level: fitnessLevel,
           my_statement: myStatement || null,
+          target: target || null,
           daily_motivation_mode: motivationMode,
           fixed_motivation_id: motivationMode === 'fixed_library' ? fixedMotivationId : null,
           custom_motivation_text: motivationMode === 'custom' ? customMotivation : null,
@@ -492,6 +496,22 @@ export default function Profile() {
             <CollapsibleContent>
               <Card className="mt-3">
                 <CardContent className="space-y-5 pt-6">
+              {/* Target */}
+              <div>
+                <Label htmlFor="target">Target / Mission</Label>
+                <Input
+                  id="target"
+                  value={target}
+                  onChange={e => setTarget(e.target.value)}
+                  placeholder="e.g. Next Fight: May 18 — Cut to 70kg"
+                  maxLength={120}
+                  className="mt-1"
+                />
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Shown on your Fight Card. Keep it short — one or two lines.
+                </p>
+              </div>
+
               {/* My Statement */}
               <div>
                 <Label htmlFor="myStatement">Who I Want To Be</Label>

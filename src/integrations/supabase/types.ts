@@ -1302,6 +1302,7 @@ export type Database = {
           strength_program_start_date: string | null
           surname: string | null
           suspended: boolean
+          target: string | null
           training_frequency_per_week: string | null
           updated_at: string
         }
@@ -1340,6 +1341,7 @@ export type Database = {
           strength_program_start_date?: string | null
           surname?: string | null
           suspended?: boolean
+          target?: string | null
           training_frequency_per_week?: string | null
           updated_at?: string
         }
@@ -1378,6 +1380,7 @@ export type Database = {
           strength_program_start_date?: string | null
           surname?: string | null
           suspended?: boolean
+          target?: string | null
           training_frequency_per_week?: string | null
           updated_at?: string
         }

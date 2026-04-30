@@ -55,6 +55,7 @@ export default function Dashboard() {
 
   // Journal box state
   const [myStatement, setMyStatement] = useState('');
+  const [target, setTarget] = useState('');
   const [myDisciplines, setMyDisciplines] = useState<string[]>([]);
   const [dailyMotivation, setDailyMotivation] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -170,12 +171,13 @@ export default function Dashboard() {
     // Fetch profile for journal box
     const { data: prof } = await supabase
       .from('profiles')
-      .select('my_statement, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text, avatar_url')
+      .select('my_statement, target, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text, avatar_url')
       .eq('id', user.id)
       .maybeSingle();
 
     if (prof) {
       setMyStatement(prof.my_statement || '');
+      setTarget((prof as any).target || '');
       setMyDisciplines(prof.discipline ? prof.discipline.split(',').map((d: string) => d.trim()).filter(Boolean) : []);
       setAvatarUrl((prof as any).avatar_url || null);
 
@@ -415,6 +417,7 @@ export default function Dashboard() {
           discipline={myDisciplines.join(', ') || profile?.discipline || undefined}
           level={profile?.level}
           statement={myStatement}
+          target={target || undefined}
           dailyMotivation={dailyMotivation}
           avatarUrl={avatarUrl}
           onAvatarChange={(url) => setAvatarUrl(url)}

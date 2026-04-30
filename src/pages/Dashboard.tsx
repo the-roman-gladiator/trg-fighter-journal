@@ -422,7 +422,7 @@ export default function Dashboard() {
         </aside>
 
         {/* CENTER — original mobile content */}
-        <div className="space-y-5 min-w-0">
+        <div className="space-y-6 dark:space-y-7 min-w-0">
         {/* Date + Dashboard heading removed for more vertical space */}
 
         {/* Fighter Card — nickname / discipline / level / statement */}

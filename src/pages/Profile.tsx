@@ -514,12 +514,12 @@ export default function Profile() {
 
               {/* My Statement */}
               <div>
-                <Label htmlFor="myStatement">My Motto</Label>
+                <Label htmlFor="myStatement">My Creed</Label>
                 <Textarea
                   id="myStatement"
                   value={myStatement}
                   onChange={e => setMyStatement(e.target.value)}
-                  placeholder="Write your motto..."
+                  placeholder="Write your creed..."
                   className="mt-1"
                   rows={3}
                 />

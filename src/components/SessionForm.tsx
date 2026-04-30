@@ -127,6 +127,23 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [stretchNewName, setStretchNewName] = useState<string>('');
   const [stretchNewDuration, setStretchNewDuration] = useState<string>('');
 
+  // My Fight Review fields
+  type FightRound = { roundNumber: number; notes: string; techniques: string[] };
+  const [fightType, setFightType] = useState<string>('');
+  const [fightEvent, setFightEvent] = useState<string>('');
+  const [fightResult, setFightResult] = useState<string>('');
+  const [fightMethod, setFightMethod] = useState<string>('');
+  const [fightRoundCount, setFightRoundCount] = useState<string>('');
+  const [fightRoundDuration, setFightRoundDuration] = useState<string>('');
+  const [fightOpponentName, setFightOpponentName] = useState<string>('');
+  const [fightOpponentStyle, setFightOpponentStyle] = useState<string>('');
+  const [fightOpponentStance, setFightOpponentStance] = useState<string>('');
+  const [fightOpponentWeight, setFightOpponentWeight] = useState<string>('');
+  const [fightOpponentNotes, setFightOpponentNotes] = useState<string>('');
+  const [fightRounds, setFightRounds] = useState<FightRound[]>([]);
+  const [fightFreeComment, setFightFreeComment] = useState<string>('');
+  const [fightMindset, setFightMindset] = useState<string>('');
+
   // Cardio fields
   const [cardioActivity, setCardioActivity] = useState<string>('');
   const [cardioActivityOther, setCardioActivityOther] = useState<string>('');

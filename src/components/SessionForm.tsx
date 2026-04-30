@@ -18,7 +18,7 @@ import { PredictiveTagInput } from './PredictiveTagInput';
 import { MultiDisciplineSelect } from './MultiDisciplineSelect';
 import { StrengthWorkoutForm } from './StrengthWorkoutForm';
 import { Brain, Heart, Zap, Swords, Dumbbell, Activity, ListChecks } from 'lucide-react';
-import { useUserLists, DEFAULT_CLASS_TYPES, DEFAULT_EMOTIONS, DEFAULT_MINDSETS } from '@/hooks/useUserLists';
+import { useUserLists, DEFAULT_CLASS_TYPES, DEFAULT_EMOTIONS, DEFAULT_MINDSETS, classTypeCategory } from '@/hooks/useUserLists';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useFighterProfile } from '@/hooks/useFighterProfile';
 import { logEvent } from '@/hooks/useAnalytics';
@@ -51,10 +51,11 @@ const CARDIO_ACTIVITIES = [
 
 const DISTANCE_ACTIVITIES = new Set(['Running', 'Cycling', 'Rowing', 'Swimming', 'Walking', 'Hiking']);
 
-const isCardioType = (ct: string) => ct === 'Cardio / Endurance' || ct === 'Cardio/Endurance';
-const isStrengthType = (ct: string) => ct === 'Strength / Conditioning' || ct === 'Strength/Conditioning';
-const isTechnicalType = (ct: string) =>
-  !!ct && !isCardioType(ct) && !isStrengthType(ct);
+// Backwards-compatible category checks. The truth source is classTypeCategory(),
+// but we keep these helpers so the rest of the form code reads naturally.
+const isCardioType = (ct: string) => classTypeCategory(ct) === 'cardio';
+const isStrengthType = (ct: string) => classTypeCategory(ct) === 'strength';
+const isTechnicalType = (ct: string) => classTypeCategory(ct) === 'technical';
 
 function rpeLabel(rpe: number): string {
   if (rpe <= 3) return 'Easy';
@@ -109,6 +110,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [executedCount, setExecutedCount] = useState<string>('');
   const [physicalEffortExecution, setPhysicalEffortExecution] = useState('');
   const [mindsetEffortExecution, setMindsetEffortExecution] = useState('');
+
+  // 1o1 PT marker (Technical Skills only) — saves to pt_note_flag
+  const [pt1o1, setPt1o1] = useState(false);
 
   // Cardio fields
   const [cardioActivity, setCardioActivity] = useState<string>('');
@@ -203,6 +207,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setExecutedCount((session as any).executed_count != null ? String((session as any).executed_count) : '');
       setPhysicalEffortExecution((session as any).physical_effort_execution || '');
       setMindsetEffortExecution((session as any).mindset_effort_execution || '');
+      setPt1o1(!!(session as any).pt_note_flag);
 
       // Cardio fields prefill
       const existingActivity = (session as any).cardio_activity_name || '';
@@ -326,6 +331,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         mental_effort_level: cardio ? null : (mentalEffort || null),
         effort_score: effortScore,
         class_type: classType || null,
+        pt_note_flag: technical ? pt1o1 : false,
         // Fighter Note (only on technical sessions)
         make_fighter_note: technical ? makeFighterNote : false,
         fighter_profile_id: technical && makeFighterNote ? (fighterProfile?.id || null) : null,
@@ -374,6 +380,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         if (firstMovement) autoTags.push(firstMovement);
         if (opponentReaction) autoTags.push(opponentReaction);
         if (thirdMovement) autoTags.push(thirdMovement);
+        if (pt1o1) autoTags.push('1o1 PT');
       }
       if (cardio && resolvedCardioActivity) autoTags.push(resolvedCardioActivity);
       if (strength && workoutName) autoTags.push(workoutName);
@@ -655,6 +662,23 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   <div>
                     <Label htmlFor="thirdMovement">3rd Movement <span className="text-muted-foreground text-xs">(What did I capitalize with?)</span></Label>
                     <Input id="thirdMovement" value={thirdMovement} onChange={(e) => setThirdMovement(e.target.value)} placeholder="e.g., Low kick, Double leg finish, Back take" />
+                  </div>
+
+                  {/* 1o1 PT marker — memory-only flag for technical sessions */}
+                  <div className="pt-2 border-t border-border">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <Checkbox
+                        checked={pt1o1}
+                        onCheckedChange={(v) => setPt1o1(v === true)}
+                        className="mt-0.5"
+                      />
+                      <div>
+                        <p className="text-sm font-medium">1o1 PT session</p>
+                        <p className="text-xs text-muted-foreground">
+                          Tick if this was a private 1-on-1 with a coach. For your memory only.
+                        </p>
+                      </div>
+                    </label>
                   </div>
                 </CardContent>
               </Card>

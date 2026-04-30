@@ -722,7 +722,74 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </Card>
             )}
 
-            {/* Cardio: Activity grid + Session Metrics */}
+            {/* Sparring & Rolling — extra details */}
+            {sparring && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Swords className="h-4 w-4 text-primary" />
+                    Sparring Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="sparringRounds" className="text-xs">Rounds</Label>
+                      <Input
+                        id="sparringRounds"
+                        type="number"
+                        min={0}
+                        inputMode="numeric"
+                        value={sparringRounds}
+                        onChange={(e) => setSparringRounds(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="e.g., 5"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="sparringRoundLength" className="text-xs">Round length</Label>
+                      <Input
+                        id="sparringRoundLength"
+                        value={sparringRoundLength}
+                        onChange={(e) => setSparringRoundLength(e.target.value)}
+                        placeholder="e.g., 3 min"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs mb-2 block">Partner Level</Label>
+                    <ChipSelect
+                      options={['Beginner', 'Intermediate', 'Advanced', 'Pro', 'Coach']}
+                      value={sparringPartnerLevel}
+                      onChange={setSparringPartnerLevel}
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label>Intensity (1–10)</Label>
+                      <span className="text-sm font-semibold tabular-nums">
+                        {sparringIntensity} — {rpeLabel(sparringIntensity)}
+                      </span>
+                    </div>
+                    <Slider
+                      min={1}
+                      max={10}
+                      step={1}
+                      value={[sparringIntensity]}
+                      onValueChange={(v) => setSparringIntensity(v[0])}
+                    />
+                    <div className="flex justify-between text-[10px] text-muted-foreground mt-2">
+                      <span>1–3 Flow</span>
+                      <span>4–6 Sharp</span>
+                      <span>7–8 Hard</span>
+                      <span>9–10 War</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {cardio && (
               <>
                 <Card>

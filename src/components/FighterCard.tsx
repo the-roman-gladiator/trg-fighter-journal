@@ -207,7 +207,7 @@ export function FighterCard({
 
           {statement && (
             <p
-              className="mt-3 text-white text-[13px] sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2"
+              className="mt-5 text-white text-[13px] sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2"
               style={displayFont}
             >
               {statement}

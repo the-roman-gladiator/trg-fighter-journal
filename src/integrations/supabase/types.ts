@@ -1890,6 +1890,7 @@ export type Database = {
           updated_at: string
           user_id: string
           walking_hr_recovery: number | null
+          weekly_training_volume: number | null
           weight_kg: number
         }
         Insert: {
@@ -1910,6 +1911,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           walking_hr_recovery?: number | null
+          weekly_training_volume?: number | null
           weight_kg: number
         }
         Update: {
@@ -1930,6 +1932,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           walking_hr_recovery?: number | null
+          weekly_training_volume?: number | null
           weight_kg?: number
         }
         Relationships: []

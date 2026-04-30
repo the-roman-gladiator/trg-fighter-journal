@@ -1001,7 +1001,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             </Card>
 
             {/* Effort — universal (cardio uses RPE so we keep the section but it's still useful as supplementary) */}
-            {!cardio && (
+            {!cardio && !sparring && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

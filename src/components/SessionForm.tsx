@@ -495,6 +495,15 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       if (stretching) {
         stretchFocusAreas.forEach(a => autoTags.push(a));
       }
+      if (fightReview) {
+        if (fightType) autoTags.push(fightType);
+        if (fightResult) autoTags.push(fightResult);
+        if (fightMethod) autoTags.push(fightMethod);
+        if (fightOpponentName.trim()) autoTags.push(`vs ${fightOpponentName.trim()}`);
+        if (fightOpponentStyle) autoTags.push(fightOpponentStyle);
+        if (fightOpponentStance) autoTags.push(fightOpponentStance);
+        if (fightEvent.trim()) autoTags.push(fightEvent.trim());
+      }
 
       const allTagNames = [...autoTags, ...selectedTags];
       const uniqueTags: string[] = [];

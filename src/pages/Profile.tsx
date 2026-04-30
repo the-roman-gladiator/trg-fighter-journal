@@ -519,7 +519,7 @@ export default function Profile() {
                   id="myStatement"
                   value={myStatement}
                   onChange={e => setMyStatement(e.target.value)}
-                  placeholder="Write your motto..."
+                  placeholder="Write your creed..."
                   className="mt-1"
                   rows={3}
                 />

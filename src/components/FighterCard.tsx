@@ -211,7 +211,7 @@ export function FighterCard({
         {/* Stacked statline rows */}
         <ul className="min-w-0 flex-1 space-y-1.5">
           <StatRow
-            label="Nickname"
+            label=""
             value={
               <span className="text-[15px] sm:text-base font-black uppercase leading-none tracking-tight">
                 {displayName}
@@ -219,12 +219,12 @@ export function FighterCard({
             }
           />
           {primaryDiscipline && (
-            <StatRow label="Discipline" value={primaryDiscipline} />
+            <StatRow label="" value={primaryDiscipline} />
           )}
-          {level && <StatRow label="Level" value={level} />}
+          {level && <StatRow label="" value={level} />}
           {statement && (
             <StatRow
-              label="Statement"
+              label=""
               value={`"${statement}"`}
               italic
               accent={{ icon: Quote, tone: 'text-primary' }}
@@ -232,7 +232,7 @@ export function FighterCard({
           )}
           {dailyMotivation && (
             <StatRow
-              label="Motivation"
+              label=""
               value={dailyMotivation}
               accent={{ icon: Quote, tone: 'text-primary' }}
             />

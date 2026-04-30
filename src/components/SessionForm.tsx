@@ -120,6 +120,13 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [sparringPartnerLevel, setSparringPartnerLevel] = useState<string>('');
   const [sparringIntensity, setSparringIntensity] = useState<number>(5);
 
+  // Stretching & Mobility fields
+  type StretchExercise = { name: string; duration: string };
+  const [stretchFocusAreas, setStretchFocusAreas] = useState<string[]>([]);
+  const [stretchExercises, setStretchExercises] = useState<StretchExercise[]>([]);
+  const [stretchNewName, setStretchNewName] = useState<string>('');
+  const [stretchNewDuration, setStretchNewDuration] = useState<string>('');
+
   // Cardio fields
   const [cardioActivity, setCardioActivity] = useState<string>('');
   const [cardioActivityOther, setCardioActivityOther] = useState<string>('');

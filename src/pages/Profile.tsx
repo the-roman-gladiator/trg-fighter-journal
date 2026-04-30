@@ -699,6 +699,23 @@ export default function Profile() {
                                   <Label>Walking HR recovery (bpm)</Label>
                                   <Input type="number" value={aWalkingHr} onChange={e => setAWalkingHr(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
                                 </div>
+                                <div className="col-span-2">
+                                  <Label>Weekly Training Volume (sessions/week)</Label>
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    max={21}
+                                    value={aWeeklyVolume}
+                                    onChange={e => setAWeeklyVolume(e.target.value === '' ? '' : Number(e.target.value))}
+                                    placeholder="e.g. 3"
+                                  />
+                                  {aWeeklyVolume !== '' && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Tier: <span className="text-foreground font-medium">{deriveVolumeTier(Number(aWeeklyVolume))}</span>
+                                      {' '}— Poor (0) · Light (1) · Moderate (2–3) · Active (4–5) · Very Active (6+)
+                                    </p>
+                                  )}
+                                </div>
                               </div>
                             </div>
 

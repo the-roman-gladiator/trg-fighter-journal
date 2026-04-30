@@ -680,8 +680,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </CardContent>
             </Card>
 
-            {/* Movement Chain — technical only */}
-            {technical && (
+            {/* Movement Chain — technical & sparring */}
+            {showTechnicalEntry && (
               <Card>
                 <CardHeader>
                   <CardTitle>Movement Chain</CardTitle>

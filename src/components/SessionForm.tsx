@@ -111,6 +111,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [physicalEffortExecution, setPhysicalEffortExecution] = useState('');
   const [mindsetEffortExecution, setMindsetEffortExecution] = useState('');
 
+  // 1o1 PT marker (Technical Skills only) — saves to pt_note_flag
+  const [pt1o1, setPt1o1] = useState(false);
+
   // Cardio fields
   const [cardioActivity, setCardioActivity] = useState<string>('');
   const [cardioActivityOther, setCardioActivityOther] = useState<string>('');

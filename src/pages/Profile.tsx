@@ -272,6 +272,13 @@ export default function Profile() {
     }
   }, [aPushups, aSitups, aSquats, aPlank, aWeeklyVolume]);
 
+  // Mirror selected disciplines into the assessment discipline field when it's empty
+  useEffect(() => {
+    if (!aDiscipline && selectedDisciplines.length > 0) {
+      setADiscipline(selectedDisciplines.join(', '));
+    }
+  }, [selectedDisciplines, aDiscipline]);
+
   const toggleDiscipline = (d: string) => {
     setSelectedDisciplines(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
   };

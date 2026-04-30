@@ -232,6 +232,7 @@ export default function Profile() {
         squats_max: aSquats === '' ? 0 : Number(aSquats),
         plank_seconds: aPlank === '' ? null : Number(aPlank),
         walking_hr_recovery: aWalkingHr === '' ? null : Number(aWalkingHr),
+        weekly_training_volume: aWeeklyVolume === '' ? null : Number(aWeeklyVolume),
         notes: aNotes || null,
       };
       if (assessmentId) {

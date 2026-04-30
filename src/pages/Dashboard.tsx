@@ -405,15 +405,7 @@ export default function Dashboard() {
 
         {/* CENTER — original mobile content */}
         <div className="space-y-5 min-w-0">
-        {/* Dynamic Date + Title with Nickname */}
-        <div>
-          <p className="text-xs text-muted-foreground tracking-wide">
-            {dayNames[today.getDay()]}, {format(today, 'd MMMM yyyy')}
-          </p>
-          <h2 className="text-2xl font-bold text-foreground mt-0.5">
-            Dashboard{nickname ? ` – ${nickname}` : ''}
-          </h2>
-        </div>
+        {/* Date + Dashboard heading removed for more vertical space */}
 
         {/* Fighter Card — nickname / discipline / level / statement */}
         <FighterCard

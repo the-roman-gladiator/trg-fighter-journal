@@ -114,10 +114,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   // 1o1 PT marker (Technical Skills only) — saves to pt_note_flag
   const [pt1o1, setPt1o1] = useState(false);
 
-  // Sparring & Rolling fields
+  // Sparring & Rolling fields (free notes only — duration handled by start/end time, rounds + intensity below)
   const [sparringRounds, setSparringRounds] = useState<string>('');
   const [sparringRoundLength, setSparringRoundLength] = useState<string>('');
-  const [sparringPartnerLevel, setSparringPartnerLevel] = useState<string>('');
   const [sparringIntensity, setSparringIntensity] = useState<number>(5);
 
   // Stretching & Mobility fields

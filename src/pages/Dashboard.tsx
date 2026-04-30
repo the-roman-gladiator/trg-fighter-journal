@@ -16,6 +16,7 @@ import fighterBgDark from '@/assets/dashboard-fighter-bg.jpg';
 import fighterBgLight from '@/assets/dashboard-fighter-bg-light.png';
 import { CoachNoteOffersInbox } from '@/components/coach/CoachNoteOffersInbox';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { FighterCard } from '@/components/FighterCard';
 
 const MARTIAL_ARTS = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
 

@@ -986,6 +986,286 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </Card>
             )}
 
+            {/* My Fight Review */}
+            {fightReview && (
+              <>
+                {/* Card 1 — Fight details */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Swords className="h-4 w-4 text-destructive" />
+                      Fight Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="text-xs mb-2 block">Fight Type</Label>
+                      <ChipSelect
+                        options={['Sparring match', 'Interclub', 'Smoker', 'Amateur', 'Pro']}
+                        value={fightType}
+                        onChange={setFightType}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="fightEvent">Event</Label>
+                      <Input
+                        id="fightEvent"
+                        value={fightEvent}
+                        onChange={(e) => setFightEvent(e.target.value)}
+                        placeholder="e.g., Cage Warriors 175"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="frc" className="text-xs">Rounds</Label>
+                        <Input
+                          id="frc"
+                          type="number"
+                          min={0}
+                          inputMode="numeric"
+                          value={fightRoundCount}
+                          onChange={(e) => setFightRoundCount(e.target.value.replace(/[^0-9]/g, ''))}
+                          placeholder="e.g., 3"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="frd" className="text-xs">Round duration</Label>
+                        <Input
+                          id="frd"
+                          value={fightRoundDuration}
+                          onChange={(e) => setFightRoundDuration(e.target.value)}
+                          placeholder="e.g., 5 min"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs mb-2 block">Result</Label>
+                      <ChipSelect
+                        options={['Win', 'Loss', 'Draw', 'No Contest']}
+                        value={fightResult}
+                        onChange={(v) => {
+                          setFightResult(v);
+                          if (v !== 'Win' && v !== 'Loss') setFightMethod('');
+                        }}
+                      />
+                    </div>
+
+                    {(fightResult === 'Win' || fightResult === 'Loss') && (
+                      <div>
+                        <Label>Method</Label>
+                        <Select value={fightMethod} onValueChange={setFightMethod}>
+                          <SelectTrigger><SelectValue placeholder="How did it end?" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="KO/TKO">KO / TKO</SelectItem>
+                            <SelectItem value="Submission">Submission</SelectItem>
+                            <SelectItem value="Decision (Unanimous)">Decision — Unanimous</SelectItem>
+                            <SelectItem value="Decision (Split)">Decision — Split</SelectItem>
+                            <SelectItem value="Decision (Majority)">Decision — Majority</SelectItem>
+                            <SelectItem value="DQ">DQ</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Card 2 — Opponent */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Opponent</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="oppName">Name</Label>
+                      <Input
+                        id="oppName"
+                        value={fightOpponentName}
+                        onChange={(e) => setFightOpponentName(e.target.value)}
+                        placeholder="Opponent's name"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs mb-2 block">Fight Style</Label>
+                      <ChipSelect
+                        options={['Pressure', 'Counter', 'Out-fighter', 'Brawler', 'Grappler', 'Wrestler', 'Mixed']}
+                        value={fightOpponentStyle}
+                        onChange={setFightOpponentStyle}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs mb-2 block">Stance</Label>
+                      <ChipSelect
+                        options={['Orthodox', 'Southpaw', 'Switch']}
+                        value={fightOpponentStance}
+                        onChange={setFightOpponentStance}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="oppWeight" className="text-xs">Weight class / Weigh-in</Label>
+                      <Input
+                        id="oppWeight"
+                        value={fightOpponentWeight}
+                        onChange={(e) => setFightOpponentWeight(e.target.value)}
+                        placeholder="e.g., Welterweight 77kg"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="oppNotes" className="text-xs">Opponent notes (optional)</Label>
+                      <Textarea
+                        id="oppNotes"
+                        rows={3}
+                        value={fightOpponentNotes}
+                        onChange={(e) => setFightOpponentNotes(e.target.value)}
+                        placeholder="Tendencies, strengths, weaknesses…"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Card 3 — Rounds */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Rounds</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {fightRounds.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Add rounds one by one. Per-round notes and key techniques are stored together.
+                      </p>
+                    )}
+
+                    {fightRounds.map((round, idx) => (
+                      <Card key={idx} className="border-border/60 bg-secondary/20">
+                        <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
+                          <CardTitle className="text-sm uppercase tracking-wide">
+                            Round {round.roundNumber}
+                          </CardTitle>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-destructive"
+                            onClick={() =>
+                              setFightRounds(
+                                fightRounds
+                                  .filter((_, i) => i !== idx)
+                                  .map((r, i) => ({ ...r, roundNumber: i + 1 })),
+                              )
+                            }
+                          >
+                            ×
+                          </Button>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div>
+                            <Label className="text-xs">Notes</Label>
+                            <Textarea
+                              rows={2}
+                              value={round.notes}
+                              onChange={(e) => {
+                                const next = [...fightRounds];
+                                next[idx] = { ...round, notes: e.target.value };
+                                setFightRounds(next);
+                              }}
+                              placeholder="What happened this round?"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs mb-1 block">Techniques used</Label>
+                            <div className="flex flex-wrap gap-1.5 mb-2">
+                              {round.techniques.map((t, ti) => (
+                                <Badge
+                                  key={ti}
+                                  variant="default"
+                                  className="text-xs px-2 py-1 bg-primary/20 text-primary border border-primary/40 cursor-pointer"
+                                  onClick={() => {
+                                    const next = [...fightRounds];
+                                    next[idx] = {
+                                      ...round,
+                                      techniques: round.techniques.filter((_, j) => j !== ti),
+                                    };
+                                    setFightRounds(next);
+                                  }}
+                                >
+                                  {t} ×
+                                </Badge>
+                              ))}
+                            </div>
+                            <Input
+                              placeholder="Type a technique + Enter (e.g., Jab-Cross-Hook)"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const v = (e.target as HTMLInputElement).value.trim();
+                                  if (v) {
+                                    const next = [...fightRounds];
+                                    next[idx] = { ...round, techniques: [...round.techniques, v] };
+                                    setFightRounds(next);
+                                    (e.target as HTMLInputElement).value = '';
+                                  }
+                                }
+                              }}
+                            />
+                            {techniqueOptions.length > 0 && (
+                              <p className="text-[10px] text-muted-foreground mt-1">
+                                Tip: matches your technique library — pick from{' '}
+                                <a href="/library" className="text-primary underline">/library</a>.
+                              </p>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() =>
+                        setFightRounds([
+                          ...fightRounds,
+                          { roundNumber: fightRounds.length + 1, notes: '', techniques: [] },
+                        ])
+                      }
+                    >
+                      + Add Round
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Card 4 — Outcome reflection */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Reflection</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="text-xs mb-2 block">Mindset during the fight</Label>
+                      <ChipSelect
+                        options={mindsetOptions}
+                        value={fightMindset}
+                        onChange={setFightMindset}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="fightFree">Free comment</Label>
+                      <Textarea
+                        id="fightFree"
+                        rows={4}
+                        value={fightFreeComment}
+                        onChange={(e) => setFightFreeComment(e.target.value)}
+                        placeholder="Anything else you want to remember about this fight…"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
             {cardio && (
               <>
                 <Card>

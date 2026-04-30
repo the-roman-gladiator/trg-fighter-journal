@@ -26,6 +26,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const StrengthTraining = lazy(() => import("./pages/StrengthTraining"));
 const WorkoutSessionPage = lazy(() => import("./pages/WorkoutSessionPage"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Intro = lazy(() => import("./pages/Intro"));
 const BeginnerDashboard = lazy(() => import("./pages/BeginnerDashboard"));
 const GuidedSession = lazy(() => import("./pages/GuidedSession"));
 const MyPathway = lazy(() => import("./pages/MyPathway"));
@@ -50,10 +51,13 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const queryClient = new QueryClient();
 
 function RootRoute() {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const { isAdmin, loading: subLoading } = useSubscription();
   if (loading || (user && subLoading)) return <LoadingScreen />;
   if (user && isAdmin) return <Navigate to="/admin" replace />;
+  if (user && profile && (profile as any).show_intro === true) {
+    return <Navigate to="/intro" replace />;
+  }
   return user ? <Dashboard /> : <Landing />;
 }
 
@@ -91,6 +95,7 @@ function AppShell() {
         <Route path="/strength" element={<StrengthTraining />} />
         <Route path="/strength/workout/:templateId" element={<WorkoutSessionPage />} />
         <Route path="/strength/workout/:logId/resume" element={<WorkoutSessionPage />} />
+        <Route path="/intro" element={<Intro />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/beginner" element={<BeginnerDashboard />} />
         <Route path="/guided-session/:workoutId" element={<GuidedSession />} />

@@ -48,6 +48,7 @@ const AIFighterAssistant = lazy(() => import("./pages/AIFighterAssistant"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const MockupDashboard = lazy(() => import("./pages/MockupDashboard"));
 
 
 const queryClient = new QueryClient();
@@ -165,6 +166,7 @@ function AppShell() {
         <Route path="/ai-assistant" element={<AIFighterAssistant />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/analytics" element={<AdminAnalytics />} />
+        <Route path="/mockup-dashboard" element={<MockupDashboard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       </Suspense>

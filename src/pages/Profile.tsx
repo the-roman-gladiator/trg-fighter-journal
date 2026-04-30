@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote, Library, Bell, LifeBuoy, Shield } from 'lucide-react';
+import { ArrowLeft, Settings, ChevronDown, User, Palette, RotateCcw, Swords, Quote, Library, Bell, LifeBuoy, Shield, Activity } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { AccountType, FitnessLevel } from '@/types/training';
 import { disciplines } from '@/config/dropdownOptions';
@@ -74,6 +74,23 @@ export default function Profile() {
   const [motivationsLibrary, setMotivationsLibrary] = useState<{ id: string; day_number: number; motivation_text: string }[]>([]);
   const [motivationOpen, setMotivationOpen] = useState(false);
 
+  // Assessment data (from onboarding) — editable
+  const [assessmentOpen, setAssessmentOpen] = useState(false);
+  const [assessmentId, setAssessmentId] = useState<string | null>(null);
+  const [aHeight, setAHeight] = useState<number | ''>('');
+  const [aWeight, setAWeight] = useState<number | ''>('');
+  const [aAge, setAAge] = useState<number | ''>('');
+  const [aSex, setASex] = useState<'male' | 'female'>('male');
+  const [aBodyFat, setABodyFat] = useState<number | ''>('');
+  const [aPushups, setAPushups] = useState<number | ''>('');
+  const [aSitups, setASitups] = useState<number | ''>('');
+  const [aSquats, setASquats] = useState<number | ''>('');
+  const [aPlank, setAPlank] = useState<number | ''>('');
+  const [aWalkingHr, setAWalkingHr] = useState<number | ''>('');
+  const [aNotes, setANotes] = useState('');
+  const [aDiscipline, setADiscipline] = useState('');
+  const [savingAssessment, setSavingAssessment] = useState(false);
+
   // Local customization state
   const [themeMode, setThemeMode] = useState(settings.theme_mode);
   const [inputColor, setInputColor] = useState(settings.input_text_color);
@@ -119,6 +136,71 @@ export default function Profile() {
     };
     loadMotivationData();
   }, [user]);
+
+  // Load latest assessment from onboarding
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from('user_assessments')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) {
+        setAssessmentId(data.id);
+        setAHeight(data.height_cm ?? '');
+        setAWeight(data.weight_kg ?? '');
+        setAAge(data.age ?? '');
+        setASex((data.sex as 'male' | 'female') || 'male');
+        setABodyFat(data.body_fat_percent ?? '');
+        setAPushups(data.pushups_max ?? '');
+        setASitups(data.situps_max ?? '');
+        setASquats(data.squats_max ?? '');
+        setAPlank(data.plank_seconds ?? '');
+        setAWalkingHr(data.walking_hr_recovery ?? '');
+        setANotes(data.notes ?? '');
+        setADiscipline(data.discipline ?? '');
+      }
+    })();
+  }, [user]);
+
+  const saveAssessment = async () => {
+    if (!user) return;
+    setSavingAssessment(true);
+    try {
+      const payload: any = {
+        user_id: user.id,
+        discipline: aDiscipline || (selectedDisciplines[0] ?? 'MMA'),
+        height_cm: aHeight === '' ? null : Number(aHeight),
+        weight_kg: aWeight === '' ? null : Number(aWeight),
+        age: aAge === '' ? null : Number(aAge),
+        sex: aSex,
+        body_fat_percent: aBodyFat === '' ? null : Number(aBodyFat),
+        pushups_max: aPushups === '' ? 0 : Number(aPushups),
+        situps_max: aSitups === '' ? 0 : Number(aSitups),
+        squats_max: aSquats === '' ? 0 : Number(aSquats),
+        plank_seconds: aPlank === '' ? null : Number(aPlank),
+        walking_hr_recovery: aWalkingHr === '' ? null : Number(aWalkingHr),
+        notes: aNotes || null,
+      };
+      if (assessmentId) {
+        const { error } = await supabase.from('user_assessments').update(payload).eq('id', assessmentId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from('user_assessments').insert(payload).select().single();
+        if (error) throw error;
+        if (data) setAssessmentId(data.id);
+      }
+      toast({ title: 'Assessment updated', description: 'Your assessment data was saved.' });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setSavingAssessment(false);
+    }
+  };
+
 
   useEffect(() => {
     setThemeMode(settings.theme_mode);
@@ -333,7 +415,95 @@ export default function Profile() {
             </CollapsibleContent>
           </Collapsible>
 
-          {/* My Statement & Motivation (collapsible) */}
+          {/* Assessment Data (from onboarding) — editable */}
+          <Collapsible open={assessmentOpen} onOpenChange={setAssessmentOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full justify-between" type="button">
+                <span className="flex items-center gap-2">
+                  <Activity className="h-4 w-4" /> Assessment Data
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${assessmentOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <Card className="mt-3">
+                <CardContent className="space-y-4 pt-6">
+                  <p className="text-xs text-muted-foreground">
+                    The information you entered during onboarding. Edit anything that has changed.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Height (cm)</Label>
+                      <Input type="number" value={aHeight} onChange={e => setAHeight(e.target.value === '' ? '' : Number(e.target.value))} />
+                    </div>
+                    <div>
+                      <Label>Weight (kg)</Label>
+                      <Input type="number" value={aWeight} onChange={e => setAWeight(e.target.value === '' ? '' : Number(e.target.value))} />
+                    </div>
+                    <div>
+                      <Label>Age</Label>
+                      <Input type="number" value={aAge} onChange={e => setAAge(e.target.value === '' ? '' : Number(e.target.value))} />
+                    </div>
+                    <div>
+                      <Label>Sex</Label>
+                      <Select value={aSex} onValueChange={v => setASex(v as 'male' | 'female')}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Body Fat %</Label>
+                      <Input type="number" value={aBodyFat} onChange={e => setABodyFat(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
+                    </div>
+                    <div>
+                      <Label>Discipline</Label>
+                      <Input value={aDiscipline} onChange={e => setADiscipline(e.target.value)} placeholder="MMA" />
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <p className="text-sm font-medium text-foreground mb-2">Fitness Test</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>Push-ups (max)</Label>
+                        <Input type="number" value={aPushups} onChange={e => setAPushups(e.target.value === '' ? '' : Number(e.target.value))} />
+                      </div>
+                      <div>
+                        <Label>Sit-ups (max)</Label>
+                        <Input type="number" value={aSitups} onChange={e => setASitups(e.target.value === '' ? '' : Number(e.target.value))} />
+                      </div>
+                      <div>
+                        <Label>Squats (max)</Label>
+                        <Input type="number" value={aSquats} onChange={e => setASquats(e.target.value === '' ? '' : Number(e.target.value))} />
+                      </div>
+                      <div>
+                        <Label>Plank (sec)</Label>
+                        <Input type="number" value={aPlank} onChange={e => setAPlank(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
+                      </div>
+                      <div className="col-span-2">
+                        <Label>Walking HR recovery (bpm)</Label>
+                        <Input type="number" value={aWalkingHr} onChange={e => setAWalkingHr(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Notes</Label>
+                    <Textarea value={aNotes} onChange={e => setANotes(e.target.value)} placeholder="Injuries, conditions, notes for your coach..." />
+                  </div>
+
+                  <Button type="button" onClick={saveAssessment} disabled={savingAssessment} className="w-full">
+                    {savingAssessment ? 'Saving...' : 'Save Assessment'}
+                  </Button>
+                </CardContent>
+              </Card>
+            </CollapsibleContent>
+          </Collapsible>
+
+
           <Collapsible open={motivationOpen} onOpenChange={setMotivationOpen}>
             <CollapsibleTrigger asChild>
               <Button variant="outline" className="w-full justify-between" type="button">

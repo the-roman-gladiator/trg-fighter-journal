@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Flame, Quote, Camera, Loader2, User as UserIcon, CalendarDays } from 'lucide-react';
+import { Flame, Quote, Camera, Loader2, User as UserIcon, CalendarDays, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 import { cn } from '@/lib/utils';

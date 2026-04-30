@@ -74,8 +74,9 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        display: ['Cinzel', 'serif'],
-        headline: ['Bebas Neue', 'Oswald', 'Inter', 'sans-serif'],
+        display: ['Barlow Condensed', 'Bebas Neue', 'Inter', 'sans-serif'],
+        headline: ['Barlow Condensed', 'Rajdhani', 'Bebas Neue', 'Inter', 'sans-serif'],
+        numeric: ['Barlow Condensed', 'Rajdhani', 'Inter', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': {

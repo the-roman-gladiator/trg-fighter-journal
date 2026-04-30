@@ -132,10 +132,11 @@ export default function Onboarding() {
       if (pErr) throw pErr;
 
       // 4. Update profile discipline
-      await supabase.from('profiles').update({ discipline }).eq('id', user.id);
+      await supabase.from('profiles').update({ discipline: disciplines.join(', ') }).eq('id', user.id);
 
       logEvent('onboarding_finished', {
-        discipline,
+        discipline: disciplines.join(', '),
+        disciplines,
         classification: result.finalClass,
         sex,
         age,

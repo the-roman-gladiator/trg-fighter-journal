@@ -41,15 +41,51 @@ const ALL_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJ
 
 const FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
 
-// Derive fitness level from assessment fitness test inputs.
-// Sum of push-ups + sit-ups + squats maps to a tier.
-function deriveFitnessLevel(pushups: number, situps: number, squats: number, plank: number): FitnessLevel | null {
-  const total = (pushups || 0) + (situps || 0) + (squats || 0);
-  if (total <= 0 && !plank) return null;
-  if (total >= 180 || plank >= 180) return 'Very Active';
-  if (total >= 120 || plank >= 120) return 'Active';
-  if (total >= 60 || plank >= 60) return 'Moderate';
+// Volume tier labels (separate from FitnessLevel enum which lacks "Poor")
+export type VolumeTier = 'Poor' | 'Light' | 'Moderate' | 'Active' | 'Very Active';
+
+// Map weekly training sessions → volume tier.
+export function deriveVolumeTier(sessionsPerWeek: number): VolumeTier {
+  if (sessionsPerWeek >= 6) return 'Very Active';
+  if (sessionsPerWeek >= 4) return 'Active';
+  if (sessionsPerWeek >= 2) return 'Moderate';
+  if (sessionsPerWeek >= 1) return 'Light';
+  return 'Poor';
+}
+
+// Map volume tier → FitnessLevel (Poor & Light → Beginner since enum has no "Poor")
+function volumeTierToFitnessLevel(tier: VolumeTier): FitnessLevel {
+  if (tier === 'Very Active') return 'Very Active';
+  if (tier === 'Active') return 'Active';
+  if (tier === 'Moderate') return 'Moderate';
   return 'Beginner';
+}
+
+const FITNESS_RANK: Record<FitnessLevel, number> = {
+  'Beginner': 0, 'Moderate': 1, 'Active': 2, 'Very Active': 3,
+};
+
+// Derive fitness level from assessment fitness test inputs combined with weekly training volume.
+function deriveFitnessLevel(
+  pushups: number,
+  situps: number,
+  squats: number,
+  plank: number,
+  weeklyVolume: number,
+): FitnessLevel | null {
+  const total = (pushups || 0) + (situps || 0) + (squats || 0);
+  const hasPhysical = total > 0 || plank > 0;
+  const hasVolume = weeklyVolume > 0;
+  if (!hasPhysical && !hasVolume) return null;
+
+  let physical: FitnessLevel = 'Beginner';
+  if (total >= 180 || plank >= 180) physical = 'Very Active';
+  else if (total >= 120 || plank >= 120) physical = 'Active';
+  else if (total >= 60 || plank >= 60) physical = 'Moderate';
+
+  const fromVolume = volumeTierToFitnessLevel(deriveVolumeTier(weeklyVolume));
+  // Take the higher of the two tiers
+  return FITNESS_RANK[fromVolume] > FITNESS_RANK[physical] ? fromVolume : physical;
 }
 
 export default function Profile() {

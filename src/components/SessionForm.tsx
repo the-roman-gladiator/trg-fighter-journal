@@ -304,6 +304,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     const technical = isTechnicalType(classType);
     const sparring = classTypeCategory(classType) === 'sparring';
     const stretching = classTypeCategory(classType) === 'stretching';
+    const fightReview = classTypeCategory(classType) === 'fight_review';
     const cardio = isCardioType(classType);
     const strength = isStrengthType(classType);
     const showTechnicalEntry = technical || sparring;

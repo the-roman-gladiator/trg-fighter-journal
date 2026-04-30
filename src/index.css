@@ -180,8 +180,8 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(352 70% 12% / 0.35), transparent 60%),
-      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(352 70% 8% / 0.25), transparent 70%);
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(197 90% 14% / 0.45), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(197 90% 10% / 0.30), transparent 70%);
     background-attachment: fixed;
   }
   h1, h2, h3 {

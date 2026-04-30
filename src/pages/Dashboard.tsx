@@ -49,6 +49,7 @@ export default function Dashboard() {
 
   // Stats
   const [yearlyStreak, setYearlyStreak] = useState(0);
+  const [longestStreak, setLongestStreak] = useState(0);
   const [avgEffort, setAvgEffort] = useState(0);
   const [weeklySessions, setWeeklySessions] = useState(0);
 

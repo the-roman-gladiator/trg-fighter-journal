@@ -170,13 +170,14 @@ export default function Dashboard() {
     // Fetch profile for journal box
     const { data: prof } = await supabase
       .from('profiles')
-      .select('my_statement, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text')
+      .select('my_statement, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text, avatar_url')
       .eq('id', user.id)
       .maybeSingle();
 
     if (prof) {
       setMyStatement(prof.my_statement || '');
       setMyDisciplines(prof.discipline ? prof.discipline.split(',').map((d: string) => d.trim()).filter(Boolean) : []);
+      setAvatarUrl((prof as any).avatar_url || null);
 
       const motivationMode = prof.daily_motivation_mode || 'random';
       if (motivationMode === 'custom' && prof.custom_motivation_text) {

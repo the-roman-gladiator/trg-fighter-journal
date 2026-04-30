@@ -41,15 +41,17 @@ const effortToScore = (level: string): number => {
 };
 
 const CARDIO_ACTIVITIES = [
-  'Running', 'Cycling', 'Rowing',
-  'Jump Rope', 'Swimming', 'Boxing Bag',
-  'Kickboxing', 'Grappling Conditioning', 'Functional Training',
-  'HIIT', 'Circuit Training', 'Assault Bike',
-  'Stair Climber', 'Hiking', 'Walking',
+  'Kickboxing', 'Boxing', 'Muay Thai Pad Work',
+  'Kickboxing Bag Work', 'MMA Conditioning', 'Grappling Conditioning',
+  'Shadow Boxing', 'Sparring Conditioning', 'Treadmill Running',
+  'Cycling', 'Rowing Machine', 'Jump Rope',
+  'HIIT', 'Functional Training', 'Swimming',
   'Other',
 ];
 
-const DISTANCE_ACTIVITIES = new Set(['Running', 'Cycling', 'Rowing', 'Swimming', 'Walking', 'Hiking']);
+const FUNCTIONAL_PRESETS = ['Tabata', 'AMRAP', 'EMOM', 'Circuit', 'Ladder', 'For Time'];
+
+const DISTANCE_ACTIVITIES = new Set(['Treadmill Running', 'Cycling', 'Rowing Machine', 'Swimming']);
 
 // Backwards-compatible category checks. The truth source is classTypeCategory(),
 // but we keep these helpers so the rest of the form code reads naturally.
@@ -146,6 +148,10 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   // Cardio fields
   const [cardioActivity, setCardioActivity] = useState<string>('');
   const [cardioActivityOther, setCardioActivityOther] = useState<string>('');
+  // Functional Training sub-mode: 'preset' | 'build'
+  const [functionalMode, setFunctionalMode] = useState<'preset' | 'build'>('preset');
+  const [functionalPreset, setFunctionalPreset] = useState<string>('');
+  const [functionalBuild, setFunctionalBuild] = useState<string>('');
   const [cardioHours, setCardioHours] = useState<string>('');
   const [cardioMinutes, setCardioMinutes] = useState<string>('');
   const [cardioSeconds, setCardioSeconds] = useState<string>('');

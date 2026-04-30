@@ -118,12 +118,14 @@ export function FighterCard({
             {value}
           </span>
         </div>
-        <span
-          className="text-[9px] font-black tracking-[0.18em] uppercase text-destructive shrink-0"
-          style={{ fontFamily: 'Barlow Condensed, Inter, sans-serif' }}
-        >
-          {label}
-        </span>
+        {label && (
+          <span
+            className="text-[9px] font-black tracking-[0.18em] uppercase text-destructive shrink-0"
+            style={{ fontFamily: 'Barlow Condensed, Inter, sans-serif' }}
+          >
+            {label}
+          </span>
+        )}
       </li>
     );
   };

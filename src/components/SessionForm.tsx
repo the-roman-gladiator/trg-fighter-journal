@@ -633,8 +633,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                     helper={profileDisciplines.length > 0 ? 'From your profile — pick one or more for this session.' : undefined}
                   />
                 )}
-                {/* Tactic & Technique only for technical sessions */}
-                {technical && (
+                {/* Tactic & Technique for technical + sparring sessions */}
+                {showTechnicalEntry && (
                   <>
                     <div>
                       <Label>Tactic</Label>

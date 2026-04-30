@@ -681,41 +681,6 @@ export default function Profile() {
                                 <Label>Body Fat %</Label>
                                 <Input type="number" value={aBodyFat} onChange={e => setABodyFat(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
                               </div>
-                              <div className="col-span-2">
-                                <Label>Disciplines</Label>
-                                {selectedDisciplines.length === 0 ? (
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    No disciplines selected. Pick disciplines above in Activity Setting first.
-                                  </p>
-                                ) : (
-                                  <div className="flex flex-wrap gap-2 mt-1">
-                                    {selectedDisciplines.map(d => {
-                                      const active = aDiscipline.split(',').map(s => s.trim()).filter(Boolean).includes(d);
-                                      return (
-                                        <button
-                                          key={d}
-                                          type="button"
-                                          onClick={() => {
-                                            const current = aDiscipline.split(',').map(s => s.trim()).filter(Boolean);
-                                            const next = active
-                                              ? current.filter(x => x !== d)
-                                              : [...current, d];
-                                            setADiscipline(next.join(', '));
-                                          }}
-                                          className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                                            active
-                                              ? 'bg-primary text-primary-foreground border-primary'
-                                              : 'border-border text-foreground hover:border-primary/50'
-                                          }`}
-                                        >{d}</button>
-                                      );
-                                    })}
-                                  </div>
-                                )}
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  Pulled from your selected disciplines above. Tap to include/exclude for this assessment.
-                                </p>
-                              </div>
                             </div>
 
                             <div className="pt-2">

@@ -672,15 +672,15 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2 font-sans font-normal text-lg text-primary border-primary border-none rounded-none shadow-md bg-primary-foreground">
+            <div className="flex flex-wrap gap-2">
               {classTypeOptions.map((ct) => (
                 <Badge
                   key={ct}
-                  variant="outline"
-                  className={`cursor-pointer text-xs font-bold uppercase tracking-wider px-4 py-2.5 transition-all rounded-md border-none ${
+                  variant={classType === ct ? 'default' : 'outline'}
+                  className={`cursor-pointer text-sm px-3 py-2 transition-colors ${
                     classType === ct
-                      ? 'bg-primary text-white shadow-[0_0_20px_rgba(0,184,255,0.3)] scale-105'
-                      : 'bg-[#3A4250] text-white hover:bg-[#475061]'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border-border hover:border-primary/40 hover:bg-primary/5'
                   }`}
                   onClick={() => setClassType(classType === ct ? '' : ct)}
                 >

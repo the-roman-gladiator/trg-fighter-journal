@@ -661,7 +661,6 @@ export default function Profile() {
                         </Card>
                       </CollapsibleContent>
                     </Collapsible>
-                    </div>
                   </CardContent>
                 </Card>
 

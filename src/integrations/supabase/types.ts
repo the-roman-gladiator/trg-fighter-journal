@@ -1283,21 +1283,25 @@ export type Database = {
           daily_motivation_mode: string
           discipline: string | null
           email: string
+          first_name: string | null
           fitness_level: string | null
           fixed_motivation_id: string | null
           hierarchy_delegation_enabled: boolean
           id: string
+          injuries_notes: string | null
           invited_by: string | null
           level: Database["public"]["Enums"]["user_level"]
           middle_name: string | null
           my_statement: string | null
           name: string
           nickname: string | null
+          primary_goal: string | null
           show_intro: boolean
           strength_level: string | null
           strength_program_start_date: string | null
           surname: string | null
           suspended: boolean
+          training_frequency_per_week: string | null
           updated_at: string
         }
         Insert: {
@@ -1316,21 +1320,25 @@ export type Database = {
           daily_motivation_mode?: string
           discipline?: string | null
           email: string
+          first_name?: string | null
           fitness_level?: string | null
           fixed_motivation_id?: string | null
           hierarchy_delegation_enabled?: boolean
           id: string
+          injuries_notes?: string | null
           invited_by?: string | null
           level?: Database["public"]["Enums"]["user_level"]
           middle_name?: string | null
           my_statement?: string | null
           name: string
           nickname?: string | null
+          primary_goal?: string | null
           show_intro?: boolean
           strength_level?: string | null
           strength_program_start_date?: string | null
           surname?: string | null
           suspended?: boolean
+          training_frequency_per_week?: string | null
           updated_at?: string
         }
         Update: {
@@ -1349,21 +1357,25 @@ export type Database = {
           daily_motivation_mode?: string
           discipline?: string | null
           email?: string
+          first_name?: string | null
           fitness_level?: string | null
           fixed_motivation_id?: string | null
           hierarchy_delegation_enabled?: boolean
           id?: string
+          injuries_notes?: string | null
           invited_by?: string | null
           level?: Database["public"]["Enums"]["user_level"]
           middle_name?: string | null
           my_statement?: string | null
           name?: string
           nickname?: string | null
+          primary_goal?: string | null
           show_intro?: boolean
           strength_level?: string | null
           strength_program_start_date?: string | null
           surname?: string | null
           suspended?: boolean
+          training_frequency_per_week?: string | null
           updated_at?: string
         }
         Relationships: []

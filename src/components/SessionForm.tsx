@@ -127,6 +127,23 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [stretchNewName, setStretchNewName] = useState<string>('');
   const [stretchNewDuration, setStretchNewDuration] = useState<string>('');
 
+  // My Fight Review fields
+  type FightRound = { roundNumber: number; notes: string; techniques: string[] };
+  const [fightType, setFightType] = useState<string>('');
+  const [fightEvent, setFightEvent] = useState<string>('');
+  const [fightResult, setFightResult] = useState<string>('');
+  const [fightMethod, setFightMethod] = useState<string>('');
+  const [fightRoundCount, setFightRoundCount] = useState<string>('');
+  const [fightRoundDuration, setFightRoundDuration] = useState<string>('');
+  const [fightOpponentName, setFightOpponentName] = useState<string>('');
+  const [fightOpponentStyle, setFightOpponentStyle] = useState<string>('');
+  const [fightOpponentStance, setFightOpponentStance] = useState<string>('');
+  const [fightOpponentWeight, setFightOpponentWeight] = useState<string>('');
+  const [fightOpponentNotes, setFightOpponentNotes] = useState<string>('');
+  const [fightRounds, setFightRounds] = useState<FightRound[]>([]);
+  const [fightFreeComment, setFightFreeComment] = useState<string>('');
+  const [fightMindset, setFightMindset] = useState<string>('');
+
   // Cardio fields
   const [cardioActivity, setCardioActivity] = useState<string>('');
   const [cardioActivityOther, setCardioActivityOther] = useState<string>('');
@@ -241,6 +258,28 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       const sEx = (session as any).stretching_exercises;
       if (Array.isArray(sFA)) setStretchFocusAreas(sFA);
       if (Array.isArray(sEx)) setStretchExercises(sEx as StretchExercise[]);
+
+      // My Fight Review prefill
+      if (classTypeCategory((session as any).class_type) === 'fight_review') {
+        setFightType((session as any).fight_type || '');
+        setFightEvent((session as any).fight_event || '');
+        setFightResult((session as any).fight_result || '');
+        setFightMethod((session as any).fight_method || '');
+        if ((session as any).fight_round_count != null) setFightRoundCount(String((session as any).fight_round_count));
+        setFightRoundDuration((session as any).fight_duration || '');
+        const opp = (session as any).fight_opponent;
+        if (opp && typeof opp === 'object') {
+          setFightOpponentName(opp.name || '');
+          setFightOpponentStyle(opp.style || '');
+          setFightOpponentStance(opp.stance || '');
+          setFightOpponentWeight(opp.weight || '');
+          setFightOpponentNotes(opp.notes || '');
+        }
+        const fr = (session as any).fight_rounds;
+        if (Array.isArray(fr)) setFightRounds(fr as FightRound[]);
+        setFightMindset((session as any).fight_mindset || '');
+        setFightFreeComment((session as any).fight_free_comment || '');
+      }
       // Cardio fields prefill
       const existingActivity = (session as any).cardio_activity_name || '';
       if (existingActivity) {
@@ -287,6 +326,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     const technical = isTechnicalType(classType);
     const sparring = classTypeCategory(classType) === 'sparring';
     const stretching = classTypeCategory(classType) === 'stretching';
+    const fightReview = classTypeCategory(classType) === 'fight_review';
     const cardio = isCardioType(classType);
     const strength = isStrengthType(classType);
     const showTechnicalEntry = technical || sparring;
@@ -370,15 +410,35 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         effort_score: effortScore,
         class_type: classType || null,
         pt_note_flag: technical ? pt1o1 : false,
-        // Sparring-only fields (reusing fight_* columns to avoid extra schema)
-        fight_round_count: sparring && sparringRounds !== '' ? parseInt(sparringRounds) : null,
-        fight_duration: sparring && sparringRoundLength.trim() ? sparringRoundLength.trim() : null,
-        fight_opponent: sparring && sparringPartnerLevel
-          ? { partner_level: sparringPartnerLevel }
-          : null,
+        // (Sparring & Fight Review share fight_* columns — set below.)
         // Stretching & Mobility
         stretching_focus_areas: stretching && stretchFocusAreas.length > 0 ? stretchFocusAreas : null,
         stretching_exercises: stretching && stretchExercises.length > 0 ? stretchExercises : null,
+        // My Fight Review
+        fight_type: fightReview ? (fightType || null) : null,
+        fight_event: fightReview ? (fightEvent.trim() || null) : null,
+        fight_result: fightReview ? (fightResult || null) : null,
+        fight_method: fightReview && (fightResult === 'Win' || fightResult === 'Loss') ? (fightMethod || null) : null,
+        fight_round_count: fightReview && fightRoundCount !== ''
+          ? parseInt(fightRoundCount)
+          : (sparring && sparringRounds !== '' ? parseInt(sparringRounds) : null),
+        fight_duration: fightReview && fightRoundDuration.trim()
+          ? fightRoundDuration.trim()
+          : (sparring && sparringRoundLength.trim() ? sparringRoundLength.trim() : null),
+        fight_opponent: fightReview
+          ? {
+              name: fightOpponentName.trim() || null,
+              style: fightOpponentStyle || null,
+              stance: fightOpponentStance || null,
+              weight: fightOpponentWeight.trim() || null,
+              notes: fightOpponentNotes.trim() || null,
+            }
+          : (sparring && sparringPartnerLevel ? { partner_level: sparringPartnerLevel } : null),
+        fight_rounds: fightReview && fightRounds.length > 0 ? fightRounds : null,
+        fight_emotion_before: fightReview ? (beforeEmotion || null) : null,
+        fight_emotion_after: fightReview ? (afterEmotion || null) : null,
+        fight_mindset: fightReview ? (fightMindset || null) : null,
+        fight_free_comment: fightReview ? (fightFreeComment.trim() || null) : null,
         // Fighter Note (only on technical sessions)
         make_fighter_note: technical ? makeFighterNote : false,
         fighter_profile_id: technical && makeFighterNote ? (fighterProfile?.id || null) : null,
@@ -434,6 +494,15 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       if (strength && workoutName) autoTags.push(workoutName);
       if (stretching) {
         stretchFocusAreas.forEach(a => autoTags.push(a));
+      }
+      if (fightReview) {
+        if (fightType) autoTags.push(fightType);
+        if (fightResult) autoTags.push(fightResult);
+        if (fightMethod) autoTags.push(fightMethod);
+        if (fightOpponentName.trim()) autoTags.push(`vs ${fightOpponentName.trim()}`);
+        if (fightOpponentStyle) autoTags.push(fightOpponentStyle);
+        if (fightOpponentStance) autoTags.push(fightOpponentStance);
+        if (fightEvent.trim()) autoTags.push(fightEvent.trim());
       }
 
       const allTagNames = [...autoTags, ...selectedTags];
@@ -527,6 +596,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const technical = category === 'technical';
   const sparring = category === 'sparring';
   const stretching = category === 'stretching';
+  const fightReview = category === 'fight_review';
   const cardio = category === 'cardio';
   const strength = category === 'strength';
   // Sparring reuses the technical entry surface (discipline + tactic + technique + movement chain)
@@ -916,6 +986,286 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </Card>
             )}
 
+            {/* My Fight Review */}
+            {fightReview && (
+              <>
+                {/* Card 1 — Fight details */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Swords className="h-4 w-4 text-destructive" />
+                      Fight Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="text-xs mb-2 block">Fight Type</Label>
+                      <ChipSelect
+                        options={['Sparring match', 'Interclub', 'Smoker', 'Amateur', 'Pro']}
+                        value={fightType}
+                        onChange={setFightType}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="fightEvent">Event</Label>
+                      <Input
+                        id="fightEvent"
+                        value={fightEvent}
+                        onChange={(e) => setFightEvent(e.target.value)}
+                        placeholder="e.g., Cage Warriors 175"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="frc" className="text-xs">Rounds</Label>
+                        <Input
+                          id="frc"
+                          type="number"
+                          min={0}
+                          inputMode="numeric"
+                          value={fightRoundCount}
+                          onChange={(e) => setFightRoundCount(e.target.value.replace(/[^0-9]/g, ''))}
+                          placeholder="e.g., 3"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="frd" className="text-xs">Round duration</Label>
+                        <Input
+                          id="frd"
+                          value={fightRoundDuration}
+                          onChange={(e) => setFightRoundDuration(e.target.value)}
+                          placeholder="e.g., 5 min"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs mb-2 block">Result</Label>
+                      <ChipSelect
+                        options={['Win', 'Loss', 'Draw', 'No Contest']}
+                        value={fightResult}
+                        onChange={(v) => {
+                          setFightResult(v);
+                          if (v !== 'Win' && v !== 'Loss') setFightMethod('');
+                        }}
+                      />
+                    </div>
+
+                    {(fightResult === 'Win' || fightResult === 'Loss') && (
+                      <div>
+                        <Label>Method</Label>
+                        <Select value={fightMethod} onValueChange={setFightMethod}>
+                          <SelectTrigger><SelectValue placeholder="How did it end?" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="KO/TKO">KO / TKO</SelectItem>
+                            <SelectItem value="Submission">Submission</SelectItem>
+                            <SelectItem value="Decision (Unanimous)">Decision — Unanimous</SelectItem>
+                            <SelectItem value="Decision (Split)">Decision — Split</SelectItem>
+                            <SelectItem value="Decision (Majority)">Decision — Majority</SelectItem>
+                            <SelectItem value="DQ">DQ</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Card 2 — Opponent */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Opponent</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="oppName">Name</Label>
+                      <Input
+                        id="oppName"
+                        value={fightOpponentName}
+                        onChange={(e) => setFightOpponentName(e.target.value)}
+                        placeholder="Opponent's name"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs mb-2 block">Fight Style</Label>
+                      <ChipSelect
+                        options={['Pressure', 'Counter', 'Out-fighter', 'Brawler', 'Grappler', 'Wrestler', 'Mixed']}
+                        value={fightOpponentStyle}
+                        onChange={setFightOpponentStyle}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs mb-2 block">Stance</Label>
+                      <ChipSelect
+                        options={['Orthodox', 'Southpaw', 'Switch']}
+                        value={fightOpponentStance}
+                        onChange={setFightOpponentStance}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="oppWeight" className="text-xs">Weight class / Weigh-in</Label>
+                      <Input
+                        id="oppWeight"
+                        value={fightOpponentWeight}
+                        onChange={(e) => setFightOpponentWeight(e.target.value)}
+                        placeholder="e.g., Welterweight 77kg"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="oppNotes" className="text-xs">Opponent notes (optional)</Label>
+                      <Textarea
+                        id="oppNotes"
+                        rows={3}
+                        value={fightOpponentNotes}
+                        onChange={(e) => setFightOpponentNotes(e.target.value)}
+                        placeholder="Tendencies, strengths, weaknesses…"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Card 3 — Rounds */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Rounds</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {fightRounds.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Add rounds one by one. Per-round notes and key techniques are stored together.
+                      </p>
+                    )}
+
+                    {fightRounds.map((round, idx) => (
+                      <Card key={idx} className="border-border/60 bg-secondary/20">
+                        <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
+                          <CardTitle className="text-sm uppercase tracking-wide">
+                            Round {round.roundNumber}
+                          </CardTitle>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-destructive"
+                            onClick={() =>
+                              setFightRounds(
+                                fightRounds
+                                  .filter((_, i) => i !== idx)
+                                  .map((r, i) => ({ ...r, roundNumber: i + 1 })),
+                              )
+                            }
+                          >
+                            ×
+                          </Button>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div>
+                            <Label className="text-xs">Notes</Label>
+                            <Textarea
+                              rows={2}
+                              value={round.notes}
+                              onChange={(e) => {
+                                const next = [...fightRounds];
+                                next[idx] = { ...round, notes: e.target.value };
+                                setFightRounds(next);
+                              }}
+                              placeholder="What happened this round?"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs mb-1 block">Techniques used</Label>
+                            <div className="flex flex-wrap gap-1.5 mb-2">
+                              {round.techniques.map((t, ti) => (
+                                <Badge
+                                  key={ti}
+                                  variant="default"
+                                  className="text-xs px-2 py-1 bg-primary/20 text-primary border border-primary/40 cursor-pointer"
+                                  onClick={() => {
+                                    const next = [...fightRounds];
+                                    next[idx] = {
+                                      ...round,
+                                      techniques: round.techniques.filter((_, j) => j !== ti),
+                                    };
+                                    setFightRounds(next);
+                                  }}
+                                >
+                                  {t} ×
+                                </Badge>
+                              ))}
+                            </div>
+                            <Input
+                              placeholder="Type a technique + Enter (e.g., Jab-Cross-Hook)"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const v = (e.target as HTMLInputElement).value.trim();
+                                  if (v) {
+                                    const next = [...fightRounds];
+                                    next[idx] = { ...round, techniques: [...round.techniques, v] };
+                                    setFightRounds(next);
+                                    (e.target as HTMLInputElement).value = '';
+                                  }
+                                }
+                              }}
+                            />
+                            {techniqueOptions.length > 0 && (
+                              <p className="text-[10px] text-muted-foreground mt-1">
+                                Tip: matches your technique library — pick from{' '}
+                                <a href="/library" className="text-primary underline">/library</a>.
+                              </p>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() =>
+                        setFightRounds([
+                          ...fightRounds,
+                          { roundNumber: fightRounds.length + 1, notes: '', techniques: [] },
+                        ])
+                      }
+                    >
+                      + Add Round
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Card 4 — Outcome reflection */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Reflection</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="text-xs mb-2 block">Mindset during the fight</Label>
+                      <ChipSelect
+                        options={mindsetOptions}
+                        value={fightMindset}
+                        onChange={setFightMindset}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="fightFree">Free comment</Label>
+                      <Textarea
+                        id="fightFree"
+                        rows={4}
+                        value={fightFreeComment}
+                        onChange={(e) => setFightFreeComment(e.target.value)}
+                        placeholder="Anything else you want to remember about this fight…"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
             {cardio && (
               <>
                 <Card>
@@ -1127,7 +1477,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             </Card>
 
             {/* Effort — universal (cardio uses RPE so we keep the section but it's still useful as supplementary) */}
-            {!cardio && !sparring && (
+            {!cardio && !sparring && !fightReview && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

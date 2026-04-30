@@ -134,6 +134,7 @@ export default function Profile() {
   const [aSquats, setASquats] = useState<number | ''>('');
   const [aPlank, setAPlank] = useState<number | ''>('');
   const [aWalkingHr, setAWalkingHr] = useState<number | ''>('');
+  const [aWeeklyVolume, setAWeeklyVolume] = useState<number | ''>('');
   const [aNotes, setANotes] = useState('');
   const [aDiscipline, setADiscipline] = useState('');
   const [savingAssessment, setSavingAssessment] = useState(false);

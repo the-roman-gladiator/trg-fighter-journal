@@ -18,12 +18,44 @@ export interface CustomListItem {
 
 export const DEFAULT_CLASS_TYPES = [
   'Technical Skills',
-  'Sparring / Rolling',
-  '1o1 PT',
-  'Fight Review',
-  'Cardio / Endurance',
-  'Strength / Conditioning',
+  'Sparring & Rolling',
+  'Cardio & Endurance',
+  'Strength & Conditioning',
+  'Stretching & Mobility',
+  'My Fight Review',
 ];
+
+/**
+ * Canonical session-type categories. Used by SessionForm to route to the
+ * correct sub-form regardless of whether the user has the new or legacy
+ * label in their custom list.
+ */
+export type SessionCategory =
+  | 'technical'
+  | 'sparring'
+  | 'cardio'
+  | 'strength'
+  | 'stretching'
+  | 'fight_review'
+  | 'other';
+
+export function classTypeCategory(label: string | null | undefined): SessionCategory {
+  if (!label) return 'other';
+  const k = label.toLowerCase().trim();
+  // Sparring (incl. legacy "Sparring / Rolling")
+  if (k.includes('sparring') || k.includes('rolling')) return 'sparring';
+  // Stretching & Mobility (new)
+  if (k.includes('stretch') || k.includes('mobility')) return 'stretching';
+  // Fight review (new "My Fight Review" + legacy "Fight Review")
+  if (k.includes('fight review')) return 'fight_review';
+  // Cardio (new "Cardio & Endurance" + legacy "Cardio / Endurance")
+  if (k.includes('cardio') || k.includes('endurance')) return 'cardio';
+  // Strength (new "Strength & Conditioning" + legacy "Strength / Conditioning")
+  if (k.includes('strength') || k.includes('conditioning')) return 'strength';
+  // Technical (incl. legacy "1o1 PT" which is now a flag inside Technical)
+  if (k.includes('technical') || k.includes('1o1') || k.includes('pt')) return 'technical';
+  return 'other';
+}
 
 export const DEFAULT_EMOTIONS = [
   'Excited', 'Motivated', 'Confidence', 'Resilient', 'Determined',

@@ -1,0 +1,16 @@
+ALTER TABLE public.training_sessions
+  ADD COLUMN IF NOT EXISTS pt_note_flag boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS stretching_focus_areas text[] NOT NULL DEFAULT '{}'::text[],
+  ADD COLUMN IF NOT EXISTS stretching_exercises jsonb NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS fight_type text,
+  ADD COLUMN IF NOT EXISTS fight_event text,
+  ADD COLUMN IF NOT EXISTS fight_result text,
+  ADD COLUMN IF NOT EXISTS fight_method text,
+  ADD COLUMN IF NOT EXISTS fight_round_count integer,
+  ADD COLUMN IF NOT EXISTS fight_duration text,
+  ADD COLUMN IF NOT EXISTS fight_opponent jsonb,
+  ADD COLUMN IF NOT EXISTS fight_rounds jsonb NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS fight_emotion_before text,
+  ADD COLUMN IF NOT EXISTS fight_emotion_after text,
+  ADD COLUMN IF NOT EXISTS fight_mindset text,
+  ADD COLUMN IF NOT EXISTS fight_free_comment text;

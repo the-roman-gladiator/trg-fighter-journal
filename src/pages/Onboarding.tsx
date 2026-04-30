@@ -83,7 +83,7 @@ export default function Onboarding() {
       // 1. Save assessment
       const { data: assessment, error: aErr } = await supabase.from('user_assessments').insert({
         user_id: user.id,
-        discipline,
+        discipline: disciplines[0],
         height_cm: heightCm,
         weight_kg: weightKg,
         age,

@@ -247,14 +247,14 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       return;
     }
 
-    if (selectedDisciplines.length === 0) {
-      toast({ title: 'Validation', description: 'Please select at least one discipline', variant: 'destructive' });
-      return;
-    }
-
     const technical = isTechnicalType(classType);
     const cardio = isCardioType(classType);
     const strength = isStrengthType(classType);
+
+    if (technical && selectedDisciplines.length === 0) {
+      toast({ title: 'Validation', description: 'Please select at least one discipline', variant: 'destructive' });
+      return;
+    }
 
     const resolvedTechnique = technique === '__custom__' ? customTechnique.trim() : technique;
 
@@ -308,8 +308,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         date,
         time: startTime || null,
         session_type: 'Completed',
-        discipline,
-        disciplines: selectedDisciplines,
+        discipline: (cardio || strength) ? (classType || discipline) : discipline,
+        disciplines: (cardio || strength) ? [] : selectedDisciplines,
         title: title || null,
         notes: notes || null,
         video_url: videoUrl.trim() || null,
@@ -579,16 +579,17 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   </div>
                 </div>
 
-                <MultiDisciplineSelect
-                  options={availableDisciplines}
-                  value={selectedDisciplines}
-                  onChange={(next) => {
-                    setSelectedDisciplines(next);
-                    setTechnique('');
-                  }}
-                  helper={profileDisciplines.length > 0 ? 'From your profile — pick one or more for this session.' : undefined}
-                />
-
+                {!cardio && !strength && (
+                  <MultiDisciplineSelect
+                    options={availableDisciplines}
+                    value={selectedDisciplines}
+                    onChange={(next) => {
+                      setSelectedDisciplines(next);
+                      setTechnique('');
+                    }}
+                    helper={profileDisciplines.length > 0 ? 'From your profile — pick one or more for this session.' : undefined}
+                  />
+                )}
                 {/* Tactic & Technique only for technical sessions */}
                 {technical && (
                   <>

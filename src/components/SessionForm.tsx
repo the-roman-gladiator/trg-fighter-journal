@@ -432,6 +432,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       }
       if (cardio && resolvedCardioActivity) autoTags.push(resolvedCardioActivity);
       if (strength && workoutName) autoTags.push(workoutName);
+      if (stretching) {
+        stretchFocusAreas.forEach(a => autoTags.push(a));
+      }
 
       const allTagNames = [...autoTags, ...selectedTags];
       const uniqueTags: string[] = [];

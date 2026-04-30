@@ -189,7 +189,7 @@ export function FighterCard({
           {/* Secondary lines — same level / same font / same weight / same spacing */}
           {disciplineTags.length > 0 && (
             <p
-              className="mt-4 text-white text-[13px] sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2"
+              className="mt-6 text-white text-[13px] sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2"
               style={displayFont}
             >
               {disciplineTags.join(' • ')}

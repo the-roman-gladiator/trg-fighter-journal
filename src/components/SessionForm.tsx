@@ -51,10 +51,11 @@ const CARDIO_ACTIVITIES = [
 
 const DISTANCE_ACTIVITIES = new Set(['Running', 'Cycling', 'Rowing', 'Swimming', 'Walking', 'Hiking']);
 
-const isCardioType = (ct: string) => ct === 'Cardio / Endurance' || ct === 'Cardio/Endurance';
-const isStrengthType = (ct: string) => ct === 'Strength / Conditioning' || ct === 'Strength/Conditioning';
-const isTechnicalType = (ct: string) =>
-  !!ct && !isCardioType(ct) && !isStrengthType(ct);
+// Backwards-compatible category checks. The truth source is classTypeCategory(),
+// but we keep these helpers so the rest of the form code reads naturally.
+const isCardioType = (ct: string) => classTypeCategory(ct) === 'cardio';
+const isStrengthType = (ct: string) => classTypeCategory(ct) === 'strength';
+const isTechnicalType = (ct: string) => classTypeCategory(ct) === 'technical';
 
 function rpeLabel(rpe: number): string {
   if (rpe <= 3) return 'Easy';

@@ -417,13 +417,17 @@ export default function Dashboard() {
 
         {/* Fighter Card — nickname / discipline / level / statement */}
         <FighterCard
+          userId={user?.id}
           nickname={profile?.nickname || undefined}
           name={profile?.name || undefined}
           discipline={myDisciplines.join(', ') || profile?.discipline || undefined}
           level={profile?.level}
           statement={myStatement}
+          avatarUrl={avatarUrl}
+          onAvatarChange={(url) => setAvatarUrl(url)}
           weeklySessions={weeklySessions}
           longestStreak={longestStreak}
+          avgEffort={avgEffort}
         />
 
         {/* Daily Motivation */}

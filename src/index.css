@@ -91,66 +91,64 @@
     --font-numeric: 'Barlow Condensed', 'Rajdhani', 'Inter', sans-serif;
   }
 
-  /* TRG Light Theme — clean inverse of the dark gladiator theme */
+  /* FIGHTER JOURNAL — Light Theme (clean inverse) */
   [data-theme='light'] {
-    --background: 0 0% 98%;
-    --foreground: 0 0% 8%;
+    --background: 210 25% 98%;
+    --foreground: 220 27% 8%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
-    --card-elevated: 0 0% 96%;
+    --card-foreground: 220 27% 8%;
+    --card-elevated: 210 20% 96%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
-    --primary: 352 84% 42%;
+    --popover-foreground: 220 27% 8%;
+    --primary: 200 100% 42%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 352 90% 56%;
-    --secondary: 0 0% 94%;
-    --secondary-foreground: 0 0% 18%;
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 38%;
-    --accent: 352 80% 95%;
-    --accent-foreground: 352 84% 32%;
-    --destructive: 0 75% 48%;
+    --primary-glow: 197 100% 55%;
+    --secondary: 210 18% 94%;
+    --secondary-foreground: 220 27% 18%;
+    --muted: 210 18% 94%;
+    --muted-foreground: 215 12% 38%;
+    --accent: 197 90% 94%;
+    --accent-foreground: 200 100% 32%;
+    --destructive: 357 78% 47%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 88%;
-    --input: 0 0% 92%;
-    --ring: 352 84% 42%;
+    --border: 215 18% 88%;
+    --input: 210 18% 92%;
+    --ring: 200 100% 42%;
 
-    /* Light gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(352 84% 42%), hsl(352 90% 56%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 97%));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 99%) 0%, hsl(352 60% 96%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(200 100% 42%), hsl(197 100% 55%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 20% 97%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 99%) 0%, hsl(197 80% 96%) 100%);
 
-    /* Light shadows */
-    --shadow-glow: 0 0 24px hsl(352 84% 42% / 0.18);
+    --shadow-glow: 0 0 24px hsl(200 100% 42% / 0.18);
     --shadow-card-premium: 0 4px 16px -4px hsl(0 0% 0% / 0.08), 0 0 0 1px hsl(0 0% 0% / 0.04);
 
-    /* Strategy semantic colors — slightly deeper for contrast on light bg */
-    --strategy-attacking: 352 72% 46%;
-    --strategy-defending: 217 85% 48%;
-    --strategy-countering: 28 95% 46%;
+    --combat-danger: 357 78% 47%;
+    --combat-success: 132 70% 38%;
+    --combat-warning: 38 95% 46%;
+
+    --strategy-attacking: 357 78% 48%;
+    --strategy-defending: 200 100% 42%;
+    --strategy-countering: 38 95% 46%;
     --strategy-control: 265 65% 46%;
-    --strategy-transitions: 170 60% 36%;
-    --strategy-intercepting: 38 92% 44%;
+    --strategy-transitions: 170 65% 36%;
+    --strategy-intercepting: 132 60% 36%;
 
-    /* Chart colors */
-    --chart-1: 352 78% 46%;
-    --chart-2: 217 85% 48%;
-    --chart-3: 28 95% 46%;
-    --chart-4: 265 65% 46%;
-    --chart-5: 170 60% 36%;
+    --chart-1: 200 100% 42%;
+    --chart-2: 132 70% 38%;
+    --chart-3: 38 95% 46%;
+    --chart-4: 357 78% 48%;
+    --chart-5: 265 65% 46%;
 
-    /* Sidebar */
     --sidebar-background: 0 0% 99%;
-    --sidebar-foreground: 0 0% 12%;
-    --sidebar-primary: 352 84% 42%;
+    --sidebar-foreground: 220 27% 12%;
+    --sidebar-primary: 200 100% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 94%;
-    --sidebar-accent-foreground: 0 0% 22%;
-    --sidebar-border: 0 0% 88%;
-    --sidebar-ring: 352 84% 42%;
+    --sidebar-accent: 210 18% 94%;
+    --sidebar-accent-foreground: 220 27% 22%;
+    --sidebar-border: 215 18% 88%;
+    --sidebar-ring: 200 100% 42%;
     --sidebar: 0 0% 99%;
 
-    /* Lighter shadows */
     --shadow-2xs: 0 1px 2px 0px hsl(0 0% 0% / 0.04);
     --shadow-xs: 0 1px 2px 0px hsl(0 0% 0% / 0.05);
     --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.06);
@@ -161,14 +159,14 @@
     --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.18);
   }
 
-  /* Adjust body backdrop & scrollbar in light mode (overrides defaults below) */
+  /* Light-mode body backdrop — soft electric-blue spotlight */
   [data-theme='light'] body {
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(352 70% 92% / 0.55), transparent 60%),
-      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(352 70% 95% / 0.5), transparent 70%);
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(197 90% 92% / 0.55), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(197 90% 95% / 0.5), transparent 70%);
   }
-  [data-theme='light'] ::-webkit-scrollbar-track { background: hsl(0 0% 94%); }
-  [data-theme='light'] ::-webkit-scrollbar-thumb { background: hsl(0 0% 75%); }
+  [data-theme='light'] ::-webkit-scrollbar-track { background: hsl(210 18% 94%); }
+  [data-theme='light'] ::-webkit-scrollbar-thumb { background: hsl(215 12% 75%); }
   [data-theme='light'] ::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.5); }
 }
 

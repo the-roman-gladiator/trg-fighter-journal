@@ -167,20 +167,30 @@ export default function Onboarding() {
         {step === 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Target className="h-5 w-5 text-primary" /> Select Your Discipline</CardTitle>
-              <CardDescription>Choose the martial art you want to train in.</CardDescription>
+              <CardTitle className="flex items-center gap-2"><Target className="h-5 w-5 text-primary" /> Select Your Disciplines</CardTitle>
+              <CardDescription>Choose one or more martial arts you want to train in. Tap to toggle.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {DISCIPLINES.map(d => (
-                <Button
-                  key={d}
-                  variant={discipline === d ? 'default' : 'outline'}
-                  className="w-full justify-start text-left h-14 text-base"
-                  onClick={() => setDiscipline(d)}
-                >
-                  {d}
-                </Button>
-              ))}
+              {DISCIPLINES.map(d => {
+                const selected = disciplines.includes(d);
+                return (
+                  <Button
+                    key={d}
+                    type="button"
+                    variant={selected ? 'default' : 'outline'}
+                    className="w-full justify-between text-left h-14 text-base"
+                    onClick={() => setDisciplines(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])}
+                  >
+                    <span>{d}</span>
+                    {selected && <CheckCircle className="h-5 w-5" />}
+                  </Button>
+                );
+              })}
+              {disciplines.length > 0 && (
+                <p className="text-xs text-muted-foreground pt-2">
+                  Selected: {disciplines.join(', ')}
+                </p>
+              )}
             </CardContent>
           </Card>
         )}

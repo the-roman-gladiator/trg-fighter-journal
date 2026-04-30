@@ -76,12 +76,40 @@ function AdminLockGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function GlobalDarkBackground() {
+  const { pathname } = useLocation();
+  // Exclude the user profile page
+  if (pathname.startsWith('/profile')) return null;
+  return (
+    <>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 hidden dark:block"
+        style={{
+          backgroundImage: `url(/src/assets/dashboard-bg-octagon.png)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.42,
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 hidden dark:block bg-gradient-to-b from-background/55 via-background/35 to-background/85"
+      />
+    </>
+  );
+}
+
 function AppShell() {
   useBrowserNotifications();
   useAnalytics();
+  const { pathname } = useLocation();
+  const excludeBg = pathname.startsWith('/profile');
   return (
-    <div className="h-[100dvh] flex flex-col overflow-hidden bg-background">
-      <main className="flex-1 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))]">
+    <div className={`h-[100dvh] flex flex-col overflow-hidden ${excludeBg ? 'bg-background' : 'bg-background dark:bg-transparent'} relative`}>
+      <GlobalDarkBackground />
+      <main className="flex-1 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] relative z-10">
       <AdminLockGate>
       <Suspense fallback={<LoadingScreen />}>
       <Routes>

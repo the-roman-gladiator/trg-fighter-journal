@@ -41,15 +41,17 @@ const effortToScore = (level: string): number => {
 };
 
 const CARDIO_ACTIVITIES = [
-  'Running', 'Cycling', 'Rowing',
-  'Jump Rope', 'Swimming', 'Boxing Bag',
-  'Kickboxing', 'Grappling Conditioning', 'Functional Training',
-  'HIIT', 'Circuit Training', 'Assault Bike',
-  'Stair Climber', 'Hiking', 'Walking',
+  'Kickboxing', 'Boxing', 'Muay Thai Pad Work',
+  'Kickboxing Bag Work', 'MMA Conditioning', 'Grappling Conditioning',
+  'Shadow Boxing', 'Sparring Conditioning', 'Treadmill Running',
+  'Cycling', 'Rowing Machine', 'Jump Rope',
+  'HIIT', 'Functional Training', 'Swimming',
   'Other',
 ];
 
-const DISTANCE_ACTIVITIES = new Set(['Running', 'Cycling', 'Rowing', 'Swimming', 'Walking', 'Hiking']);
+const FUNCTIONAL_PRESETS = ['Tabata', 'AMRAP', 'EMOM', 'Circuit', 'Ladder', 'For Time'];
+
+const DISTANCE_ACTIVITIES = new Set(['Treadmill Running', 'Cycling', 'Rowing Machine', 'Swimming']);
 
 // Backwards-compatible category checks. The truth source is classTypeCategory(),
 // but we keep these helpers so the rest of the form code reads naturally.
@@ -146,6 +148,10 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   // Cardio fields
   const [cardioActivity, setCardioActivity] = useState<string>('');
   const [cardioActivityOther, setCardioActivityOther] = useState<string>('');
+  // Functional Training sub-mode: 'preset' | 'build'
+  const [functionalMode, setFunctionalMode] = useState<'preset' | 'build'>('preset');
+  const [functionalPreset, setFunctionalPreset] = useState<string>('');
+  const [functionalBuild, setFunctionalBuild] = useState<string>('');
   const [cardioHours, setCardioHours] = useState<string>('');
   const [cardioMinutes, setCardioMinutes] = useState<string>('');
   const [cardioSeconds, setCardioSeconds] = useState<string>('');
@@ -278,7 +284,19 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       // Cardio fields prefill
       const existingActivity = (session as any).cardio_activity_name || '';
       if (existingActivity) {
-        if (CARDIO_ACTIVITIES.includes(existingActivity)) {
+        // Functional Training stored as "Functional Training: <preset>" or "Functional Training — Custom: <text>"
+        if (existingActivity.startsWith('Functional Training')) {
+          setCardioActivity('Functional Training');
+          const customMatch = existingActivity.match(/^Functional Training — Custom:\s*(.*)$/);
+          const presetMatch = existingActivity.match(/^Functional Training:\s*(.*)$/);
+          if (customMatch) {
+            setFunctionalMode('build');
+            setFunctionalBuild(customMatch[1] || '');
+          } else if (presetMatch) {
+            setFunctionalMode('preset');
+            setFunctionalPreset(presetMatch[1] || '');
+          }
+        } else if (CARDIO_ACTIVITIES.includes(existingActivity)) {
           setCardioActivity(existingActivity);
         } else {
           setCardioActivity('Other');
@@ -376,7 +394,19 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       ? ((parseInt(cardioHours) || 0) * 3600 + (parseInt(cardioMinutes) || 0) * 60 + (parseInt(cardioSeconds) || 0)) || null
       : null;
     const resolvedCardioActivity = cardio
-      ? (cardioActivity === 'Other' ? cardioActivityOther.trim() : cardioActivity) || null
+      ? (() => {
+          if (cardioActivity === 'Other') return cardioActivityOther.trim() || null;
+          if (cardioActivity === 'Functional Training') {
+            if (functionalMode === 'build' && functionalBuild.trim()) {
+              return `Functional Training — Custom: ${functionalBuild.trim()}`;
+            }
+            if (functionalMode === 'preset' && functionalPreset) {
+              return `Functional Training: ${functionalPreset}`;
+            }
+            return 'Functional Training';
+          }
+          return cardioActivity || null;
+        })()
       : null;
     const showDistance = cardio && DISTANCE_ACTIVITIES.has(cardioActivity);
 
@@ -1290,6 +1320,37 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                         />
                       </div>
                     )}
+
+                    {cardioActivity === 'Functional Training' && (
+                      <div className="space-y-3 rounded-md border border-border/60 bg-muted/20 p-3">
+                        <div className="flex gap-2">
+                          <Button type="button" size="sm" variant={functionalMode === 'preset' ? 'default' : 'outline'} className="text-xs h-8 flex-1" onClick={() => setFunctionalMode('preset')}>Preset</Button>
+                          <Button type="button" size="sm" variant={functionalMode === 'build' ? 'default' : 'outline'} className="text-xs h-8 flex-1" onClick={() => setFunctionalMode('build')}>Build custom</Button>
+                        </div>
+                        {functionalMode === 'preset' ? (
+                          <div>
+                            <Label className="text-xs mb-2 block">Preset format</Label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {FUNCTIONAL_PRESETS.map((p) => (
+                                <Badge
+                                  key={p}
+                                  variant={functionalPreset === p ? 'default' : 'outline'}
+                                  className={`cursor-pointer text-xs px-2.5 py-1 ${functionalPreset === p ? 'bg-primary text-primary-foreground' : 'border-border hover:border-primary/40'}`}
+                                  onClick={() => setFunctionalPreset(functionalPreset === p ? '' : p)}
+                                >
+                                  {p}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <Label className="text-xs">Describe your circuit</Label>
+                            <Textarea value={functionalBuild} onChange={(e) => setFunctionalBuild(e.target.value)} placeholder="e.g., 5 rounds: 10 burpees, 15 KB swings, 20 air squats" rows={3} />
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -1319,7 +1380,6 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                         />
                       </div>
                     )}
-
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label>Calories</Label>

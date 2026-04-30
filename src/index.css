@@ -159,11 +159,11 @@
     --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.18);
   }
 
-  /* Light-mode body backdrop — soft electric-blue spotlight */
+  /* Light-mode body backdrop — soft red spotlight */
   [data-theme='light'] body {
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(197 90% 92% / 0.55), transparent 60%),
-      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(197 90% 95% / 0.5), transparent 70%);
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(357 90% 94% / 0.55), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(357 90% 96% / 0.5), transparent 70%);
   }
   [data-theme='light'] ::-webkit-scrollbar-track { background: hsl(210 18% 94%); }
   [data-theme='light'] ::-webkit-scrollbar-thumb { background: hsl(215 12% 75%); }

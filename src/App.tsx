@@ -13,6 +13,7 @@ import { ErrorBoundary, GlobalErrorListener } from "./components/ErrorBoundary";
 import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
 import { useAnalytics } from "./hooks/useAnalytics";
 import { useSubscription } from "./hooks/useSubscription";
+import globalBgDark from "@/assets/dashboard-bg-octagon.png";
 
 // Eager: critical first-paint routes
 import Landing from "./pages/Landing";
@@ -86,7 +87,7 @@ function GlobalDarkBackground() {
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0 hidden dark:block"
         style={{
-          backgroundImage: `url(/src/assets/dashboard-bg-octagon.png)`,
+          backgroundImage: `url(${globalBgDark})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',

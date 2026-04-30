@@ -38,6 +38,7 @@ export function FighterCard({
   nickname,
   name,
   discipline,
+  level,
   statement,
   target,
   avatarUrl,

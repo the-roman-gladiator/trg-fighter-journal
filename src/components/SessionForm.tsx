@@ -114,10 +114,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   // 1o1 PT marker (Technical Skills only) — saves to pt_note_flag
   const [pt1o1, setPt1o1] = useState(false);
 
-  // Sparring & Rolling fields
+  // Sparring & Rolling fields (free notes only — duration handled by start/end time, rounds + intensity below)
   const [sparringRounds, setSparringRounds] = useState<string>('');
   const [sparringRoundLength, setSparringRoundLength] = useState<string>('');
-  const [sparringPartnerLevel, setSparringPartnerLevel] = useState<string>('');
   const [sparringIntensity, setSparringIntensity] = useState<number>(5);
 
   // Stretching & Mobility fields
@@ -238,16 +237,12 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setPhysicalEffortExecution((session as any).physical_effort_execution || '');
       setMindsetEffortExecution((session as any).mindset_effort_execution || '');
       setPt1o1(!!(session as any).pt_note_flag);
-      // Sparring prefill (rounds reuse fight_round_count, length & partner stored in fight_duration / fight_opponent for now)
+      // Sparring prefill (rounds reuse fight_round_count, length stored in fight_duration for now)
       const sFRC = (session as any).fight_round_count;
       const sFD = (session as any).fight_duration;
-      const sOpp = (session as any).fight_opponent;
       if (classTypeCategory((session as any).class_type) === 'sparring') {
         if (sFRC != null) setSparringRounds(String(sFRC));
         if (sFD) setSparringRoundLength(String(sFD));
-        if (sOpp && typeof sOpp === 'object' && sOpp.partner_level) {
-          setSparringPartnerLevel(sOpp.partner_level);
-        }
         if ((session as any).effort_score != null) {
           setSparringIntensity(Math.round(Number((session as any).effort_score) * 2));
         }
@@ -329,7 +324,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     const fightReview = classTypeCategory(classType) === 'fight_review';
     const cardio = isCardioType(classType);
     const strength = isStrengthType(classType);
-    const showTechnicalEntry = technical || sparring;
+    const showTechnicalEntry = technical;
 
     if (showTechnicalEntry && selectedDisciplines.length === 0) {
       toast({ title: 'Validation', description: 'Please select at least one discipline', variant: 'destructive' });
@@ -433,7 +428,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               weight: fightOpponentWeight.trim() || null,
               notes: fightOpponentNotes.trim() || null,
             }
-          : (sparring && sparringPartnerLevel ? { partner_level: sparringPartnerLevel } : null),
+          : null,
         fight_rounds: fightReview && fightRounds.length > 0 ? fightRounds : null,
         fight_emotion_before: fightReview ? (beforeEmotion || null) : null,
         fight_emotion_after: fightReview ? (afterEmotion || null) : null,
@@ -488,7 +483,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         if (opponentReaction) autoTags.push(opponentReaction);
         if (thirdMovement) autoTags.push(thirdMovement);
         if (technical && pt1o1) autoTags.push('1o1 PT');
-        if (sparring && sparringPartnerLevel) autoTags.push(sparringPartnerLevel);
+        
       }
       if (cardio && resolvedCardioActivity) autoTags.push(resolvedCardioActivity);
       if (strength && workoutName) autoTags.push(workoutName);
@@ -600,7 +595,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const cardio = category === 'cardio';
   const strength = category === 'strength';
   // Sparring reuses the technical entry surface (discipline + tactic + technique + movement chain)
-  const showTechnicalEntry = technical || sparring;
+  const showTechnicalEntry = technical;
   const showDistance = cardio && DISTANCE_ACTIVITIES.has(cardioActivity);
 
   const loadTemplateIntoForm = async (templateId: string) => {
@@ -846,14 +841,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                     </div>
                   </div>
 
-                  <div>
-                    <Label className="text-xs mb-2 block">Partner Level</Label>
-                    <ChipSelect
-                      options={['Beginner', 'Intermediate', 'Advanced', 'Pro', 'Coach']}
-                      value={sparringPartnerLevel}
-                      onChange={setSparringPartnerLevel}
-                    />
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Free notes only — capture the feel of the session in the Notes card below.
+                  </p>
 
                   <div>
                     <div className="flex items-center justify-between mb-2">

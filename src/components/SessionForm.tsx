@@ -120,6 +120,13 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const [sparringPartnerLevel, setSparringPartnerLevel] = useState<string>('');
   const [sparringIntensity, setSparringIntensity] = useState<number>(5);
 
+  // Stretching & Mobility fields
+  type StretchExercise = { name: string; duration: string };
+  const [stretchFocusAreas, setStretchFocusAreas] = useState<string[]>([]);
+  const [stretchExercises, setStretchExercises] = useState<StretchExercise[]>([]);
+  const [stretchNewName, setStretchNewName] = useState<string>('');
+  const [stretchNewDuration, setStretchNewDuration] = useState<string>('');
+
   // Cardio fields
   const [cardioActivity, setCardioActivity] = useState<string>('');
   const [cardioActivityOther, setCardioActivityOther] = useState<string>('');
@@ -229,6 +236,11 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         }
       }
 
+      // Stretching & Mobility prefill
+      const sFA = (session as any).stretching_focus_areas;
+      const sEx = (session as any).stretching_exercises;
+      if (Array.isArray(sFA)) setStretchFocusAreas(sFA);
+      if (Array.isArray(sEx)) setStretchExercises(sEx as StretchExercise[]);
       // Cardio fields prefill
       const existingActivity = (session as any).cardio_activity_name || '';
       if (existingActivity) {
@@ -274,6 +286,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
 
     const technical = isTechnicalType(classType);
     const sparring = classTypeCategory(classType) === 'sparring';
+    const stretching = classTypeCategory(classType) === 'stretching';
     const cardio = isCardioType(classType);
     const strength = isStrengthType(classType);
     const showTechnicalEntry = technical || sparring;
@@ -363,6 +376,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         fight_opponent: sparring && sparringPartnerLevel
           ? { partner_level: sparringPartnerLevel }
           : null,
+        // Stretching & Mobility
+        stretching_focus_areas: stretching && stretchFocusAreas.length > 0 ? stretchFocusAreas : null,
+        stretching_exercises: stretching && stretchExercises.length > 0 ? stretchExercises : null,
         // Fighter Note (only on technical sessions)
         make_fighter_note: technical ? makeFighterNote : false,
         fighter_profile_id: technical && makeFighterNote ? (fighterProfile?.id || null) : null,
@@ -416,6 +432,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       }
       if (cardio && resolvedCardioActivity) autoTags.push(resolvedCardioActivity);
       if (strength && workoutName) autoTags.push(workoutName);
+      if (stretching) {
+        stretchFocusAreas.forEach(a => autoTags.push(a));
+      }
 
       const allTagNames = [...autoTags, ...selectedTags];
       const uniqueTags: string[] = [];
@@ -507,6 +526,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const category = classTypeCategory(classType);
   const technical = category === 'technical';
   const sparring = category === 'sparring';
+  const stretching = category === 'stretching';
   const cardio = category === 'cardio';
   const strength = category === 'strength';
   // Sparring reuses the technical entry surface (discipline + tactic + technique + movement chain)
@@ -784,6 +804,112 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                       <span>4–6 Sharp</span>
                       <span>7–8 Hard</span>
                       <span>9–10 War</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Stretching & Mobility */}
+            {stretching && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-primary" />
+                    Stretching & Mobility
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-xs mb-2 block">Focus Areas</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        'Hips', 'Hamstrings', 'Lower Back', 'Upper Back',
+                        'Shoulders', 'Neck', 'Quads', 'Calves',
+                        'Ankles', 'Wrists', 'Chest', 'Glutes',
+                        'Full Body',
+                      ].map((area) => {
+                        const active = stretchFocusAreas.includes(area);
+                        return (
+                          <Badge
+                            key={area}
+                            variant={active ? 'default' : 'outline'}
+                            className={`cursor-pointer text-xs px-2.5 py-1 transition-colors ${
+                              active
+                                ? 'bg-primary text-primary-foreground'
+                                : 'border-border hover:border-primary/40 hover:bg-primary/5'
+                            }`}
+                            onClick={() =>
+                              setStretchFocusAreas(
+                                active
+                                  ? stretchFocusAreas.filter((a) => a !== area)
+                                  : [...stretchFocusAreas, area],
+                              )
+                            }
+                          >
+                            {area}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs mb-2 block">Exercises</Label>
+                    {stretchExercises.length > 0 && (
+                      <div className="space-y-1.5 mb-3">
+                        {stretchExercises.map((ex, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between gap-2 px-3 py-2 rounded-md border border-border bg-secondary/30"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium truncate">{ex.name}</p>
+                              {ex.duration && (
+                                <p className="text-xs text-muted-foreground">{ex.duration}</p>
+                              )}
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-destructive"
+                              onClick={() =>
+                                setStretchExercises(stretchExercises.filter((_, j) => j !== i))
+                              }
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="grid grid-cols-[1fr_110px_auto] gap-2">
+                      <Input
+                        value={stretchNewName}
+                        onChange={(e) => setStretchNewName(e.target.value)}
+                        placeholder="e.g., Pigeon pose"
+                      />
+                      <Input
+                        value={stretchNewDuration}
+                        onChange={(e) => setStretchNewDuration(e.target.value)}
+                        placeholder="e.g., 60s"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={!stretchNewName.trim()}
+                        onClick={() => {
+                          setStretchExercises([
+                            ...stretchExercises,
+                            { name: stretchNewName.trim(), duration: stretchNewDuration.trim() },
+                          ]);
+                          setStretchNewName('');
+                          setStretchNewDuration('');
+                        }}
+                      >
+                        Add
+                      </Button>
                     </div>
                   </div>
                 </CardContent>

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Flame, Quote, Camera, Loader2, User as UserIcon, CalendarDays, Sparkles } from 'lucide-react';
+import { Camera, Loader2, User as UserIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 import { cn } from '@/lib/utils';
@@ -12,36 +12,46 @@ interface FighterCardProps {
   discipline?: string;
   level?: string;
   statement?: string;
+  /** Optional mission / next-fight line */
+  target?: string;
+  /** @deprecated kept for backwards compat — no longer rendered */
   dailyMotivation?: string;
   avatarUrl?: string | null;
+  /** @deprecated no longer rendered inside identity panel */
   weeklySessions?: number;
+  /** @deprecated no longer rendered inside identity panel */
   longestStreak?: number;
   onAvatarChange?: (url: string) => void;
 }
 
 /**
- * Fight-card style summary — single rectangle frame containing:
- *   [ Photo ] | NICKNAME · DISCIPLINE · LEVEL · STATEMENT · MOTIVATION · WEEK · STREAK
- * Mobile-first stacked statline rows on the right of the photo.
+ * Fighter Identity Panel
+ *   [ Photo ] | NICKNAME (primary)
+ *               TARGET    (mission)
+ *               DISCIPLINE (tag row)
+ *               STATEMENT  (italic identity)
+ *
+ * Solid, sharp, fighter-style — minimal noise, strong vertical rhythm.
  */
 export function FighterCard({
   userId,
   nickname,
   name,
   discipline,
-  level,
   statement,
-  dailyMotivation,
+  target,
   avatarUrl,
-  weeklySessions,
-  longestStreak,
   onAvatarChange,
 }: FighterCardProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const displayName = (nickname || name || 'Fighter').toUpperCase();
-  const primaryDiscipline = discipline?.split(',').map((d) => d.trim()).filter(Boolean).join(' / ');
+  const disciplineTags = (discipline || '')
+    .split(',')
+    .map((d) => d.trim())
+    .filter(Boolean)
+    .map((d) => d.toUpperCase());
 
   const handleAvatarClick = () => {
     if (!userId) {
@@ -88,50 +98,16 @@ export function FighterCard({
     }
   };
 
-  /**
-   * Stat row — value left, red label right (UFC fight-card style).
-   * `accent` prepends a small icon and tints the value.
-   */
-  const StatRow = ({
-    label,
-    value,
-    accent,
-    italic,
-  }: {
-    label: string;
-    value: React.ReactNode;
-    accent?: { icon: any; tone: string };
-    italic?: boolean;
-  }) => {
-    const Icon = accent?.icon;
-    return (
-      <li className="flex items-center justify-between gap-2 rounded-sm bg-background/50 border border-border/50 px-2 py-1 min-h-[28px]">
-        <div className="flex items-center gap-1.5 min-w-0 flex-1">
-          {Icon && <Icon className={cn('h-3.5 w-3.5 shrink-0', accent?.tone)} />}
-          <span
-            className={cn(
-              'text-[12px] sm:text-[13px] font-bold text-foreground tabular-nums truncate',
-              italic && 'italic font-semibold',
-            )}
-            style={{ fontFamily: 'Barlow Condensed, Inter, sans-serif' }}
-          >
-            {value}
-          </span>
-        </div>
-        {label && (
-          <span
-            className="text-[9px] font-black tracking-[0.18em] uppercase text-destructive shrink-0"
-            style={{ fontFamily: 'Barlow Condensed, Inter, sans-serif' }}
-          >
-            {label}
-          </span>
-        )}
-      </li>
-    );
-  };
+  const displayFont = { fontFamily: 'Barlow Condensed, Inter, sans-serif' } as const;
 
   return (
-    <Card className="relative overflow-hidden border-primary/40 bg-gradient-to-br from-[hsl(var(--primary)/0.18)] via-card to-card shadow-[0_8px_28px_-10px_hsl(var(--primary)/0.55)]">
+    <Card
+      className={cn(
+        'relative overflow-hidden rounded-lg',
+        'border border-destructive/40 bg-card',
+        'shadow-[0_2px_0_0_hsl(var(--destructive)/0.35)]',
+      )}
+    >
       <input
         ref={fileInputRef}
         type="file"
@@ -140,28 +116,17 @@ export function FighterCard({
         onChange={handleFile}
       />
 
-      {/* Diagonal accent slash */}
-      <div
-        aria-hidden
-        className="absolute inset-y-0 left-[38%] w-px bg-gradient-to-b from-transparent via-primary/50 to-transparent rotate-[8deg] origin-top pointer-events-none"
-      />
-      <div
-        aria-hidden
-        className="absolute -left-12 -bottom-12 h-40 w-40 rounded-full bg-primary/15 blur-3xl pointer-events-none"
-      />
-
-      {/* Header bar */}
-      <div className="relative flex items-center justify-between gap-2 px-3 py-1.5 border-b border-primary/30 bg-gradient-to-r from-primary/25 via-primary/10 to-transparent">
+      {/* Top accent bar — sharp, no gradient noise */}
+      <div className="flex items-center justify-between px-3 py-1 border-b border-destructive/30 bg-destructive/10">
         <span
-          className="text-[10px] font-black tracking-[0.3em] uppercase text-destructive"
-          style={{ fontFamily: 'Barlow Condensed, Inter, sans-serif' }}
+          className="text-[10px] font-black tracking-[0.32em] uppercase text-destructive"
+          style={displayFont}
         >
           Fight Card
         </span>
       </div>
 
-      {/* Body: photo + stat rows */}
-      <div className="relative flex gap-3 p-3">
+      <div className="flex gap-4 p-4">
         {/* Avatar */}
         <button
           type="button"
@@ -169,9 +134,9 @@ export function FighterCard({
           disabled={uploading}
           aria-label="Upload fighter photo"
           className={cn(
-            'relative shrink-0 w-[112px] sm:w-[128px] rounded-md overflow-hidden self-stretch',
-            'border border-primary/40 bg-gradient-to-b from-muted/50 to-muted/20',
-            'group focus:outline-none focus:ring-2 focus:ring-primary/60 transition',
+            'relative shrink-0 w-[104px] sm:w-[120px] rounded-md overflow-hidden self-stretch',
+            'border border-destructive/40 bg-muted/30',
+            'group focus:outline-none focus:ring-2 focus:ring-destructive/60 transition',
           )}
         >
           {avatarUrl ? (
@@ -198,9 +163,9 @@ export function FighterCard({
             )}
           >
             {uploading ? (
-              <Loader2 className="h-5 w-5 text-primary animate-spin" />
+              <Loader2 className="h-5 w-5 text-destructive animate-spin" />
             ) : (
-              <div className="flex flex-col items-center gap-1 text-primary">
+              <div className="flex flex-col items-center gap-1 text-destructive">
                 <Camera className="h-5 w-5" />
                 <span className="text-[9px] font-bold uppercase tracking-wider">
                   Change
@@ -210,50 +175,46 @@ export function FighterCard({
           </div>
         </button>
 
-        {/* Stacked statline rows */}
-        <ul className="min-w-0 flex-1 space-y-1.5">
-          <StatRow
-            label=""
-            value={
-              <span className="text-[15px] sm:text-base font-black uppercase leading-none tracking-tight">
-                {displayName}
-              </span>
-            }
-          />
-          {primaryDiscipline && (
-            <StatRow label="" value={primaryDiscipline} />
+        {/* Identity stack — strong vertical rhythm */}
+        <div className="min-w-0 flex-1 flex flex-col text-left">
+          {/* 1. NICKNAME — primary */}
+          <h2
+            className="text-foreground font-black uppercase leading-[0.95] tracking-tight text-[28px] sm:text-[34px] break-words"
+            style={displayFont}
+          >
+            {displayName}
+          </h2>
+
+          {/* 2. TARGET — mission (large gap above) */}
+          {target && (
+            <p
+              className="mt-4 text-foreground/95 font-semibold leading-snug text-[14px] sm:text-[15px]"
+              style={displayFont}
+            >
+              {target}
+            </p>
           )}
-          {level && <StatRow label="" value={level} />}
+
+          {/* 3. DISCIPLINE — tag row (medium gap) */}
+          {disciplineTags.length > 0 && (
+            <p
+              className={cn(
+                'text-muted-foreground text-[11px] sm:text-[12px] font-semibold tracking-[0.18em] uppercase',
+                target ? 'mt-3' : 'mt-4',
+              )}
+              style={displayFont}
+            >
+              {disciplineTags.join(' • ')}
+            </p>
+          )}
+
+          {/* 4. STATEMENT — identity (small gap above, subtle below) */}
           {statement && (
-            <StatRow
-              label=""
-              value={`"${statement}"`}
-              italic
-              accent={{ icon: Quote, tone: 'text-primary' }}
-            />
+            <p className="mt-2 text-foreground/70 italic font-light text-[13px] sm:text-[14px] leading-snug line-clamp-2">
+              "{statement}"
+            </p>
           )}
-          {dailyMotivation && (
-            <StatRow
-              label=""
-              value={dailyMotivation}
-              accent={{ icon: Sparkles, tone: 'text-amber-400' }}
-            />
-          )}
-          {weeklySessions != null && (
-            <StatRow
-              label="This Week"
-              value={`${weeklySessions} sess`}
-              accent={{ icon: CalendarDays, tone: 'text-primary' }}
-            />
-          )}
-          {longestStreak != null && (
-            <StatRow
-              label="Best Streak"
-              value={`${longestStreak} days`}
-              accent={{ icon: Flame, tone: 'text-orange-500' }}
-            />
-          )}
-        </ul>
+        </div>
       </div>
     </Card>
   );

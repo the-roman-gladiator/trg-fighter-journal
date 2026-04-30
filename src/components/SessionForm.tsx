@@ -376,6 +376,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         fight_opponent: sparring && sparringPartnerLevel
           ? { partner_level: sparringPartnerLevel }
           : null,
+        // Stretching & Mobility
+        stretching_focus_areas: stretching && stretchFocusAreas.length > 0 ? stretchFocusAreas : null,
+        stretching_exercises: stretching && stretchExercises.length > 0 ? stretchExercises : null,
         // Fighter Note (only on technical sessions)
         make_fighter_note: technical ? makeFighterNote : false,
         fighter_profile_id: technical && makeFighterNote ? (fighterProfile?.id || null) : null,

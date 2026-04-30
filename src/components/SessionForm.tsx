@@ -810,6 +810,112 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </Card>
             )}
 
+            {/* Stretching & Mobility */}
+            {stretching && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-primary" />
+                    Stretching & Mobility
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-xs mb-2 block">Focus Areas</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        'Hips', 'Hamstrings', 'Lower Back', 'Upper Back',
+                        'Shoulders', 'Neck', 'Quads', 'Calves',
+                        'Ankles', 'Wrists', 'Chest', 'Glutes',
+                        'Full Body',
+                      ].map((area) => {
+                        const active = stretchFocusAreas.includes(area);
+                        return (
+                          <Badge
+                            key={area}
+                            variant={active ? 'default' : 'outline'}
+                            className={`cursor-pointer text-xs px-2.5 py-1 transition-colors ${
+                              active
+                                ? 'bg-primary text-primary-foreground'
+                                : 'border-border hover:border-primary/40 hover:bg-primary/5'
+                            }`}
+                            onClick={() =>
+                              setStretchFocusAreas(
+                                active
+                                  ? stretchFocusAreas.filter((a) => a !== area)
+                                  : [...stretchFocusAreas, area],
+                              )
+                            }
+                          >
+                            {area}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs mb-2 block">Exercises</Label>
+                    {stretchExercises.length > 0 && (
+                      <div className="space-y-1.5 mb-3">
+                        {stretchExercises.map((ex, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between gap-2 px-3 py-2 rounded-md border border-border bg-secondary/30"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium truncate">{ex.name}</p>
+                              {ex.duration && (
+                                <p className="text-xs text-muted-foreground">{ex.duration}</p>
+                              )}
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-destructive"
+                              onClick={() =>
+                                setStretchExercises(stretchExercises.filter((_, j) => j !== i))
+                              }
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="grid grid-cols-[1fr_110px_auto] gap-2">
+                      <Input
+                        value={stretchNewName}
+                        onChange={(e) => setStretchNewName(e.target.value)}
+                        placeholder="e.g., Pigeon pose"
+                      />
+                      <Input
+                        value={stretchNewDuration}
+                        onChange={(e) => setStretchNewDuration(e.target.value)}
+                        placeholder="e.g., 60s"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={!stretchNewName.trim()}
+                        onClick={() => {
+                          setStretchExercises([
+                            ...stretchExercises,
+                            { name: stretchNewName.trim(), duration: stretchNewDuration.trim() },
+                          ]);
+                          setStretchNewName('');
+                          setStretchNewDuration('');
+                        }}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {cardio && (
               <>
                 <Card>

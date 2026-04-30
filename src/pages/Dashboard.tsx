@@ -57,6 +57,7 @@ export default function Dashboard() {
   const [myStatement, setMyStatement] = useState('');
   const [myDisciplines, setMyDisciplines] = useState<string[]>([]);
   const [dailyMotivation, setDailyMotivation] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   // Pie chart data
   const [classTypeData, setClassTypeData] = useState<{ name: string; value: number }[]>([]);

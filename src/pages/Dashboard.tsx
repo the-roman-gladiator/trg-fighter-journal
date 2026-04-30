@@ -57,6 +57,7 @@ export default function Dashboard() {
   const [myStatement, setMyStatement] = useState('');
   const [myDisciplines, setMyDisciplines] = useState<string[]>([]);
   const [dailyMotivation, setDailyMotivation] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   // Pie chart data
   const [classTypeData, setClassTypeData] = useState<{ name: string; value: number }[]>([]);
@@ -169,13 +170,14 @@ export default function Dashboard() {
     // Fetch profile for journal box
     const { data: prof } = await supabase
       .from('profiles')
-      .select('my_statement, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text')
+      .select('my_statement, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text, avatar_url')
       .eq('id', user.id)
       .maybeSingle();
 
     if (prof) {
       setMyStatement(prof.my_statement || '');
       setMyDisciplines(prof.discipline ? prof.discipline.split(',').map((d: string) => d.trim()).filter(Boolean) : []);
+      setAvatarUrl((prof as any).avatar_url || null);
 
       const motivationMode = prof.daily_motivation_mode || 'random';
       if (motivationMode === 'custom' && prof.custom_motivation_text) {
@@ -415,13 +417,17 @@ export default function Dashboard() {
 
         {/* Fighter Card — nickname / discipline / level / statement */}
         <FighterCard
+          userId={user?.id}
           nickname={profile?.nickname || undefined}
           name={profile?.name || undefined}
           discipline={myDisciplines.join(', ') || profile?.discipline || undefined}
           level={profile?.level}
           statement={myStatement}
+          avatarUrl={avatarUrl}
+          onAvatarChange={(url) => setAvatarUrl(url)}
           weeklySessions={weeklySessions}
           longestStreak={longestStreak}
+          avgEffort={avgEffort}
         />
 
         {/* Daily Motivation */}

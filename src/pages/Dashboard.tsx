@@ -423,27 +423,12 @@ export default function Dashboard() {
           discipline={myDisciplines.join(', ') || profile?.discipline || undefined}
           level={profile?.level}
           statement={myStatement}
+          dailyMotivation={dailyMotivation}
           avatarUrl={avatarUrl}
           onAvatarChange={(url) => setAvatarUrl(url)}
           weeklySessions={weeklySessions}
           longestStreak={longestStreak}
-          avgEffort={avgEffort}
         />
-
-        {/* Daily Motivation */}
-        {dailyMotivation && (
-          <Card className="border-primary/30 bg-gradient-to-br from-primary/5 via-card to-card">
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Quote className="h-4 w-4 text-primary" />
-                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">Daily Motivation</p>
-              </div>
-              <p className="text-sm sm:text-base font-medium text-foreground leading-snug">
-                {dailyMotivation}
-              </p>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-2">

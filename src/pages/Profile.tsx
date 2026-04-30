@@ -306,6 +306,7 @@ export default function Profile() {
           level: dbLevel as any,
           fitness_level: fitnessLevel,
           my_statement: myStatement || null,
+          target: target || null,
           daily_motivation_mode: motivationMode,
           fixed_motivation_id: motivationMode === 'fixed_library' ? fixedMotivationId : null,
           custom_motivation_text: motivationMode === 'custom' ? customMotivation : null,

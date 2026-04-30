@@ -369,17 +369,6 @@ export default function Profile() {
     }
   };
 
-  const fullName = [name, middleName, surname].filter(Boolean).join(' ').trim();
-  const displayName = nickname || name || 'Fighter';
-  const primaryDiscipline = (fighterProfile?.approved_fight_disciplines?.[0]) || selectedDisciplines[0] || '—';
-  const fighterStatus = fighterProfile?.fighter_status;
-  const levelBadgeClass =
-    martialLevel === 'Fighter' ? 'bg-combat-danger/15 text-combat-danger border-combat-danger/40'
-    : martialLevel === 'Advanced' ? 'bg-primary/15 text-primary border-primary/40'
-    : martialLevel === 'Intermediate' ? 'bg-combat-warning/15 text-combat-warning border-combat-warning/40'
-    : 'bg-muted text-muted-foreground border-border';
-  const accountTierClass = accountBadgeColor[accountType];
-
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
@@ -395,73 +384,6 @@ export default function Profile() {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-lg pb-28">
-        {/* Fight-card hero */}
-        <Card className="mb-6 overflow-hidden border-primary/20 shadow-card-premium relative">
-          <div
-            className="absolute inset-0 opacity-60 pointer-events-none"
-            style={{ background: 'var(--gradient-hero)' }}
-          />
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
-          <CardContent className="relative pt-6 pb-5">
-            {/* Top row: tier + status */}
-            <div className="flex items-center justify-between mb-4">
-              <span className={`px-2.5 py-1 rounded text-[10px] font-display font-bold tracking-widest border ${accountTierClass}`}>
-                {accountType.toUpperCase()} TIER
-              </span>
-              {fighterStatus === 'approved' && (
-                <span className="px-2.5 py-1 rounded text-[10px] font-display font-bold tracking-widest border bg-combat-success/15 text-combat-success border-combat-success/40">
-                  ★ FIGHTER
-                </span>
-              )}
-              {fighterStatus === 'pending' && (
-                <span className="px-2.5 py-1 rounded text-[10px] font-display font-bold tracking-widest border bg-combat-warning/15 text-combat-warning border-combat-warning/40">
-                  PENDING
-                </span>
-              )}
-            </div>
-
-            {/* Identity */}
-            <div className="text-center space-y-1 mb-5">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-display">
-                {primaryDiscipline}
-              </p>
-              <h2 className="font-headline text-4xl leading-none text-foreground">
-                {displayName.toUpperCase()}
-              </h2>
-              {fullName && fullName.toLowerCase() !== displayName.toLowerCase() && (
-                <p className="text-xs text-muted-foreground">{fullName}</p>
-              )}
-            </div>
-
-            {/* Stat strip */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-lg bg-card-elevated/60 border border-border/60 p-3 text-center">
-                <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-display mb-1">Level</p>
-                <span className={`inline-block px-2.5 py-1 rounded text-xs font-display font-bold tracking-wide border ${levelBadgeClass}`}>
-                  {martialLevel.toUpperCase()}
-                </span>
-              </div>
-              <div className="rounded-lg bg-card-elevated/60 border border-border/60 p-3 text-center">
-                <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-display mb-1">Fitness</p>
-                <span className="inline-block px-2.5 py-1 rounded text-xs font-display font-bold tracking-wide border bg-primary/10 text-primary border-primary/30">
-                  {fitnessLevel.toUpperCase()}
-                </span>
-              </div>
-            </div>
-
-            {/* Disciplines chips */}
-            {selectedDisciplines.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-1.5 justify-center">
-                {selectedDisciplines.map(d => (
-                  <span key={d} className="px-2 py-0.5 text-[10px] font-display tracking-wider rounded border border-border/60 bg-secondary/60 text-secondary-foreground">
-                    {d.toUpperCase()}
-                  </span>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Profile (collapsible) */}
           <Collapsible open={profileOpen} onOpenChange={setProfileOpen}>

@@ -700,22 +700,24 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                     <Input id="thirdMovement" value={thirdMovement} onChange={(e) => setThirdMovement(e.target.value)} placeholder="e.g., Low kick, Double leg finish, Back take" />
                   </div>
 
-                  {/* 1o1 PT marker — memory-only flag for technical sessions */}
-                  <div className="pt-2 border-t border-border">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <Checkbox
-                        checked={pt1o1}
-                        onCheckedChange={(v) => setPt1o1(v === true)}
-                        className="mt-0.5"
-                      />
-                      <div>
-                        <p className="text-sm font-medium">1o1 PT session</p>
-                        <p className="text-xs text-muted-foreground">
-                          Tick if this was a private 1-on-1 with a coach. For your memory only.
-                        </p>
-                      </div>
-                    </label>
-                  </div>
+                  {/* 1o1 PT marker — memory-only flag, technical sessions only */}
+                  {technical && (
+                    <div className="pt-2 border-t border-border">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <Checkbox
+                          checked={pt1o1}
+                          onCheckedChange={(v) => setPt1o1(v === true)}
+                          className="mt-0.5"
+                        />
+                        <div>
+                          <p className="text-sm font-medium">1o1 PT session</p>
+                          <p className="text-xs text-muted-foreground">
+                            Tick if this was a private 1-on-1 with a coach. For your memory only.
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

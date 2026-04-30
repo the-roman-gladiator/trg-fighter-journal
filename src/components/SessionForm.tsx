@@ -114,6 +114,12 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   // 1o1 PT marker (Technical Skills only) — saves to pt_note_flag
   const [pt1o1, setPt1o1] = useState(false);
 
+  // Sparring & Rolling fields
+  const [sparringRounds, setSparringRounds] = useState<string>('');
+  const [sparringRoundLength, setSparringRoundLength] = useState<string>('');
+  const [sparringPartnerLevel, setSparringPartnerLevel] = useState<string>('');
+  const [sparringIntensity, setSparringIntensity] = useState<number>(5);
+
   // Cardio fields
   const [cardioActivity, setCardioActivity] = useState<string>('');
   const [cardioActivityOther, setCardioActivityOther] = useState<string>('');
@@ -208,6 +214,20 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setPhysicalEffortExecution((session as any).physical_effort_execution || '');
       setMindsetEffortExecution((session as any).mindset_effort_execution || '');
       setPt1o1(!!(session as any).pt_note_flag);
+      // Sparring prefill (rounds reuse fight_round_count, length & partner stored in fight_duration / fight_opponent for now)
+      const sFRC = (session as any).fight_round_count;
+      const sFD = (session as any).fight_duration;
+      const sOpp = (session as any).fight_opponent;
+      if (classTypeCategory((session as any).class_type) === 'sparring') {
+        if (sFRC != null) setSparringRounds(String(sFRC));
+        if (sFD) setSparringRoundLength(String(sFD));
+        if (sOpp && typeof sOpp === 'object' && sOpp.partner_level) {
+          setSparringPartnerLevel(sOpp.partner_level);
+        }
+        if ((session as any).effort_score != null) {
+          setSparringIntensity(Math.round(Number((session as any).effort_score) * 2));
+        }
+      }
 
       // Cardio fields prefill
       const existingActivity = (session as any).cardio_activity_name || '';
@@ -253,10 +273,12 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     }
 
     const technical = isTechnicalType(classType);
+    const sparring = classTypeCategory(classType) === 'sparring';
     const cardio = isCardioType(classType);
     const strength = isStrengthType(classType);
+    const showTechnicalEntry = technical || sparring;
 
-    if (technical && selectedDisciplines.length === 0) {
+    if (showTechnicalEntry && selectedDisciplines.length === 0) {
       toast({ title: 'Validation', description: 'Please select at least one discipline', variant: 'destructive' });
       return;
     }
@@ -291,6 +313,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     if (cardio) {
       // Map RPE 1-10 → effort_score 0.5-5
       effortScore = cardioRpe / 2;
+    } else if (sparring) {
+      // Map sparring intensity 1-10 → effort_score 0.5-5
+      effortScore = sparringIntensity / 2;
     } else if (physicalEffort || mentalEffort) {
       const pScore = effortToScore(physicalEffort);
       const mScore = effortToScore(mentalEffort);
@@ -318,20 +343,26 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         title: title || null,
         notes: notes || null,
         video_url: videoUrl.trim() || null,
-        strategy: technical ? (strategy || null) : null,
-        technique: technical ? (resolvedTechnique || null) : null,
-        first_movement: technical ? (firstMovement || null) : null,
-        opponent_action: technical ? (opponentReaction || null) : null,
-        second_movement: technical ? (thirdMovement || null) : null,
+        strategy: showTechnicalEntry ? (strategy || null) : null,
+        technique: showTechnicalEntry ? (resolvedTechnique || null) : null,
+        first_movement: showTechnicalEntry ? (firstMovement || null) : null,
+        opponent_action: showTechnicalEntry ? (opponentReaction || null) : null,
+        second_movement: showTechnicalEntry ? (thirdMovement || null) : null,
         before_emotion: beforeEmotion || null,
         before_mindset: beforeMindset || null,
         after_emotion: afterEmotion || null,
         after_mindset: afterMindset || null,
-        physical_effort_level: cardio ? null : (physicalEffort || null),
-        mental_effort_level: cardio ? null : (mentalEffort || null),
+        physical_effort_level: (cardio || sparring) ? null : (physicalEffort || null),
+        mental_effort_level: (cardio || sparring) ? null : (mentalEffort || null),
         effort_score: effortScore,
         class_type: classType || null,
         pt_note_flag: technical ? pt1o1 : false,
+        // Sparring-only fields (reusing fight_* columns to avoid extra schema)
+        fight_round_count: sparring && sparringRounds !== '' ? parseInt(sparringRounds) : null,
+        fight_duration: sparring && sparringRoundLength.trim() ? sparringRoundLength.trim() : null,
+        fight_opponent: sparring && sparringPartnerLevel
+          ? { partner_level: sparringPartnerLevel }
+          : null,
         // Fighter Note (only on technical sessions)
         make_fighter_note: technical ? makeFighterNote : false,
         fighter_profile_id: technical && makeFighterNote ? (fighterProfile?.id || null) : null,
@@ -374,13 +405,14 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       // Build auto-tags from all fields (one tag per selected discipline)
       const autoTags: string[] = [...selectedDisciplines];
       if (classType) autoTags.push(classType);
-      if (technical) {
+      if (showTechnicalEntry) {
         if (strategy) autoTags.push(strategy);
         if (resolvedTechnique) autoTags.push(resolvedTechnique);
         if (firstMovement) autoTags.push(firstMovement);
         if (opponentReaction) autoTags.push(opponentReaction);
         if (thirdMovement) autoTags.push(thirdMovement);
-        if (pt1o1) autoTags.push('1o1 PT');
+        if (technical && pt1o1) autoTags.push('1o1 PT');
+        if (sparring && sparringPartnerLevel) autoTags.push(sparringPartnerLevel);
       }
       if (cardio && resolvedCardioActivity) autoTags.push(resolvedCardioActivity);
       if (strength && workoutName) autoTags.push(workoutName);
@@ -472,9 +504,13 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     </div>
   );
 
-  const technical = isTechnicalType(classType);
-  const cardio = isCardioType(classType);
-  const strength = isStrengthType(classType);
+  const category = classTypeCategory(classType);
+  const technical = category === 'technical';
+  const sparring = category === 'sparring';
+  const cardio = category === 'cardio';
+  const strength = category === 'strength';
+  // Sparring reuses the technical entry surface (discipline + tactic + technique + movement chain)
+  const showTechnicalEntry = technical || sparring;
   const showDistance = cardio && DISTANCE_ACTIVITIES.has(cardioActivity);
 
   const loadTemplateIntoForm = async (templateId: string) => {
@@ -597,8 +633,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                     helper={profileDisciplines.length > 0 ? 'From your profile — pick one or more for this session.' : undefined}
                   />
                 )}
-                {/* Tactic & Technique only for technical sessions */}
-                {technical && (
+                {/* Tactic & Technique for technical + sparring sessions */}
+                {showTechnicalEntry && (
                   <>
                     <div>
                       <Label>Tactic</Label>
@@ -644,8 +680,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </CardContent>
             </Card>
 
-            {/* Movement Chain — technical only */}
-            {technical && (
+            {/* Movement Chain — technical & sparring */}
+            {showTechnicalEntry && (
               <Card>
                 <CardHeader>
                   <CardTitle>Movement Chain</CardTitle>
@@ -664,27 +700,96 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                     <Input id="thirdMovement" value={thirdMovement} onChange={(e) => setThirdMovement(e.target.value)} placeholder="e.g., Low kick, Double leg finish, Back take" />
                   </div>
 
-                  {/* 1o1 PT marker — memory-only flag for technical sessions */}
-                  <div className="pt-2 border-t border-border">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <Checkbox
-                        checked={pt1o1}
-                        onCheckedChange={(v) => setPt1o1(v === true)}
-                        className="mt-0.5"
+                  {/* 1o1 PT marker — memory-only flag, technical sessions only */}
+                  {technical && (
+                    <div className="pt-2 border-t border-border">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <Checkbox
+                          checked={pt1o1}
+                          onCheckedChange={(v) => setPt1o1(v === true)}
+                          className="mt-0.5"
+                        />
+                        <div>
+                          <p className="text-sm font-medium">1o1 PT session</p>
+                          <p className="text-xs text-muted-foreground">
+                            Tick if this was a private 1-on-1 with a coach. For your memory only.
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Sparring & Rolling — extra details */}
+            {sparring && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Swords className="h-4 w-4 text-primary" />
+                    Sparring Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="sparringRounds" className="text-xs">Rounds</Label>
+                      <Input
+                        id="sparringRounds"
+                        type="number"
+                        min={0}
+                        inputMode="numeric"
+                        value={sparringRounds}
+                        onChange={(e) => setSparringRounds(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="e.g., 5"
                       />
-                      <div>
-                        <p className="text-sm font-medium">1o1 PT session</p>
-                        <p className="text-xs text-muted-foreground">
-                          Tick if this was a private 1-on-1 with a coach. For your memory only.
-                        </p>
-                      </div>
-                    </label>
+                    </div>
+                    <div>
+                      <Label htmlFor="sparringRoundLength" className="text-xs">Round length</Label>
+                      <Input
+                        id="sparringRoundLength"
+                        value={sparringRoundLength}
+                        onChange={(e) => setSparringRoundLength(e.target.value)}
+                        placeholder="e.g., 3 min"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs mb-2 block">Partner Level</Label>
+                    <ChipSelect
+                      options={['Beginner', 'Intermediate', 'Advanced', 'Pro', 'Coach']}
+                      value={sparringPartnerLevel}
+                      onChange={setSparringPartnerLevel}
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label>Intensity (1–10)</Label>
+                      <span className="text-sm font-semibold tabular-nums">
+                        {sparringIntensity} — {rpeLabel(sparringIntensity)}
+                      </span>
+                    </div>
+                    <Slider
+                      min={1}
+                      max={10}
+                      step={1}
+                      value={[sparringIntensity]}
+                      onValueChange={(v) => setSparringIntensity(v[0])}
+                    />
+                    <div className="flex justify-between text-[10px] text-muted-foreground mt-2">
+                      <span>1–3 Flow</span>
+                      <span>4–6 Sharp</span>
+                      <span>7–8 Hard</span>
+                      <span>9–10 War</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             )}
 
-            {/* Cardio: Activity grid + Session Metrics */}
             {cardio && (
               <>
                 <Card>
@@ -896,7 +1001,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             </Card>
 
             {/* Effort — universal (cardio uses RPE so we keep the section but it's still useful as supplementary) */}
-            {!cardio && (
+            {!cardio && !sparring && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

@@ -496,6 +496,22 @@ export default function Profile() {
             <CollapsibleContent>
               <Card className="mt-3">
                 <CardContent className="space-y-5 pt-6">
+              {/* Target */}
+              <div>
+                <Label htmlFor="target">Target / Mission</Label>
+                <Input
+                  id="target"
+                  value={target}
+                  onChange={e => setTarget(e.target.value)}
+                  placeholder="e.g. Next Fight: May 18 — Cut to 70kg"
+                  maxLength={120}
+                  className="mt-1"
+                />
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Shown on your Fight Card. Keep it short — one or two lines.
+                </p>
+              </div>
+
               {/* My Statement */}
               <div>
                 <Label htmlFor="myStatement">Who I Want To Be</Label>

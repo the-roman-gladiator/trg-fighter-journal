@@ -324,7 +324,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
     const fightReview = classTypeCategory(classType) === 'fight_review';
     const cardio = isCardioType(classType);
     const strength = isStrengthType(classType);
-    const showTechnicalEntry = technical || sparring;
+    const showTechnicalEntry = technical;
 
     if (showTechnicalEntry && selectedDisciplines.length === 0) {
       toast({ title: 'Validation', description: 'Please select at least one discipline', variant: 'destructive' });
@@ -595,7 +595,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const cardio = category === 'cardio';
   const strength = category === 'strength';
   // Sparring reuses the technical entry surface (discipline + tactic + technique + movement chain)
-  const showTechnicalEntry = technical || sparring;
+  const showTechnicalEntry = technical;
   const showDistance = cardio && DISTANCE_ACTIVITIES.has(cardioActivity);
 
   const loadTemplateIntoForm = async (templateId: string) => {
@@ -841,14 +841,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                     </div>
                   </div>
 
-                  <div>
-                    <Label className="text-xs mb-2 block">Partner Level</Label>
-                    <ChipSelect
-                      options={['Beginner', 'Intermediate', 'Advanced', 'Pro', 'Coach']}
-                      value={sparringPartnerLevel}
-                      onChange={setSparringPartnerLevel}
-                    />
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Free notes only — capture the feel of the session in the Notes card below.
+                  </p>
 
                   <div>
                     <div className="flex items-center justify-between mb-2">

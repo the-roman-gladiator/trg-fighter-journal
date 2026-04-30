@@ -28,7 +28,7 @@ export default function Onboarding() {
   const [saving, setSaving] = useState(false);
 
   // Form state
-  const [discipline, setDiscipline] = useState('');
+  const [disciplines, setDisciplines] = useState<string[]>([]);
   const [pushups, setPushups] = useState<number>(0);
   const [situps, setSitups] = useState<number>(0);
   const [squats, setSquats] = useState<number>(0);
@@ -60,7 +60,7 @@ export default function Onboarding() {
 
   const canProceed = () => {
     switch (step) {
-      case 0: return !!discipline;
+      case 0: return disciplines.length > 0;
       case 1: return true;
       case 2: return heightCm > 0 && weightKg > 0 && age > 0;
       default: return true;
@@ -83,7 +83,7 @@ export default function Onboarding() {
       // 1. Save assessment
       const { data: assessment, error: aErr } = await supabase.from('user_assessments').insert({
         user_id: user.id,
-        discipline,
+        discipline: disciplines[0],
         height_cm: heightCm,
         weight_kg: weightKg,
         age,
@@ -132,10 +132,11 @@ export default function Onboarding() {
       if (pErr) throw pErr;
 
       // 4. Update profile discipline
-      await supabase.from('profiles').update({ discipline }).eq('id', user.id);
+      await supabase.from('profiles').update({ discipline: disciplines.join(', ') }).eq('id', user.id);
 
       logEvent('onboarding_finished', {
-        discipline,
+        discipline: disciplines.join(', '),
+        disciplines,
         classification: result.finalClass,
         sex,
         age,
@@ -166,20 +167,30 @@ export default function Onboarding() {
         {step === 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Target className="h-5 w-5 text-primary" /> Select Your Discipline</CardTitle>
-              <CardDescription>Choose the martial art you want to train in.</CardDescription>
+              <CardTitle className="flex items-center gap-2"><Target className="h-5 w-5 text-primary" /> Select Your Disciplines</CardTitle>
+              <CardDescription>Choose one or more martial arts you want to train in. Tap to toggle.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {DISCIPLINES.map(d => (
-                <Button
-                  key={d}
-                  variant={discipline === d ? 'default' : 'outline'}
-                  className="w-full justify-start text-left h-14 text-base"
-                  onClick={() => setDiscipline(d)}
-                >
-                  {d}
-                </Button>
-              ))}
+              {DISCIPLINES.map(d => {
+                const selected = disciplines.includes(d);
+                return (
+                  <Button
+                    key={d}
+                    type="button"
+                    variant={selected ? 'default' : 'outline'}
+                    className="w-full justify-between text-left h-14 text-base"
+                    onClick={() => setDisciplines(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])}
+                  >
+                    <span>{d}</span>
+                    {selected && <CheckCircle className="h-5 w-5" />}
+                  </Button>
+                );
+              })}
+              {disciplines.length > 0 && (
+                <p className="text-xs text-muted-foreground pt-2">
+                  Selected: {disciplines.join(', ')}
+                </p>
+              )}
             </CardContent>
           </Card>
         )}

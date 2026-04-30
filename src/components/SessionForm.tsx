@@ -1320,12 +1320,37 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                         />
                       </div>
                     )}
-                  </CardContent>
-                </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Session Metrics</CardTitle>
+                    {cardioActivity === 'Functional Training' && (
+                      <div className="space-y-3 rounded-md border border-border/60 bg-muted/20 p-3">
+                        <div className="flex gap-2">
+                          <Button type="button" size="sm" variant={functionalMode === 'preset' ? 'default' : 'outline'} className="text-xs h-8 flex-1" onClick={() => setFunctionalMode('preset')}>Preset</Button>
+                          <Button type="button" size="sm" variant={functionalMode === 'build' ? 'default' : 'outline'} className="text-xs h-8 flex-1" onClick={() => setFunctionalMode('build')}>Build custom</Button>
+                        </div>
+                        {functionalMode === 'preset' ? (
+                          <div>
+                            <Label className="text-xs mb-2 block">Preset format</Label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {FUNCTIONAL_PRESETS.map((p) => (
+                                <Badge
+                                  key={p}
+                                  variant={functionalPreset === p ? 'default' : 'outline'}
+                                  className={`cursor-pointer text-xs px-2.5 py-1 ${functionalPreset === p ? 'bg-primary text-primary-foreground' : 'border-border hover:border-primary/40'}`}
+                                  onClick={() => setFunctionalPreset(functionalPreset === p ? '' : p)}
+                                >
+                                  {p}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <Label className="text-xs">Describe your circuit</Label>
+                            <Textarea value={functionalBuild} onChange={(e) => setFunctionalBuild(e.target.value)} placeholder="e.g., 5 rounds: 10 burpees, 15 KB swings, 20 air squats" rows={3} />
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
@@ -1349,64 +1374,6 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                         />
                       </div>
                     )}
-
-                    {cardioActivity === 'Functional Training' && (
-                      <div className="space-y-3 rounded-md border border-border/60 bg-muted/20 p-3">
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant={functionalMode === 'preset' ? 'default' : 'outline'}
-                            className="text-xs h-8 flex-1"
-                            onClick={() => setFunctionalMode('preset')}
-                          >
-                            Preset
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant={functionalMode === 'build' ? 'default' : 'outline'}
-                            className="text-xs h-8 flex-1"
-                            onClick={() => setFunctionalMode('build')}
-                          >
-                            Build custom
-                          </Button>
-                        </div>
-
-                        {functionalMode === 'preset' ? (
-                          <div>
-                            <Label className="text-xs mb-2 block">Preset format</Label>
-                            <div className="flex flex-wrap gap-1.5">
-                              {FUNCTIONAL_PRESETS.map((p) => (
-                                <Badge
-                                  key={p}
-                                  variant={functionalPreset === p ? 'default' : 'outline'}
-                                  className={`cursor-pointer text-xs px-2.5 py-1 ${
-                                    functionalPreset === p
-                                      ? 'bg-primary text-primary-foreground'
-                                      : 'border-border hover:border-primary/40'
-                                  }`}
-                                  onClick={() => setFunctionalPreset(functionalPreset === p ? '' : p)}
-                                >
-                                  {p}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <div>
-                            <Label className="text-xs">Describe your circuit</Label>
-                            <Textarea
-                              value={functionalBuild}
-                              onChange={(e) => setFunctionalBuild(e.target.value)}
-                              placeholder="e.g., 5 rounds: 10 burpees, 15 KB swings, 20 air squats"
-                              rows={3}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )}
-
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label>Calories</Label>

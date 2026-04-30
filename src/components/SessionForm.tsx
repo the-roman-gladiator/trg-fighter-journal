@@ -380,6 +380,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         if (firstMovement) autoTags.push(firstMovement);
         if (opponentReaction) autoTags.push(opponentReaction);
         if (thirdMovement) autoTags.push(thirdMovement);
+        if (pt1o1) autoTags.push('1o1 PT');
       }
       if (cardio && resolvedCardioActivity) autoTags.push(resolvedCardioActivity);
       if (strength && workoutName) autoTags.push(workoutName);

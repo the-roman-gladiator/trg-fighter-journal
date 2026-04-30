@@ -331,6 +331,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         mental_effort_level: cardio ? null : (mentalEffort || null),
         effort_score: effortScore,
         class_type: classType || null,
+        pt_note_flag: technical ? pt1o1 : false,
         // Fighter Note (only on technical sessions)
         make_fighter_note: technical ? makeFighterNote : false,
         fighter_profile_id: technical && makeFighterNote ? (fighterProfile?.id || null) : null,

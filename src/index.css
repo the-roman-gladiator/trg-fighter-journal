@@ -133,20 +133,20 @@
     --strategy-transitions: 170 65% 36%;
     --strategy-intercepting: 132 60% 36%;
 
-    --chart-1: 200 100% 42%;
+    --chart-1: 357 78% 48%;
     --chart-2: 132 70% 38%;
     --chart-3: 38 95% 46%;
-    --chart-4: 357 78% 48%;
+    --chart-4: 200 100% 42%;
     --chart-5: 265 65% 46%;
 
     --sidebar-background: 0 0% 99%;
     --sidebar-foreground: 220 27% 12%;
-    --sidebar-primary: 200 100% 42%;
+    --sidebar-primary: 357 78% 47%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 18% 94%;
     --sidebar-accent-foreground: 220 27% 22%;
     --sidebar-border: 215 18% 88%;
-    --sidebar-ring: 200 100% 42%;
+    --sidebar-ring: 357 78% 47%;
     --sidebar: 0 0% 99%;
 
     --shadow-2xs: 0 1px 2px 0px hsl(0 0% 0% / 0.04);

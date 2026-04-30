@@ -236,7 +236,7 @@ export function FighterCard({
             <StatRow
               label=""
               value={dailyMotivation}
-              accent={{ icon: Quote, tone: 'text-primary' }}
+              accent={{ icon: Sparkles, tone: 'text-amber-400' }}
             />
           )}
           {weeklySessions != null && (

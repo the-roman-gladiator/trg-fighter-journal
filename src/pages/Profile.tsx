@@ -514,7 +514,7 @@ export default function Profile() {
 
               {/* My Statement */}
               <div>
-                <Label htmlFor="myStatement">My Motto</Label>
+                <Label htmlFor="myStatement">My Creed</Label>
                 <Textarea
                   id="myStatement"
                   value={myStatement}

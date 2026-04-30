@@ -1716,6 +1716,18 @@ export type Database = {
           executed_count: number | null
           execution_rate: number | null
           feeling: Database["public"]["Enums"]["feeling"] | null
+          fight_duration: string | null
+          fight_emotion_after: string | null
+          fight_emotion_before: string | null
+          fight_event: string | null
+          fight_free_comment: string | null
+          fight_method: string | null
+          fight_mindset: string | null
+          fight_opponent: Json | null
+          fight_result: string | null
+          fight_round_count: number | null
+          fight_rounds: Json
+          fight_type: string | null
           fighter_profile_id: string | null
           first_movement: string | null
           id: string
@@ -1729,10 +1741,13 @@ export type Database = {
           opponent_action: string | null
           physical_effort_execution: string | null
           physical_effort_level: string | null
+          pt_note_flag: boolean
           saved_from_coach_note: boolean
           second_movement: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           strategy: Database["public"]["Enums"]["strategy"] | null
+          stretching_exercises: Json
+          stretching_focus_areas: string[]
           technique: string | null
           time: string | null
           title: string | null
@@ -1772,6 +1787,18 @@ export type Database = {
           executed_count?: number | null
           execution_rate?: number | null
           feeling?: Database["public"]["Enums"]["feeling"] | null
+          fight_duration?: string | null
+          fight_emotion_after?: string | null
+          fight_emotion_before?: string | null
+          fight_event?: string | null
+          fight_free_comment?: string | null
+          fight_method?: string | null
+          fight_mindset?: string | null
+          fight_opponent?: Json | null
+          fight_result?: string | null
+          fight_round_count?: number | null
+          fight_rounds?: Json
+          fight_type?: string | null
           fighter_profile_id?: string | null
           first_movement?: string | null
           id?: string
@@ -1785,10 +1812,13 @@ export type Database = {
           opponent_action?: string | null
           physical_effort_execution?: string | null
           physical_effort_level?: string | null
+          pt_note_flag?: boolean
           saved_from_coach_note?: boolean
           second_movement?: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           strategy?: Database["public"]["Enums"]["strategy"] | null
+          stretching_exercises?: Json
+          stretching_focus_areas?: string[]
           technique?: string | null
           time?: string | null
           title?: string | null
@@ -1828,6 +1858,18 @@ export type Database = {
           executed_count?: number | null
           execution_rate?: number | null
           feeling?: Database["public"]["Enums"]["feeling"] | null
+          fight_duration?: string | null
+          fight_emotion_after?: string | null
+          fight_emotion_before?: string | null
+          fight_event?: string | null
+          fight_free_comment?: string | null
+          fight_method?: string | null
+          fight_mindset?: string | null
+          fight_opponent?: Json | null
+          fight_result?: string | null
+          fight_round_count?: number | null
+          fight_rounds?: Json
+          fight_type?: string | null
           fighter_profile_id?: string | null
           first_movement?: string | null
           id?: string
@@ -1841,10 +1883,13 @@ export type Database = {
           opponent_action?: string | null
           physical_effort_execution?: string | null
           physical_effort_level?: string | null
+          pt_note_flag?: boolean
           saved_from_coach_note?: boolean
           second_movement?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]
           strategy?: Database["public"]["Enums"]["strategy"] | null
+          stretching_exercises?: Json
+          stretching_focus_areas?: string[]
           technique?: string | null
           time?: string | null
           title?: string | null

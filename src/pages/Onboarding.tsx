@@ -28,7 +28,7 @@ export default function Onboarding() {
   const [saving, setSaving] = useState(false);
 
   // Form state
-  const [discipline, setDiscipline] = useState('');
+  const [disciplines, setDisciplines] = useState<string[]>([]);
   const [pushups, setPushups] = useState<number>(0);
   const [situps, setSitups] = useState<number>(0);
   const [squats, setSquats] = useState<number>(0);

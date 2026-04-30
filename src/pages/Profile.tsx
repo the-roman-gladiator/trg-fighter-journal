@@ -208,6 +208,7 @@ export default function Profile() {
         setASquats(data.squats_max ?? '');
         setAPlank(data.plank_seconds ?? '');
         setAWalkingHr(data.walking_hr_recovery ?? '');
+        setAWeeklyVolume((data as any).weekly_training_volume ?? '');
         setANotes(data.notes ?? '');
         setADiscipline(data.discipline ?? '');
       }

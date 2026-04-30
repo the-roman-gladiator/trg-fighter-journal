@@ -272,16 +272,6 @@ export default function Profile() {
     }
   }, [aPushups, aSitups, aSquats, aPlank, aWeeklyVolume]);
 
-  // Mirror selected disciplines (from intro/onboarding or Activity Setting) into the
-  // assessment discipline field — always auto-select all of them so the assessment
-  // stays in sync with the user's current disciplines.
-  useEffect(() => {
-    if (selectedDisciplines.length === 0) return;
-    const target = selectedDisciplines.join(', ');
-    if (aDiscipline !== target) {
-      setADiscipline(target);
-    }
-  }, [selectedDisciplines]);
 
   const toggleDiscipline = (d: string) => {
     setSelectedDisciplines(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
@@ -680,41 +670,6 @@ export default function Profile() {
                               <div>
                                 <Label>Body Fat %</Label>
                                 <Input type="number" value={aBodyFat} onChange={e => setABodyFat(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
-                              </div>
-                              <div className="col-span-2">
-                                <Label>Disciplines</Label>
-                                {selectedDisciplines.length === 0 ? (
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    No disciplines selected. Pick disciplines above in Activity Setting first.
-                                  </p>
-                                ) : (
-                                  <div className="flex flex-wrap gap-2 mt-1">
-                                    {selectedDisciplines.map(d => {
-                                      const active = aDiscipline.split(',').map(s => s.trim()).filter(Boolean).includes(d);
-                                      return (
-                                        <button
-                                          key={d}
-                                          type="button"
-                                          onClick={() => {
-                                            const current = aDiscipline.split(',').map(s => s.trim()).filter(Boolean);
-                                            const next = active
-                                              ? current.filter(x => x !== d)
-                                              : [...current, d];
-                                            setADiscipline(next.join(', '));
-                                          }}
-                                          className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                                            active
-                                              ? 'bg-primary text-primary-foreground border-primary'
-                                              : 'border-border text-foreground hover:border-primary/50'
-                                          }`}
-                                        >{d}</button>
-                                      );
-                                    })}
-                                  </div>
-                                )}
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  Pulled from your selected disciplines above. Tap to include/exclude for this assessment.
-                                </p>
                               </div>
                             </div>
 

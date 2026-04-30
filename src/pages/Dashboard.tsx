@@ -417,6 +417,7 @@ export default function Dashboard() {
           discipline={myDisciplines.join(', ') || profile?.discipline || undefined}
           level={profile?.level}
           statement={myStatement}
+          target={target || undefined}
           dailyMotivation={dailyMotivation}
           avatarUrl={avatarUrl}
           onAvatarChange={(url) => setAvatarUrl(url)}

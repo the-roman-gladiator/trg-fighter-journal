@@ -55,6 +55,7 @@ export default function Dashboard() {
 
   // Journal box state
   const [myStatement, setMyStatement] = useState('');
+  const [target, setTarget] = useState('');
   const [myDisciplines, setMyDisciplines] = useState<string[]>([]);
   const [dailyMotivation, setDailyMotivation] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);

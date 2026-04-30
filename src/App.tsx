@@ -14,6 +14,7 @@ import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
 import { useAnalytics } from "./hooks/useAnalytics";
 import { useSubscription } from "./hooks/useSubscription";
 import globalBgDark from "@/assets/dashboard-bg-octagon.png";
+import globalBgLight from "@/assets/global-bg-octagon-light.png";
 
 // Eager: critical first-paint routes
 import Landing from "./pages/Landing";
@@ -83,6 +84,7 @@ function GlobalDarkBackground() {
   if (pathname.startsWith('/profile')) return null;
   return (
     <>
+      {/* Dark mode background */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0 hidden dark:block"
@@ -97,6 +99,22 @@ function GlobalDarkBackground() {
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0 hidden dark:block bg-gradient-to-b from-background/55 via-background/35 to-background/85"
+      />
+      {/* Light mode background */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 dark:hidden"
+        style={{
+          backgroundImage: `url(${globalBgLight})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.42,
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 dark:hidden bg-gradient-to-b from-background/55 via-background/35 to-background/85"
       />
     </>
   );

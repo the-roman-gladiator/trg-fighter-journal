@@ -428,7 +428,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               weight: fightOpponentWeight.trim() || null,
               notes: fightOpponentNotes.trim() || null,
             }
-          : (sparring && sparringPartnerLevel ? { partner_level: sparringPartnerLevel } : null),
+          : null,
         fight_rounds: fightReview && fightRounds.length > 0 ? fightRounds : null,
         fight_emotion_before: fightReview ? (beforeEmotion || null) : null,
         fight_emotion_after: fightReview ? (afterEmotion || null) : null,
@@ -483,7 +483,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         if (opponentReaction) autoTags.push(opponentReaction);
         if (thirdMovement) autoTags.push(thirdMovement);
         if (technical && pt1o1) autoTags.push('1o1 PT');
-        if (sparring && sparringPartnerLevel) autoTags.push(sparringPartnerLevel);
+        
       }
       if (cardio && resolvedCardioActivity) autoTags.push(resolvedCardioActivity);
       if (strength && workoutName) autoTags.push(workoutName);

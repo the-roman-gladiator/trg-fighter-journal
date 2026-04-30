@@ -284,7 +284,19 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       // Cardio fields prefill
       const existingActivity = (session as any).cardio_activity_name || '';
       if (existingActivity) {
-        if (CARDIO_ACTIVITIES.includes(existingActivity)) {
+        // Functional Training stored as "Functional Training: <preset>" or "Functional Training — Custom: <text>"
+        if (existingActivity.startsWith('Functional Training')) {
+          setCardioActivity('Functional Training');
+          const customMatch = existingActivity.match(/^Functional Training — Custom:\s*(.*)$/);
+          const presetMatch = existingActivity.match(/^Functional Training:\s*(.*)$/);
+          if (customMatch) {
+            setFunctionalMode('build');
+            setFunctionalBuild(customMatch[1] || '');
+          } else if (presetMatch) {
+            setFunctionalMode('preset');
+            setFunctionalPreset(presetMatch[1] || '');
+          }
+        } else if (CARDIO_ACTIVITIES.includes(existingActivity)) {
           setCardioActivity(existingActivity);
         } else {
           setCardioActivity('Other');
@@ -382,7 +394,19 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       ? ((parseInt(cardioHours) || 0) * 3600 + (parseInt(cardioMinutes) || 0) * 60 + (parseInt(cardioSeconds) || 0)) || null
       : null;
     const resolvedCardioActivity = cardio
-      ? (cardioActivity === 'Other' ? cardioActivityOther.trim() : cardioActivity) || null
+      ? (() => {
+          if (cardioActivity === 'Other') return cardioActivityOther.trim() || null;
+          if (cardioActivity === 'Functional Training') {
+            if (functionalMode === 'build' && functionalBuild.trim()) {
+              return `Functional Training — Custom: ${functionalBuild.trim()}`;
+            }
+            if (functionalMode === 'preset' && functionalPreset) {
+              return `Functional Training: ${functionalPreset}`;
+            }
+            return 'Functional Training';
+          }
+          return cardioActivity || null;
+        })()
       : null;
     const showDistance = cardio && DISTANCE_ACTIVITIES.has(cardioActivity);
 

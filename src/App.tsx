@@ -48,6 +48,7 @@ const AIFighterAssistant = lazy(() => import("./pages/AIFighterAssistant"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const MockupDashboard = lazy(() => import("./pages/MockupDashboard"));
 
 
 const queryClient = new QueryClient();

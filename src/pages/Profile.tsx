@@ -115,6 +115,7 @@ export default function Profile() {
 
   // My Statement & Motivation
   const [myStatement, setMyStatement] = useState('');
+  const [target, setTarget] = useState('');
   const [motivationMode, setMotivationMode] = useState<'random' | 'fixed_library' | 'custom'>('random');
   const [fixedMotivationId, setFixedMotivationId] = useState<string | null>(null);
   const [customMotivation, setCustomMotivation] = useState('');

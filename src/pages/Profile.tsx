@@ -272,16 +272,6 @@ export default function Profile() {
     }
   }, [aPushups, aSitups, aSquats, aPlank, aWeeklyVolume]);
 
-  // Mirror selected disciplines (from intro/onboarding or Activity Setting) into the
-  // assessment discipline field — always auto-select all of them so the assessment
-  // stays in sync with the user's current disciplines.
-  useEffect(() => {
-    if (selectedDisciplines.length === 0) return;
-    const target = selectedDisciplines.join(', ');
-    if (aDiscipline !== target) {
-      setADiscipline(target);
-    }
-  }, [selectedDisciplines]);
 
   const toggleDiscipline = (d: string) => {
     setSelectedDisciplines(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);

@@ -258,6 +258,28 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       const sEx = (session as any).stretching_exercises;
       if (Array.isArray(sFA)) setStretchFocusAreas(sFA);
       if (Array.isArray(sEx)) setStretchExercises(sEx as StretchExercise[]);
+
+      // My Fight Review prefill
+      if (classTypeCategory((session as any).class_type) === 'fight_review') {
+        setFightType((session as any).fight_type || '');
+        setFightEvent((session as any).fight_event || '');
+        setFightResult((session as any).fight_result || '');
+        setFightMethod((session as any).fight_method || '');
+        if ((session as any).fight_round_count != null) setFightRoundCount(String((session as any).fight_round_count));
+        setFightRoundDuration((session as any).fight_duration || '');
+        const opp = (session as any).fight_opponent;
+        if (opp && typeof opp === 'object') {
+          setFightOpponentName(opp.name || '');
+          setFightOpponentStyle(opp.style || '');
+          setFightOpponentStance(opp.stance || '');
+          setFightOpponentWeight(opp.weight || '');
+          setFightOpponentNotes(opp.notes || '');
+        }
+        const fr = (session as any).fight_rounds;
+        if (Array.isArray(fr)) setFightRounds(fr as FightRound[]);
+        setFightMindset((session as any).fight_mindset || '');
+        setFightFreeComment((session as any).fight_free_comment || '');
+      }
       // Cardio fields prefill
       const existingActivity = (session as any).cardio_activity_name || '';
       if (existingActivity) {

@@ -137,6 +137,71 @@ export default function Profile() {
     loadMotivationData();
   }, [user]);
 
+  // Load latest assessment from onboarding
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from('user_assessments')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) {
+        setAssessmentId(data.id);
+        setAHeight(data.height_cm ?? '');
+        setAWeight(data.weight_kg ?? '');
+        setAAge(data.age ?? '');
+        setASex((data.sex as 'male' | 'female') || 'male');
+        setABodyFat(data.body_fat_percent ?? '');
+        setAPushups(data.pushups_max ?? '');
+        setASitups(data.situps_max ?? '');
+        setASquats(data.squats_max ?? '');
+        setAPlank(data.plank_seconds ?? '');
+        setAWalkingHr(data.walking_hr_recovery ?? '');
+        setANotes(data.notes ?? '');
+        setADiscipline(data.discipline ?? '');
+      }
+    })();
+  }, [user]);
+
+  const saveAssessment = async () => {
+    if (!user) return;
+    setSavingAssessment(true);
+    try {
+      const payload: any = {
+        user_id: user.id,
+        discipline: aDiscipline || (selectedDisciplines[0] ?? 'MMA'),
+        height_cm: aHeight === '' ? null : Number(aHeight),
+        weight_kg: aWeight === '' ? null : Number(aWeight),
+        age: aAge === '' ? null : Number(aAge),
+        sex: aSex,
+        body_fat_percent: aBodyFat === '' ? null : Number(aBodyFat),
+        pushups_max: aPushups === '' ? 0 : Number(aPushups),
+        situps_max: aSitups === '' ? 0 : Number(aSitups),
+        squats_max: aSquats === '' ? 0 : Number(aSquats),
+        plank_seconds: aPlank === '' ? null : Number(aPlank),
+        walking_hr_recovery: aWalkingHr === '' ? null : Number(aWalkingHr),
+        notes: aNotes || null,
+      };
+      if (assessmentId) {
+        const { error } = await supabase.from('user_assessments').update(payload).eq('id', assessmentId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from('user_assessments').insert(payload).select().single();
+        if (error) throw error;
+        if (data) setAssessmentId(data.id);
+      }
+      toast({ title: 'Assessment updated', description: 'Your assessment data was saved.' });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setSavingAssessment(false);
+    }
+  };
+
+
   useEffect(() => {
     setThemeMode(settings.theme_mode);
     setInputColor(settings.input_text_color);

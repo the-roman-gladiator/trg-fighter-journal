@@ -237,16 +237,12 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setPhysicalEffortExecution((session as any).physical_effort_execution || '');
       setMindsetEffortExecution((session as any).mindset_effort_execution || '');
       setPt1o1(!!(session as any).pt_note_flag);
-      // Sparring prefill (rounds reuse fight_round_count, length & partner stored in fight_duration / fight_opponent for now)
+      // Sparring prefill (rounds reuse fight_round_count, length stored in fight_duration for now)
       const sFRC = (session as any).fight_round_count;
       const sFD = (session as any).fight_duration;
-      const sOpp = (session as any).fight_opponent;
       if (classTypeCategory((session as any).class_type) === 'sparring') {
         if (sFRC != null) setSparringRounds(String(sFRC));
         if (sFD) setSparringRoundLength(String(sFD));
-        if (sOpp && typeof sOpp === 'object' && sOpp.partner_level) {
-          setSparringPartnerLevel(sOpp.partner_level);
-        }
         if ((session as any).effort_score != null) {
           setSparringIntensity(Math.round(Number((session as any).effort_score) * 2));
         }

@@ -1275,6 +1275,7 @@ export type Database = {
           approved_by: string | null
           assigned_by_coach: boolean | null
           assigned_disciplines: string[]
+          avatar_url: string | null
           coach_discipline: string | null
           coach_level: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled: boolean | null
@@ -1312,6 +1313,7 @@ export type Database = {
           approved_by?: string | null
           assigned_by_coach?: boolean | null
           assigned_disciplines?: string[]
+          avatar_url?: string | null
           coach_discipline?: string | null
           coach_level?: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled?: boolean | null
@@ -1349,6 +1351,7 @@ export type Database = {
           approved_by?: string | null
           assigned_by_coach?: boolean | null
           assigned_disciplines?: string[]
+          avatar_url?: string | null
           coach_discipline?: string | null
           coach_level?: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled?: boolean | null

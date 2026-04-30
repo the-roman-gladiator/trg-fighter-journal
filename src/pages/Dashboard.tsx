@@ -12,7 +12,7 @@ import { Plus, User, Map, Swords, Shield, Network, GraduationCap, CalendarDays, 
 import { format, startOfWeek, startOfYear, subDays } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import fighterBgDark from '@/assets/dashboard-fighter-bg.jpg';
+import fighterBgDark from '@/assets/dashboard-bg-octagon.png';
 import fighterBgLight from '@/assets/dashboard-fighter-bg-light.png';
 import { CoachNoteOffersInbox } from '@/components/coach/CoachNoteOffersInbox';
 import { LoadingScreen } from '@/components/LoadingScreen';
@@ -223,25 +223,41 @@ export default function Dashboard() {
   const fighterBg = settings.theme_mode === 'light' ? fighterBgLight : fighterBgDark;
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background dark:bg-transparent relative">
       {/* Dashboard-only fighter background graphic */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0"
+        className="pointer-events-none fixed inset-0 z-0 hidden dark:block"
         style={{
-          backgroundImage: `url(${fighterBg})`,
+          backgroundImage: `url(${fighterBgDark})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.42,
+        }}
+      />
+      {/* Light-mode soft background (kept) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 dark:hidden"
+        style={{
+          backgroundImage: `url(${fighterBgLight})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',
           opacity: 0.18,
-          filter: 'blur(0.5px) saturate(1.1)',
           maskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 80%)',
           WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 80%)',
         }}
       />
+      {/* Subtle dark-mode vignette to keep cards readable */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-background/60 via-background/40 to-background"
+        className="pointer-events-none fixed inset-0 z-0 hidden dark:block bg-gradient-to-b from-background/55 via-background/35 to-background/85"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 dark:hidden bg-gradient-to-b from-background/60 via-background/40 to-background"
       />
 
       {/* Premium hero header — bold sports-headline */}
@@ -314,7 +330,7 @@ export default function Dashboard() {
         <span className="sr-only">Fighter Pathway AI</span>
       </button>
 
-      <main className="container mx-auto px-4 py-5 max-w-lg lg:max-w-7xl lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] lg:gap-6 lg:items-start space-y-5 lg:space-y-0 pb-28 relative z-10">
+      <main className="container mx-auto px-4 py-6 max-w-lg lg:max-w-7xl lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] lg:gap-6 lg:items-start space-y-7 dark:space-y-8 lg:space-y-0 pb-28 relative z-10">
         {/* DESKTOP LEFT — Quick Stats Panel */}
         <aside className="hidden lg:block space-y-4 sticky top-4">
           <Card className="border-border bg-card">
@@ -406,7 +422,7 @@ export default function Dashboard() {
         </aside>
 
         {/* CENTER — original mobile content */}
-        <div className="space-y-5 min-w-0">
+        <div className="space-y-6 dark:space-y-7 min-w-0">
         {/* Date + Dashboard heading removed for more vertical space */}
 
         {/* Fighter Card — nickname / discipline / level / statement */}

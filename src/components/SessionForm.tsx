@@ -388,12 +388,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         effort_score: effortScore,
         class_type: classType || null,
         pt_note_flag: technical ? pt1o1 : false,
-        // Sparring-only fields (reusing fight_* columns to avoid extra schema)
-        fight_round_count: sparring && sparringRounds !== '' ? parseInt(sparringRounds) : null,
-        fight_duration: sparring && sparringRoundLength.trim() ? sparringRoundLength.trim() : null,
-        fight_opponent: sparring && sparringPartnerLevel
-          ? { partner_level: sparringPartnerLevel }
-          : null,
+        // (Sparring & Fight Review share fight_* columns — set below.)
         // Stretching & Mobility
         stretching_focus_areas: stretching && stretchFocusAreas.length > 0 ? stretchFocusAreas : null,
         stretching_exercises: stretching && stretchExercises.length > 0 ? stretchExercises : null,

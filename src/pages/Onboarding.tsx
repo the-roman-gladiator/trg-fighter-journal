@@ -6,38 +6,56 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, CheckCircle, Activity, Scale, Dumbbell, Target } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Activity, Scale, Dumbbell, Target, User } from 'lucide-react';
 import {
   classify, getTrainingPrescriptions, getReassessmentWeeks, getClassificationMessage,
   type Sex, type ClassificationResult, type TrainingPrescription
 } from '@/lib/classificationEngine';
 import { logEvent } from '@/hooks/useAnalytics';
 
-const DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'BJJ', 'Grappling'] as const;
-const STEPS = ['Discipline', 'Fitness Test', 'Body Composition', 'Results'];
+const DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'BJJ', 'Grappling', 'Wrestling'] as const;
+const TRAINING_FREQUENCIES = ['1–2 days', '3–4 days', '5–6 days', 'Every day'] as const;
+const PRIMARY_GOALS = [
+  'Get fit & healthy',
+  'Learn martial arts',
+  'Compete & fight',
+  'Lose weight',
+  'Build strength',
+] as const;
+const STEPS = ['Profile', 'Fitness Test', 'Body Composition', 'Results'];
 
 export default function Onboarding() {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
 
-  // Form state
+  // Profile state (Step 0)
+  const [firstName, setFirstName] = useState('');
+  const [surname, setSurname] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [age, setAge] = useState<number>(25);
+  const [weightKg, setWeightKg] = useState<number>(70);
+  const [heightCm, setHeightCm] = useState<number>(170);
+  const [sex, setSex] = useState<Sex>('male');
   const [discipline, setDiscipline] = useState('');
+  const [trainingFrequency, setTrainingFrequency] = useState<string>('');
+  const [primaryGoal, setPrimaryGoal] = useState<string>('');
+  const [injuriesNotes, setInjuriesNotes] = useState('');
+
+  // Fitness test (Step 1)
   const [pushups, setPushups] = useState<number>(0);
   const [situps, setSitups] = useState<number>(0);
   const [squats, setSquats] = useState<number>(0);
   const [plankSeconds, setPlankSeconds] = useState<number | undefined>();
   const [walkingHr, setWalkingHr] = useState<number | undefined>();
-  const [heightCm, setHeightCm] = useState<number>(170);
-  const [weightKg, setWeightKg] = useState<number>(70);
-  const [age, setAge] = useState<number>(25);
-  const [sex, setSex] = useState<Sex>('male');
+
+  // Body composition (Step 2)
   const [bodyFat, setBodyFat] = useState<number | undefined>();
   const [notes, setNotes] = useState('');
 
@@ -60,14 +78,54 @@ export default function Onboarding() {
 
   const canProceed = () => {
     switch (step) {
-      case 0: return !!discipline;
+      case 0:
+        return (
+          firstName.trim().length > 0 &&
+          surname.trim().length > 0 &&
+          age > 0 &&
+          weightKg > 0 &&
+          heightCm > 0 &&
+          !!sex &&
+          !!discipline &&
+          !!primaryGoal
+        );
       case 1: return true;
-      case 2: return heightCm > 0 && weightKg > 0 && age > 0;
+      case 2: return true;
       default: return true;
     }
   };
 
-  const handleNext = () => {
+  const saveProfileFields = async () => {
+    if (!user) return;
+    setSavingProfile(true);
+    try {
+      const { error } = await supabase.from('profiles').update({
+        first_name: firstName.trim(),
+        surname: surname.trim(),
+        nickname: nickname.trim() || null,
+        discipline,
+        training_frequency_per_week: trainingFrequency || null,
+        primary_goal: primaryGoal,
+        injuries_notes: injuriesNotes.trim() || null,
+      }).eq('id', user.id);
+      if (error) throw error;
+      await refreshProfile();
+    } catch (err: any) {
+      toast({ title: 'Error saving profile', description: err.message, variant: 'destructive' });
+      throw err;
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleNext = async () => {
+    if (step === 0) {
+      try {
+        await saveProfileFields();
+      } catch {
+        return;
+      }
+    }
     if (step === 2) {
       const classResult = classify(weightKg, heightCm, sex, pushups, situps, squats, bodyFat);
       setResult(classResult);
@@ -131,7 +189,7 @@ export default function Onboarding() {
       });
       if (pErr) throw pErr;
 
-      // 4. Update profile discipline
+      // 4. Update profile discipline (already saved in Step 0, kept for safety)
       await supabase.from('profiles').update({ discipline }).eq('id', user.id);
 
       logEvent('onboarding_finished', {
@@ -166,20 +224,132 @@ export default function Onboarding() {
         {step === 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Target className="h-5 w-5 text-primary" /> Select Your Discipline</CardTitle>
-              <CardDescription>Choose the martial art you want to train in.</CardDescription>
+              <CardTitle className="flex items-center gap-2"><User className="h-5 w-5 text-primary" /> Your Profile</CardTitle>
+              <CardDescription>Tell us about yourself and the discipline you train.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {DISCIPLINES.map(d => (
-                <Button
-                  key={d}
-                  variant={discipline === d ? 'default' : 'outline'}
-                  className="w-full justify-start text-left h-14 text-base"
-                  onClick={() => setDiscipline(d)}
-                >
-                  {d}
-                </Button>
-              ))}
+            <CardContent className="space-y-5">
+              {/* Names */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>First name</Label>
+                  <Input value={firstName} onChange={e => setFirstName(e.target.value)} maxLength={60} className="mt-1 h-12" />
+                </div>
+                <div>
+                  <Label>Surname</Label>
+                  <Input value={surname} onChange={e => setSurname(e.target.value)} maxLength={60} className="mt-1 h-12" />
+                </div>
+              </div>
+              <div>
+                <Label>Nickname <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <Input value={nickname} onChange={e => setNickname(e.target.value)} maxLength={40} className="mt-1 h-12" />
+                <p className="text-xs text-muted-foreground mt-1">Shown on your dashboard instead of your first name</p>
+              </div>
+
+              {/* Age + Weight */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Age</Label>
+                  <Input type="number" min={10} max={80} value={age} onChange={e => setAge(Number(e.target.value))} className="mt-1 text-lg h-12" />
+                </div>
+                <div>
+                  <Label>Weight (kg)</Label>
+                  <Input type="number" min={30} max={300} value={weightKg} onChange={e => setWeightKg(Number(e.target.value))} className="mt-1 text-lg h-12" />
+                </div>
+              </div>
+
+              <div>
+                <Label>Height (cm)</Label>
+                <Input type="number" min={100} max={250} value={heightCm} onChange={e => setHeightCm(Number(e.target.value))} className="mt-1 text-lg h-12" />
+              </div>
+
+              {/* Sex */}
+              <div>
+                <Label>Sex</Label>
+                <div className="grid grid-cols-2 gap-3 mt-1">
+                  <Button
+                    type="button"
+                    variant={sex === 'male' ? 'default' : 'outline'}
+                    className="h-14 text-base"
+                    onClick={() => setSex('male')}
+                  >
+                    Male
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={sex === 'female' ? 'default' : 'outline'}
+                    className="h-14 text-base"
+                    onClick={() => setSex('female')}
+                  >
+                    Female
+                  </Button>
+                </div>
+              </div>
+
+              {/* Discipline */}
+              <div>
+                <Label>Primary discipline</Label>
+                <div className="space-y-2 mt-1">
+                  {DISCIPLINES.map(d => (
+                    <Button
+                      key={d}
+                      type="button"
+                      variant={discipline === d ? 'default' : 'outline'}
+                      className="w-full justify-start text-left h-14 text-base"
+                      onClick={() => setDiscipline(d)}
+                    >
+                      {d}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Training frequency */}
+              <div>
+                <Label>Training frequency per week <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {TRAINING_FREQUENCIES.map(f => (
+                    <Button
+                      key={f}
+                      type="button"
+                      variant={trainingFrequency === f ? 'default' : 'outline'}
+                      className="h-12 text-sm"
+                      onClick={() => setTrainingFrequency(f === trainingFrequency ? '' : f)}
+                    >
+                      {f}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Primary goal */}
+              <div>
+                <Label>Primary goal</Label>
+                <div className="space-y-2 mt-1">
+                  {PRIMARY_GOALS.map(g => (
+                    <Button
+                      key={g}
+                      type="button"
+                      variant={primaryGoal === g ? 'default' : 'outline'}
+                      className="w-full justify-start text-left h-12 text-sm"
+                      onClick={() => setPrimaryGoal(g)}
+                    >
+                      {g}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Injuries */}
+              <div>
+                <Label>Injuries or limitations <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <Textarea
+                  value={injuriesNotes}
+                  onChange={e => setInjuriesNotes(e.target.value)}
+                  placeholder="Any injuries or conditions your coach should know about..."
+                  maxLength={1000}
+                  className="mt-1"
+                />
+              </div>
             </CardContent>
           </Card>
         )}
@@ -191,6 +361,16 @@ export default function Onboarding() {
               <CardDescription>Do your best! These help us understand your starting point.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
+              <Card className="bg-muted/30 border-border/60">
+                <CardContent className="py-4 text-sm text-muted-foreground space-y-1">
+                  <p className="text-foreground font-medium">Your fitness level is auto-calculated:</p>
+                  <p><span className="text-foreground font-medium">Beginner</span> — 60 seconds or more</p>
+                  <p><span className="text-foreground font-medium">Intermediate</span> — 45 seconds</p>
+                  <p><span className="text-foreground font-medium">Advanced</span> — 35 seconds or less</p>
+                  <p className="text-xs italic pt-1">(5 burpees + 10 push-ups + 15 jump squats)</p>
+                </CardContent>
+              </Card>
+
               <div>
                 <Label>Push-ups (max reps)</Label>
                 <Input type="number" min={0} value={pushups} onChange={e => setPushups(Number(e.target.value))} className="mt-1 text-lg h-12" />
@@ -219,38 +399,16 @@ export default function Onboarding() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><Scale className="h-5 w-5 text-primary" /> Body Composition</CardTitle>
-              <CardDescription>Enter your measurements so we can find the right pathway for you.</CardDescription>
+              <CardDescription>Optional details to refine your pathway.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
-              <div>
-                <Label>Height (cm)</Label>
-                <Input type="number" min={100} max={250} value={heightCm} onChange={e => setHeightCm(Number(e.target.value))} className="mt-1 text-lg h-12" />
-              </div>
-              <div>
-                <Label>Weight (kg)</Label>
-                <Input type="number" min={30} max={300} value={weightKg} onChange={e => setWeightKg(Number(e.target.value))} className="mt-1 text-lg h-12" />
-              </div>
-              <div>
-                <Label>Age</Label>
-                <Input type="number" min={10} max={80} value={age} onChange={e => setAge(Number(e.target.value))} className="mt-1 text-lg h-12" />
-              </div>
-              <div>
-                <Label>Sex</Label>
-                <Select value={sex} onValueChange={v => setSex(v as Sex)}>
-                  <SelectTrigger className="mt-1 h-12"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
               <div>
                 <Label>Body Fat % — optional (more accurate if available)</Label>
                 <Input type="number" min={1} max={60} value={bodyFat ?? ''} onChange={e => setBodyFat(e.target.value ? Number(e.target.value) : undefined)} className="mt-1 h-12" />
               </div>
               <div>
                 <Label>Notes (optional)</Label>
-                <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any injuries, conditions, or notes for your coach..." className="mt-1" />
+                <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any extra notes for your coach..." className="mt-1" />
               </div>
             </CardContent>
           </Card>
@@ -343,8 +501,8 @@ export default function Onboarding() {
         {/* Navigation */}
         <div className="mt-6 flex gap-3">
           {step < 3 ? (
-            <Button onClick={handleNext} disabled={!canProceed()} className="w-full h-14 text-base">
-              Next <ArrowRight className="ml-2 h-4 w-4" />
+            <Button onClick={handleNext} disabled={!canProceed() || savingProfile} className="w-full h-14 text-base">
+              {savingProfile ? 'Saving...' : <>Next <ArrowRight className="ml-2 h-4 w-4" /></>}
             </Button>
           ) : (
             <Button onClick={handleSave} disabled={saving} className="w-full h-14 text-base">

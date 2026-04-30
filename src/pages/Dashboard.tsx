@@ -195,7 +195,7 @@ export default function Dashboard() {
 
   const today = new Date();
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const nickname = profile?.nickname || '';
+  const nickname = profile?.nickname || (profile as any)?.first_name || '';
 
   const fighterBg = settings.theme_mode === 'light' ? fighterBgLight : fighterBgDark;
 

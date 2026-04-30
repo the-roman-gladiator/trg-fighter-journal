@@ -679,8 +679,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   variant="outline"
                   className={`cursor-pointer text-xs font-bold uppercase tracking-wider px-4 py-2.5 transition-all rounded-md border-none ${
                     classType === ct
-                      ? 'bg-primary text-primary-foreground shadow-[0_0_20px_rgba(0,184,255,0.3)] scale-105'
-                      : 'bg-[#1A1F26] text-gray-300 hover:bg-[#252B36] hover:text-white'
+                      ? 'bg-primary text-white shadow-[0_0_20px_rgba(0,184,255,0.3)] scale-105'
+                      : 'bg-[#3A4250] text-white hover:bg-[#475061]'
                   }`}
                   onClick={() => setClassType(classType === ct ? '' : ct)}
                 >

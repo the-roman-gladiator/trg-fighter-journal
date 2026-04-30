@@ -405,13 +405,14 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       // Build auto-tags from all fields (one tag per selected discipline)
       const autoTags: string[] = [...selectedDisciplines];
       if (classType) autoTags.push(classType);
-      if (technical) {
+      if (showTechnicalEntry) {
         if (strategy) autoTags.push(strategy);
         if (resolvedTechnique) autoTags.push(resolvedTechnique);
         if (firstMovement) autoTags.push(firstMovement);
         if (opponentReaction) autoTags.push(opponentReaction);
         if (thirdMovement) autoTags.push(thirdMovement);
-        if (pt1o1) autoTags.push('1o1 PT');
+        if (technical && pt1o1) autoTags.push('1o1 PT');
+        if (sparring && sparringPartnerLevel) autoTags.push(sparringPartnerLevel);
       }
       if (cardio && resolvedCardioActivity) autoTags.push(resolvedCardioActivity);
       if (strength && workoutName) autoTags.push(workoutName);

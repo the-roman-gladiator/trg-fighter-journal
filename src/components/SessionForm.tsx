@@ -207,6 +207,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       setExecutedCount((session as any).executed_count != null ? String((session as any).executed_count) : '');
       setPhysicalEffortExecution((session as any).physical_effort_execution || '');
       setMindsetEffortExecution((session as any).mindset_effort_execution || '');
+      setPt1o1(!!(session as any).pt_note_flag);
 
       // Cardio fields prefill
       const existingActivity = (session as any).cardio_activity_name || '';

@@ -1,0 +1,1 @@
+ALTER TABLE public.user_assessments ADD COLUMN IF NOT EXISTS weekly_training_volume integer;

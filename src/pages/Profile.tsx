@@ -41,15 +41,51 @@ const ALL_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJ
 
 const FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
 
-// Derive fitness level from assessment fitness test inputs.
-// Sum of push-ups + sit-ups + squats maps to a tier.
-function deriveFitnessLevel(pushups: number, situps: number, squats: number, plank: number): FitnessLevel | null {
-  const total = (pushups || 0) + (situps || 0) + (squats || 0);
-  if (total <= 0 && !plank) return null;
-  if (total >= 180 || plank >= 180) return 'Very Active';
-  if (total >= 120 || plank >= 120) return 'Active';
-  if (total >= 60 || plank >= 60) return 'Moderate';
+// Volume tier labels (separate from FitnessLevel enum which lacks "Poor")
+export type VolumeTier = 'Poor' | 'Light' | 'Moderate' | 'Active' | 'Very Active';
+
+// Map weekly training sessions → volume tier.
+export function deriveVolumeTier(sessionsPerWeek: number): VolumeTier {
+  if (sessionsPerWeek >= 6) return 'Very Active';
+  if (sessionsPerWeek >= 4) return 'Active';
+  if (sessionsPerWeek >= 2) return 'Moderate';
+  if (sessionsPerWeek >= 1) return 'Light';
+  return 'Poor';
+}
+
+// Map volume tier → FitnessLevel (Poor & Light → Beginner since enum has no "Poor")
+function volumeTierToFitnessLevel(tier: VolumeTier): FitnessLevel {
+  if (tier === 'Very Active') return 'Very Active';
+  if (tier === 'Active') return 'Active';
+  if (tier === 'Moderate') return 'Moderate';
   return 'Beginner';
+}
+
+const FITNESS_RANK: Record<FitnessLevel, number> = {
+  'Beginner': 0, 'Moderate': 1, 'Active': 2, 'Very Active': 3,
+};
+
+// Derive fitness level from assessment fitness test inputs combined with weekly training volume.
+function deriveFitnessLevel(
+  pushups: number,
+  situps: number,
+  squats: number,
+  plank: number,
+  weeklyVolume: number,
+): FitnessLevel | null {
+  const total = (pushups || 0) + (situps || 0) + (squats || 0);
+  const hasPhysical = total > 0 || plank > 0;
+  const hasVolume = weeklyVolume > 0;
+  if (!hasPhysical && !hasVolume) return null;
+
+  let physical: FitnessLevel = 'Beginner';
+  if (total >= 180 || plank >= 180) physical = 'Very Active';
+  else if (total >= 120 || plank >= 120) physical = 'Active';
+  else if (total >= 60 || plank >= 60) physical = 'Moderate';
+
+  const fromVolume = volumeTierToFitnessLevel(deriveVolumeTier(weeklyVolume));
+  // Take the higher of the two tiers
+  return FITNESS_RANK[fromVolume] > FITNESS_RANK[physical] ? fromVolume : physical;
 }
 
 export default function Profile() {
@@ -98,6 +134,7 @@ export default function Profile() {
   const [aSquats, setASquats] = useState<number | ''>('');
   const [aPlank, setAPlank] = useState<number | ''>('');
   const [aWalkingHr, setAWalkingHr] = useState<number | ''>('');
+  const [aWeeklyVolume, setAWeeklyVolume] = useState<number | ''>('');
   const [aNotes, setANotes] = useState('');
   const [aDiscipline, setADiscipline] = useState('');
   const [savingAssessment, setSavingAssessment] = useState(false);
@@ -171,6 +208,7 @@ export default function Profile() {
         setASquats(data.squats_max ?? '');
         setAPlank(data.plank_seconds ?? '');
         setAWalkingHr(data.walking_hr_recovery ?? '');
+        setAWeeklyVolume((data as any).weekly_training_volume ?? '');
         setANotes(data.notes ?? '');
         setADiscipline(data.discipline ?? '');
       }
@@ -194,6 +232,7 @@ export default function Profile() {
         squats_max: aSquats === '' ? 0 : Number(aSquats),
         plank_seconds: aPlank === '' ? null : Number(aPlank),
         walking_hr_recovery: aWalkingHr === '' ? null : Number(aWalkingHr),
+        weekly_training_volume: aWeeklyVolume === '' ? null : Number(aWeeklyVolume),
         notes: aNotes || null,
       };
       if (assessmentId) {
@@ -219,18 +258,19 @@ export default function Profile() {
     setDiscColors(settings.discipline_colors);
   }, [settings]);
 
-  // Auto-derive fitness level from assessment fitness test inputs
+  // Auto-derive fitness level from assessment fitness test inputs + weekly training volume
   useEffect(() => {
     const derived = deriveFitnessLevel(
       Number(aPushups) || 0,
       Number(aSitups) || 0,
       Number(aSquats) || 0,
       Number(aPlank) || 0,
+      Number(aWeeklyVolume) || 0,
     );
     if (derived && derived !== fitnessLevel) {
       setFitnessLevel(derived);
     }
-  }, [aPushups, aSitups, aSquats, aPlank]);
+  }, [aPushups, aSitups, aSquats, aPlank, aWeeklyVolume]);
 
   const toggleDiscipline = (d: string) => {
     setSelectedDisciplines(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
@@ -658,6 +698,23 @@ export default function Profile() {
                                 <div className="col-span-2">
                                   <Label>Walking HR recovery (bpm)</Label>
                                   <Input type="number" value={aWalkingHr} onChange={e => setAWalkingHr(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
+                                </div>
+                                <div className="col-span-2">
+                                  <Label>Weekly Training Volume (sessions/week)</Label>
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    max={21}
+                                    value={aWeeklyVolume}
+                                    onChange={e => setAWeeklyVolume(e.target.value === '' ? '' : Number(e.target.value))}
+                                    placeholder="e.g. 3"
+                                  />
+                                  {aWeeklyVolume !== '' && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Tier: <span className="text-foreground font-medium">{deriveVolumeTier(Number(aWeeklyVolume))}</span>
+                                      {' '}— Poor (0) · Light (1) · Moderate (2–3) · Active (4–5) · Very Active (6+)
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             </div>

@@ -8,64 +8,72 @@
 
 @layer base {
   :root {
-    /* TRG Dark Gladiator Theme — premium fighter journal */
-    --background: 0 0% 3.5%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 98%;
-    --card-elevated: 0 0% 9.5%;
-    --popover: 0 0% 9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 352 84% 44%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 352 90% 56%;
-    --secondary: 0 0% 13%;
-    --secondary-foreground: 0 0% 88%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 62%;
-    --accent: 352 70% 18%;
-    --accent-foreground: 352 90% 70%;
-    --destructive: 0 75% 52%;
+    /* FIGHTER JOURNAL — Elite combat performance system (dark) */
+    /* Deep black #07090D background, charcoal #11151B / #171B22 cards */
+    --background: 220 27% 4%;
+    --foreground: 210 20% 97%;
+    --card: 218 22% 9%;
+    --card-foreground: 210 20% 97%;
+    --card-elevated: 217 20% 12%;
+    --popover: 218 22% 10%;
+    --popover-foreground: 210 20% 97%;
+    /* Electric blue #00B8FF */
+    --primary: 197 100% 50%;
+    --primary-foreground: 220 27% 6%;
+    --primary-glow: 197 100% 62%;
+    --secondary: 217 18% 14%;
+    --secondary-foreground: 210 14% 88%;
+    --muted: 217 18% 13%;
+    --muted-foreground: 213 9% 64%;
+    --accent: 197 90% 16%;
+    --accent-foreground: 197 100% 72%;
+    /* Combat red #D71920 — used ONLY for danger / fight mode / alerts */
+    --destructive: 357 78% 47%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 15%;
-    --input: 0 0% 13%;
-    --ring: 352 84% 44%;
+    --border: 217 18% 17%;
+    --input: 217 18% 14%;
+    --ring: 197 100% 50%;
     --radius: 0.875rem;
 
     /* Premium gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(352 84% 44%), hsl(352 90% 56%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 8%), hsl(0 0% 5.5%));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 6%) 0%, hsl(352 40% 10%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(197 100% 50%), hsl(197 100% 62%));
+    --gradient-card: linear-gradient(145deg, hsl(218 22% 11%), hsl(220 25% 7%));
+    --gradient-hero: linear-gradient(135deg, hsl(220 27% 5%) 0%, hsl(210 60% 10%) 100%);
 
-    /* Premium shadows with red glow accents */
-    --shadow-glow: 0 0 24px hsl(352 84% 44% / 0.25);
-    --shadow-card-premium: 0 4px 16px -4px hsl(0 0% 0% / 0.5), 0 0 0 1px hsl(0 0% 100% / 0.04);
+    /* Premium shadows with electric-blue glow accents */
+    --shadow-glow: 0 0 24px hsl(197 100% 50% / 0.30);
+    --shadow-card-premium: 0 4px 16px -4px hsl(0 0% 0% / 0.6), 0 0 0 1px hsl(210 20% 100% / 0.04);
 
-    /* Strategy semantic colors */
-    --strategy-attacking: 352 72% 56%;
-    --strategy-defending: 217 91% 60%;
-    --strategy-countering: 32 100% 56%;
-    --strategy-control: 265 70% 56%;
-    --strategy-transitions: 170 56% 47%;
-    --strategy-intercepting: 43 96% 56%;
+    /* Combat semantic palette */
+    --combat-danger: 357 78% 47%;       /* #D71920 red */
+    --combat-success: 132 76% 54%;      /* #30E35A green readiness */
+    --combat-warning: 42 90% 60%;       /* #F5B942 amber */
 
-    /* Chart colors */
-    --chart-1: 352 82% 50%;
-    --chart-2: 217 91% 60%;
-    --chart-3: 32 100% 56%;
-    --chart-4: 265 70% 56%;
-    --chart-5: 170 56% 47%;
+    /* Strategy semantic colors — recalibrated for blue-based theme */
+    --strategy-attacking: 357 78% 56%;
+    --strategy-defending: 197 100% 55%;
+    --strategy-countering: 42 90% 60%;
+    --strategy-control: 265 70% 60%;
+    --strategy-transitions: 170 70% 50%;
+    --strategy-intercepting: 132 65% 55%;
+
+    /* Chart colors — blue-led palette */
+    --chart-1: 197 100% 55%;
+    --chart-2: 132 76% 54%;
+    --chart-3: 42 90% 60%;
+    --chart-4: 357 78% 56%;
+    --chart-5: 265 70% 60%;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 4%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 352 82% 40%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 16%;
-    --sidebar-accent-foreground: 0 0% 75%;
-    --sidebar-border: 0 0% 14%;
-    --sidebar-ring: 352 82% 40%;
-    --sidebar: 0 0% 7%;
+    --sidebar-background: 220 27% 5%;
+    --sidebar-foreground: 210 20% 100%;
+    --sidebar-primary: 197 100% 50%;
+    --sidebar-primary-foreground: 220 27% 6%;
+    --sidebar-accent: 217 18% 16%;
+    --sidebar-accent-foreground: 210 14% 80%;
+    --sidebar-border: 217 18% 16%;
+    --sidebar-ring: 197 100% 50%;
+    --sidebar: 218 22% 8%;
 
     /* Shadows */
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.2);

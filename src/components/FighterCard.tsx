@@ -156,7 +156,7 @@ export function FighterCard({
           )}
           <div
             className={cn(
-              'absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm transition-opacity',
+              'absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity',
               uploading
                 ? 'opacity-100'
                 : 'opacity-0 group-hover:opacity-100 group-focus:opacity-100',
@@ -177,40 +177,37 @@ export function FighterCard({
 
         {/* Identity stack — strong vertical rhythm */}
         <div className="min-w-0 flex-1 flex flex-col text-left">
-          {/* 1. NICKNAME — primary */}
+          {/* 1. NICKNAME — primary (wraps to 2 lines if long) */}
           <h2
-            className="text-foreground font-black uppercase leading-[0.95] tracking-tight text-[28px] sm:text-[34px] break-words"
+            className="text-white font-black uppercase leading-[0.95] tracking-tight text-[26px] sm:text-[32px] break-words line-clamp-2"
             style={displayFont}
           >
             {displayName}
           </h2>
 
-          {/* 2. TARGET — mission (large gap above) */}
-          {target && (
-            <p
-              className="mt-4 text-foreground/95 font-semibold leading-snug text-[14px] sm:text-[15px]"
-              style={displayFont}
-            >
-              {target}
-            </p>
-          )}
-
-          {/* 3. DISCIPLINE — tag row (medium gap) */}
+          {/* 2. DISCIPLINES — tag row */}
           {disciplineTags.length > 0 && (
             <p
-              className={cn(
-                'text-muted-foreground text-[11px] sm:text-[12px] font-semibold tracking-[0.18em] uppercase',
-                target ? 'mt-3' : 'mt-4',
-              )}
+              className="mt-3 text-white/55 text-[11px] sm:text-[12px] font-semibold tracking-[0.18em] uppercase break-words"
               style={displayFont}
             >
               {disciplineTags.join(' • ')}
             </p>
           )}
 
-          {/* 4. STATEMENT — identity (small gap above, subtle below) */}
+          {/* 3. TARGET — mission (wraps to 2 lines if long) */}
+          {target && (
+            <p
+              className="mt-4 text-white font-semibold leading-snug text-[14px] sm:text-[15px] line-clamp-2"
+              style={displayFont}
+            >
+              {target}
+            </p>
+          )}
+
+          {/* 4. STATEMENT — identity (italic, up to 2 lines) */}
           {statement && (
-            <p className="mt-2 text-foreground/70 italic font-light text-[13px] sm:text-[14px] leading-snug line-clamp-2">
+            <p className="mt-3 text-white/70 italic font-light text-[13px] sm:text-[14px] leading-snug line-clamp-2">
               "{statement}"
             </p>
           )}

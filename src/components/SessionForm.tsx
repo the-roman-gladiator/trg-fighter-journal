@@ -672,7 +672,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2 font-sans font-normal text-lg bg-muted-foreground text-primary border-primary border-none rounded-none shadow-md">
+            <div className="flex flex-wrap gap-2 font-sans font-normal text-lg text-primary border-primary border-none rounded-none shadow-md bg-primary-foreground">
               {classTypeOptions.map((ct) => (
                 <Badge
                   key={ct}

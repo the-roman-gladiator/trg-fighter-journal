@@ -166,11 +166,12 @@ export default function Profile() {
     const loadMotivationData = async () => {
       const { data: prof } = await supabase
         .from('profiles')
-        .select('my_statement, daily_motivation_mode, fixed_motivation_id, custom_motivation_text')
+        .select('my_statement, target, daily_motivation_mode, fixed_motivation_id, custom_motivation_text')
         .eq('id', user.id)
         .maybeSingle();
       if (prof) {
         setMyStatement(prof.my_statement || '');
+        setTarget((prof as any).target || '');
         setMotivationMode((prof.daily_motivation_mode as any) || 'random');
         setFixedMotivationId(prof.fixed_motivation_id || null);
         setCustomMotivation(prof.custom_motivation_text || '');

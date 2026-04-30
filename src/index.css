@@ -67,12 +67,12 @@
     /* Sidebar */
     --sidebar-background: 220 27% 5%;
     --sidebar-foreground: 210 20% 100%;
-    --sidebar-primary: 197 100% 50%;
-    --sidebar-primary-foreground: 220 27% 6%;
+    --sidebar-primary: 357 78% 47%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217 18% 16%;
     --sidebar-accent-foreground: 210 14% 80%;
     --sidebar-border: 217 18% 16%;
-    --sidebar-ring: 197 100% 50%;
+    --sidebar-ring: 357 78% 47%;
     --sidebar: 218 22% 8%;
 
     /* Shadows */

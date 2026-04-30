@@ -41,6 +41,17 @@ const ALL_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJ
 
 const FIGHT_DISCIPLINES = ['MMA', 'Muay Thai', 'K1', 'Boxing', 'BJJ', 'Grappling', 'Wrestling'];
 
+// Derive fitness level from assessment fitness test inputs.
+// Sum of push-ups + sit-ups + squats maps to a tier.
+function deriveFitnessLevel(pushups: number, situps: number, squats: number, plank: number): FitnessLevel | null {
+  const total = (pushups || 0) + (situps || 0) + (squats || 0);
+  if (total <= 0 && !plank) return null;
+  if (total >= 180 || plank >= 180) return 'Very Active';
+  if (total >= 120 || plank >= 120) return 'Active';
+  if (total >= 60 || plank >= 60) return 'Moderate';
+  return 'Beginner';
+}
+
 export default function Profile() {
   const { user, profile, refreshProfile } = useAuth();
   const { isAdmin } = useSubscription();
@@ -207,6 +218,19 @@ export default function Profile() {
     setInputColor(settings.input_text_color);
     setDiscColors(settings.discipline_colors);
   }, [settings]);
+
+  // Auto-derive fitness level from assessment fitness test inputs
+  useEffect(() => {
+    const derived = deriveFitnessLevel(
+      Number(aPushups) || 0,
+      Number(aSitups) || 0,
+      Number(aSquats) || 0,
+      Number(aPlank) || 0,
+    );
+    if (derived && derived !== fitnessLevel) {
+      setFitnessLevel(derived);
+    }
+  }, [aPushups, aSitups, aSquats, aPlank]);
 
   const toggleDiscipline = (d: string) => {
     setSelectedDisciplines(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]);
@@ -415,95 +439,6 @@ export default function Profile() {
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Assessment Data (from onboarding) — editable */}
-          <Collapsible open={assessmentOpen} onOpenChange={setAssessmentOpen}>
-            <CollapsibleTrigger asChild>
-              <Button variant="outline" className="w-full justify-between" type="button">
-                <span className="flex items-center gap-2">
-                  <Activity className="h-4 w-4" /> Assessment Data
-                </span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${assessmentOpen ? 'rotate-180' : ''}`} />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <Card className="mt-3">
-                <CardContent className="space-y-4 pt-6">
-                  <p className="text-xs text-muted-foreground">
-                    The information you entered during onboarding. Edit anything that has changed.
-                  </p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label>Height (cm)</Label>
-                      <Input type="number" value={aHeight} onChange={e => setAHeight(e.target.value === '' ? '' : Number(e.target.value))} />
-                    </div>
-                    <div>
-                      <Label>Weight (kg)</Label>
-                      <Input type="number" value={aWeight} onChange={e => setAWeight(e.target.value === '' ? '' : Number(e.target.value))} />
-                    </div>
-                    <div>
-                      <Label>Age</Label>
-                      <Input type="number" value={aAge} onChange={e => setAAge(e.target.value === '' ? '' : Number(e.target.value))} />
-                    </div>
-                    <div>
-                      <Label>Sex</Label>
-                      <Select value={aSex} onValueChange={v => setASex(v as 'male' | 'female')}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Body Fat %</Label>
-                      <Input type="number" value={aBodyFat} onChange={e => setABodyFat(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
-                    </div>
-                    <div>
-                      <Label>Discipline</Label>
-                      <Input value={aDiscipline} onChange={e => setADiscipline(e.target.value)} placeholder="MMA" />
-                    </div>
-                  </div>
-
-                  <div className="pt-2">
-                    <p className="text-sm font-medium text-foreground mb-2">Fitness Test</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label>Push-ups (max)</Label>
-                        <Input type="number" value={aPushups} onChange={e => setAPushups(e.target.value === '' ? '' : Number(e.target.value))} />
-                      </div>
-                      <div>
-                        <Label>Sit-ups (max)</Label>
-                        <Input type="number" value={aSitups} onChange={e => setASitups(e.target.value === '' ? '' : Number(e.target.value))} />
-                      </div>
-                      <div>
-                        <Label>Squats (max)</Label>
-                        <Input type="number" value={aSquats} onChange={e => setASquats(e.target.value === '' ? '' : Number(e.target.value))} />
-                      </div>
-                      <div>
-                        <Label>Plank (sec)</Label>
-                        <Input type="number" value={aPlank} onChange={e => setAPlank(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
-                      </div>
-                      <div className="col-span-2">
-                        <Label>Walking HR recovery (bpm)</Label>
-                        <Input type="number" value={aWalkingHr} onChange={e => setAWalkingHr(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label>Notes</Label>
-                    <Textarea value={aNotes} onChange={e => setANotes(e.target.value)} placeholder="Injuries, conditions, notes for your coach..." />
-                  </div>
-
-                  <Button type="button" onClick={saveAssessment} disabled={savingAssessment} className="w-full">
-                    {savingAssessment ? 'Saving...' : 'Save Assessment'}
-                  </Button>
-                </CardContent>
-              </Card>
-            </CollapsibleContent>
-          </Collapsible>
-
-
           <Collapsible open={motivationOpen} onOpenChange={setMotivationOpen}>
             <CollapsibleTrigger asChild>
               <Button variant="outline" className="w-full justify-between" type="button">
@@ -639,13 +574,106 @@ export default function Profile() {
                     </div>
                     <div>
                       <Label>Fitness Level</Label>
-                      <Select value={fitnessLevel} onValueChange={(v: any) => setFitnessLevel(v)}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                      <Select value={fitnessLevel} disabled>
+                        <SelectTrigger className="opacity-70 cursor-not-allowed">
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           {fitnessLevels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
                         </SelectContent>
                       </Select>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Auto-calculated from your fitness assessment below.
+                      </p>
                     </div>
+
+                    {/* Assessment Fitness — dropdown */}
+                    <Collapsible open={assessmentOpen} onOpenChange={setAssessmentOpen}>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="outline" className="w-full justify-between" type="button">
+                          <span className="flex items-center gap-2">
+                            <Activity className="h-4 w-4" /> Assessment Fitness Data
+                          </span>
+                          <ChevronDown className={`h-4 w-4 transition-transform ${assessmentOpen ? 'rotate-180' : ''}`} />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <Card className="mt-3">
+                          <CardContent className="space-y-4 pt-6">
+                            <p className="text-xs text-muted-foreground">
+                              The information you entered during onboarding. Editing the fitness test will update your Fitness Level automatically.
+                            </p>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <Label>Height (cm)</Label>
+                                <Input type="number" value={aHeight} onChange={e => setAHeight(e.target.value === '' ? '' : Number(e.target.value))} />
+                              </div>
+                              <div>
+                                <Label>Weight (kg)</Label>
+                                <Input type="number" value={aWeight} onChange={e => setAWeight(e.target.value === '' ? '' : Number(e.target.value))} />
+                              </div>
+                              <div>
+                                <Label>Age</Label>
+                                <Input type="number" value={aAge} onChange={e => setAAge(e.target.value === '' ? '' : Number(e.target.value))} />
+                              </div>
+                              <div>
+                                <Label>Sex</Label>
+                                <Select value={aSex} onValueChange={v => setASex(v as 'male' | 'female')}>
+                                  <SelectTrigger><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="male">Male</SelectItem>
+                                    <SelectItem value="female">Female</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label>Body Fat %</Label>
+                                <Input type="number" value={aBodyFat} onChange={e => setABodyFat(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
+                              </div>
+                              <div>
+                                <Label>Discipline</Label>
+                                <Input value={aDiscipline} onChange={e => setADiscipline(e.target.value)} placeholder="MMA" />
+                              </div>
+                            </div>
+
+                            <div className="pt-2">
+                              <p className="text-sm font-medium text-foreground mb-2">Fitness Test</p>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <Label>Push-ups (max)</Label>
+                                  <Input type="number" value={aPushups} onChange={e => setAPushups(e.target.value === '' ? '' : Number(e.target.value))} />
+                                </div>
+                                <div>
+                                  <Label>Sit-ups (max)</Label>
+                                  <Input type="number" value={aSitups} onChange={e => setASitups(e.target.value === '' ? '' : Number(e.target.value))} />
+                                </div>
+                                <div>
+                                  <Label>Squats (max)</Label>
+                                  <Input type="number" value={aSquats} onChange={e => setASquats(e.target.value === '' ? '' : Number(e.target.value))} />
+                                </div>
+                                <div>
+                                  <Label>Plank (sec)</Label>
+                                  <Input type="number" value={aPlank} onChange={e => setAPlank(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
+                                </div>
+                                <div className="col-span-2">
+                                  <Label>Walking HR recovery (bpm)</Label>
+                                  <Input type="number" value={aWalkingHr} onChange={e => setAWalkingHr(e.target.value === '' ? '' : Number(e.target.value))} placeholder="Optional" />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div>
+                              <Label>Notes</Label>
+                              <Textarea value={aNotes} onChange={e => setANotes(e.target.value)} placeholder="Injuries, conditions, notes for your coach..." />
+                            </div>
+
+                            <Button type="button" onClick={saveAssessment} disabled={savingAssessment} className="w-full">
+                              {savingAssessment ? 'Saving...' : 'Save Assessment'}
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </CardContent>
                 </Card>
 

@@ -104,7 +104,7 @@ export function FighterCard({
     <Card
       className={cn(
         'relative overflow-hidden rounded-lg',
-        'border border-destructive/40 bg-card',
+        'border border-destructive/40 bg-black text-white',
         'shadow-[0_2px_0_0_hsl(var(--destructive)/0.35)]',
       )}
     >

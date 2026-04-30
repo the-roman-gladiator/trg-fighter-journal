@@ -526,6 +526,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   const category = classTypeCategory(classType);
   const technical = category === 'technical';
   const sparring = category === 'sparring';
+  const stretching = category === 'stretching';
   const cardio = category === 'cardio';
   const strength = category === 'strength';
   // Sparring reuses the technical entry surface (discipline + tactic + technique + movement chain)

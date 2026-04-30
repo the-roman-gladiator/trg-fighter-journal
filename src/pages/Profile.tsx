@@ -74,6 +74,23 @@ export default function Profile() {
   const [motivationsLibrary, setMotivationsLibrary] = useState<{ id: string; day_number: number; motivation_text: string }[]>([]);
   const [motivationOpen, setMotivationOpen] = useState(false);
 
+  // Assessment data (from onboarding) — editable
+  const [assessmentOpen, setAssessmentOpen] = useState(false);
+  const [assessmentId, setAssessmentId] = useState<string | null>(null);
+  const [aHeight, setAHeight] = useState<number | ''>('');
+  const [aWeight, setAWeight] = useState<number | ''>('');
+  const [aAge, setAAge] = useState<number | ''>('');
+  const [aSex, setASex] = useState<'male' | 'female'>('male');
+  const [aBodyFat, setABodyFat] = useState<number | ''>('');
+  const [aPushups, setAPushups] = useState<number | ''>('');
+  const [aSitups, setASitups] = useState<number | ''>('');
+  const [aSquats, setASquats] = useState<number | ''>('');
+  const [aPlank, setAPlank] = useState<number | ''>('');
+  const [aWalkingHr, setAWalkingHr] = useState<number | ''>('');
+  const [aNotes, setANotes] = useState('');
+  const [aDiscipline, setADiscipline] = useState('');
+  const [savingAssessment, setSavingAssessment] = useState(false);
+
   // Local customization state
   const [themeMode, setThemeMode] = useState(settings.theme_mode);
   const [inputColor, setInputColor] = useState(settings.input_text_color);

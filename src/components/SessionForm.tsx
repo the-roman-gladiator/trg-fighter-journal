@@ -247,14 +247,14 @@ export function SessionForm({ sessionId }: SessionFormProps) {
       return;
     }
 
-    if (selectedDisciplines.length === 0) {
-      toast({ title: 'Validation', description: 'Please select at least one discipline', variant: 'destructive' });
-      return;
-    }
-
     const technical = isTechnicalType(classType);
     const cardio = isCardioType(classType);
     const strength = isStrengthType(classType);
+
+    if (technical && selectedDisciplines.length === 0) {
+      toast({ title: 'Validation', description: 'Please select at least one discipline', variant: 'destructive' });
+      return;
+    }
 
     const resolvedTechnique = technique === '__custom__' ? customTechnique.trim() : technique;
 

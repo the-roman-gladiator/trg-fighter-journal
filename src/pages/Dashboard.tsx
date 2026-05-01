@@ -197,6 +197,7 @@ export default function Dashboard() {
       setTarget((prof as any).target || '');
       setMyDisciplines(prof.discipline ? prof.discipline.split(',').map((d: string) => d.trim()).filter(Boolean) : []);
       setAvatarUrl((prof as any).avatar_url || null);
+      setFighterStatus((prof as any).fighter_status || 'In Training');
 
       const motivationMode = prof.daily_motivation_mode || 'random';
       if (motivationMode === 'custom' && prof.custom_motivation_text) {

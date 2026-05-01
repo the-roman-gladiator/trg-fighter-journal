@@ -30,7 +30,7 @@ const LEVEL_COLORS: Record<string, string> = {
 };
 
 const DISCIPLINE_COLORS: Record<string, string> = {
-  'MMA': 'bg-red-900/30 text-red-400 border-red-800/40',
+  'MMA': 'bg-destructive/20 text-destructive border-destructive/40',
   'Muay Thai': 'bg-orange-900/30 text-orange-400 border-orange-800/40',
   'K1': 'bg-yellow-900/30 text-yellow-400 border-yellow-800/40',
   'BJJ': 'bg-purple-900/30 text-purple-400 border-purple-800/40',
@@ -245,10 +245,10 @@ export default function TechniqueLibrary() {
                                   href={youtubeUrl(tech.youtube_search_query)}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex-shrink-0 p-1.5 rounded-md bg-red-900/20 hover:bg-red-900/40 transition-colors"
+                                  className="flex-shrink-0 p-1.5 rounded-md bg-destructive/15 hover:bg-destructive/30 transition-colors"
                                   onClick={e => e.stopPropagation()}
                                 >
-                                  <ExternalLink className="h-3.5 w-3.5 text-red-400" />
+                                  <ExternalLink className="h-3.5 w-3.5 text-destructive" />
                                 </a>
                               )}
                             </div>

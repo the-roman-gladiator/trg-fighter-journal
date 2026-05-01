@@ -1560,7 +1560,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </Card>
             )}
 
-            {/* My Performance — universal */}
+            {/* My Performance — universal (hidden for stretching) */}
+            {!stretching && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

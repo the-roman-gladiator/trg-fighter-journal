@@ -1104,11 +1104,23 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   <CardContent className="space-y-4">
                     <div>
                       <Label className="text-xs mb-2 block">Fight Type</Label>
-                      <ChipSelect
-                        options={['Sparring match', 'Interclub', 'Smoker', 'Amateur', 'Pro']}
-                        value={fightType}
-                        onChange={setFightType}
-                      />
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {['Sparring match', 'Interclub', 'Smoker', 'Amateur', 'Pro'].map((opt) => {
+                          const active = fightType === opt;
+                          return (
+                            <Button
+                              key={opt}
+                              type="button"
+                              size="sm"
+                              variant={active ? 'default' : 'outline'}
+                              className={`text-xs min-h-10 h-auto py-2 px-2 whitespace-normal text-center leading-tight break-words ${active ? '' : 'border-border'}`}
+                              onClick={() => setFightType(active ? '' : opt)}
+                            >
+                              {opt}
+                            </Button>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     <div>

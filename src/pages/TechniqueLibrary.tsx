@@ -30,7 +30,7 @@ const LEVEL_COLORS: Record<string, string> = {
 };
 
 const DISCIPLINE_COLORS: Record<string, string> = {
-  'MMA': 'bg-red-900/30 text-red-400 border-red-800/40',
+  'MMA': 'bg-destructive/20 text-destructive border-destructive/40',
   'Muay Thai': 'bg-orange-900/30 text-orange-400 border-orange-800/40',
   'K1': 'bg-yellow-900/30 text-yellow-400 border-yellow-800/40',
   'BJJ': 'bg-purple-900/30 text-purple-400 border-purple-800/40',

@@ -733,7 +733,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             {!stretching && (
             <Card>
               <CardHeader>
-                <CardTitle>Session Details</CardTitle>
+                <CardTitle>{fightReview ? 'Review Fight' : 'Session Details'}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -741,26 +741,35 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Jab timing study" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                {fightReview ? (
                   <div>
                     <Label htmlFor="date">Date</Label>
                     <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
                   </div>
-                  <div>
-                    <Label htmlFor="startTime">Start Time</Label>
-                    <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="endTime">End Time</Label>
-                    <Input id="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-                  </div>
-                  <div>
-                    <Label>Duration</Label>
-                    <p className="text-sm font-medium mt-2 text-muted-foreground">{getDuration() || '—'}</p>
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="date">Date</Label>
+                        <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="startTime">Start Time</Label>
+                        <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="endTime">End Time</Label>
+                        <Input id="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+                      </div>
+                      <div>
+                        <Label>Duration</Label>
+                        <p className="text-sm font-medium mt-2 text-muted-foreground">{getDuration() || '—'}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {!cardio && !strength && (
                   <MultiDisciplineSelect
@@ -1222,6 +1231,25 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   </CardContent>
                 </Card>
 
+                {/* Card 2.5 — Details (free comment, after Opponent) */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Details</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Label htmlFor="fightDetails" className="text-xs mb-2 block">
+                      Anything worth remembering — context, camp, weight cut, gameplan, what went down.
+                    </Label>
+                    <Textarea
+                      id="fightDetails"
+                      rows={5}
+                      value={fightFreeComment}
+                      onChange={(e) => setFightFreeComment(e.target.value)}
+                      placeholder="Free notes about the fight…"
+                    />
+                  </CardContent>
+                </Card>
+
                 {/* Card 3 — Rounds */}
                 <Card>
                   <CardHeader>
@@ -1560,8 +1588,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </Card>
             )}
 
-            {/* My Performance — universal (hidden for stretching) */}
-            {!stretching && (
+            {/* My Performance — universal (hidden for stretching & fight review) */}
+            {!stretching && !fightReview && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1789,7 +1817,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   </div>
                 )}
 
-                {!stretching && (
+                {!stretching && !fightReview && (
                   <PredictiveTagInput
                     selectedTags={selectedTags}
                     onTagsChange={setSelectedTags}

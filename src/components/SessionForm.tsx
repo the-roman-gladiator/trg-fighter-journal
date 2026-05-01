@@ -1775,23 +1775,27 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={5} placeholder="What happened? What worked? What needs improvement?" />
                 </div>
 
-                <div>
-                  <Label>YouTube / Video URL (optional)</Label>
-                  <Input
-                    type="url"
-                    inputMode="url"
-                    maxLength={500}
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                    placeholder="https://youtube.com/watch?v=..."
-                  />
-                </div>
+                {!stretching && (
+                  <div>
+                    <Label>YouTube / Video URL (optional)</Label>
+                    <Input
+                      type="url"
+                      inputMode="url"
+                      maxLength={500}
+                      value={videoUrl}
+                      onChange={(e) => setVideoUrl(e.target.value)}
+                      placeholder="https://youtube.com/watch?v=..."
+                    />
+                  </div>
+                )}
 
-                <PredictiveTagInput
-                  selectedTags={selectedTags}
-                  onTagsChange={setSelectedTags}
-                  disciplines={selectedDisciplines}
-                />
+                {!stretching && (
+                  <PredictiveTagInput
+                    selectedTags={selectedTags}
+                    onTagsChange={setSelectedTags}
+                    disciplines={selectedDisciplines}
+                  />
+                )}
               </CardContent>
             </Card>
 

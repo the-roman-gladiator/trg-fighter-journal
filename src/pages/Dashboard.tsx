@@ -467,7 +467,7 @@ export default function Dashboard() {
                       : yellow.includes(fighterStatus)
                       ? 'bg-[#ffd400] shadow-[0_0_8px_2px_#ffd400,0_0_16px_4px_rgba(255,212,0,0.6)]'
                       : red.includes(fighterStatus)
-                      ? 'bg-[#ff1a1a] shadow-[0_0_8px_2px_#ff1a1a,0_0_16px_4px_rgba(255,26,26,0.6)]'
+                      ? 'bg-[#D71920] shadow-[0_0_8px_2px_#D71920,0_0_16px_4px_rgba(215,25,32,0.6)]'
                       : 'bg-muted-foreground/40';
                     return <span className={`inline-block h-2.5 w-2.5 rounded-full animate-pulse ${color}`} aria-hidden="true" />;
                   })()}

@@ -18,19 +18,19 @@
     --popover-foreground: 0 0% 98%;
     --primary: 358 79% 47%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 352 90% 56%;
+    --primary-glow: 358 79% 58%;
     --secondary: 0 0% 13%;
     --secondary-foreground: 0 0% 88%;
     --muted: 0 0% 12%;
     --muted-foreground: 0 0% 62%;
-    --accent: 352 70% 18%;
-    --accent-foreground: 352 90% 70%;
+    --accent: 358 70% 18%;
+    --accent-foreground: 358 90% 70%;
     /* Canonical Fighter Journal red — #D71920 — only red allowed */
     --destructive: 358 79% 47%;
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 15%;
     --input: 0 0% 13%;
-    --ring: 352 84% 44%;
+    --ring: 358 79% 47%;
     --radius: 0.875rem;
 
     /* Premium gradients */

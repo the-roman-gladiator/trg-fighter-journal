@@ -969,7 +969,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                 <CardContent className="space-y-4">
                   <div>
                     <Label className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2 block">Focus Areas</Label>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {[
                         'Hips', 'Hamstrings', 'Lower Back', 'Upper Back',
                         'Shoulders', 'Neck', 'Quads', 'Calves',
@@ -978,9 +978,12 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                       ].map((area) => {
                         const active = stretchFocusAreas.includes(area);
                         return (
-                          <button
+                          <Button
                             key={area}
                             type="button"
+                            size="sm"
+                            variant={active ? 'default' : 'outline'}
+                            className={`text-xs min-h-10 h-auto py-2 px-2 whitespace-normal text-center leading-tight break-words ${active ? '' : 'border-border'}`}
                             onClick={() =>
                               setStretchFocusAreas(
                                 active
@@ -988,14 +991,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                                   : [...stretchFocusAreas, area],
                               )
                             }
-                            className={`text-[11px] px-2 py-1 rounded-md border transition-colors ${
-                              active
-                                ? 'bg-primary text-primary-foreground border-primary'
-                                : 'border-border bg-secondary/30 hover:border-primary/40 hover:bg-primary/5 text-foreground'
-                            }`}
                           >
                             {area}
-                          </button>
+                          </Button>
                         );
                       })}
                     </div>

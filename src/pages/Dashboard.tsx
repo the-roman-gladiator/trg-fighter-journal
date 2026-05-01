@@ -247,6 +247,8 @@ export default function Dashboard() {
       toast.success(`Status set to ${status}`);
     }
   };
+
+  if (loading) {
     return <LoadingScreen />;
   }
 

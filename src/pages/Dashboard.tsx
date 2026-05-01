@@ -406,9 +406,43 @@ export default function Dashboard() {
 
         {/* CENTER — original mobile content */}
         <div className="space-y-6 dark:space-y-7 min-w-0">
-        {/* Date + Dashboard heading removed for more vertical space */}
 
-        {/* Fighter Card — nickname / discipline / level / statement */}
+        {/* 1. STATUS & STATS BAR */}
+        <Card className="bg-[hsl(0_0%_4%)] border-border/70 shadow-[0_0_0_1px_hsl(var(--primary)/0.08),0_8px_24px_-12px_hsl(var(--primary)/0.25)]">
+          <CardContent className="p-0">
+            <div className="grid grid-cols-4 divide-x divide-border/60">
+              {/* STATUS */}
+              <div className="px-3 py-3 sm:px-4 sm:py-4 text-left">
+                <p className="text-[9px] sm:text-[10px] tracking-[0.18em] uppercase text-muted-foreground font-semibold">Status</p>
+                <p className="mt-1 text-base sm:text-xl font-black text-foreground leading-none">READY</p>
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_6px_hsl(142_76%_45%/0.8)]" />
+                  <span className="text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-medium">In Camp</span>
+                </div>
+              </div>
+              {/* STREAK */}
+              <div className="px-2 py-3 sm:px-4 sm:py-4 text-center flex flex-col items-center justify-center">
+                <Flame className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary mb-1" />
+                <p className="text-xl sm:text-2xl font-black text-foreground leading-none tabular-nums">3</p>
+                <p className="mt-1 text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-semibold">Day Streak</p>
+              </div>
+              {/* SESSIONS */}
+              <div className="px-2 py-3 sm:px-4 sm:py-4 text-center flex flex-col items-center justify-center">
+                <CalendarDays className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary mb-1" />
+                <p className="text-xl sm:text-2xl font-black text-foreground leading-none tabular-nums">17</p>
+                <p className="mt-1 text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-semibold">Sessions</p>
+              </div>
+              {/* INTENSITY */}
+              <div className="px-2 py-3 sm:px-4 sm:py-4 text-center flex flex-col items-center justify-center">
+                <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary mb-1" />
+                <p className="text-xl sm:text-2xl font-black text-foreground leading-none tabular-nums">3.3</p>
+                <p className="mt-1 text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-semibold">Intensity</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 2. FIGHT CARD — unchanged */}
         <FighterCard
           userId={user?.id}
           nickname={profile?.nickname || undefined}
@@ -424,33 +458,71 @@ export default function Dashboard() {
           longestStreak={longestStreak}
         />
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-2">
-          <Card className="bg-card border-border">
-            <CardContent className="py-3 px-3 text-center">
-              <Flame className="h-4 w-4 text-orange-500 mx-auto mb-1" />
-              <p className="text-2xl font-black text-foreground">{yearlyStreak}</p>
-              <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-semibold">Day Streak</p>
-              <p className="text-[8px] text-muted-foreground">This Year</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card border-border">
-            <CardContent className="py-3 px-3 text-center">
-              <Zap className="h-4 w-4 text-yellow-500 mx-auto mb-1" />
-              <p className="text-2xl font-black text-foreground">{avgEffort || '—'}</p>
-              <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-semibold">Avg Effort</p>
-              <p className="text-[8px] text-muted-foreground">Based on logs</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card border-border">
-            <CardContent className="py-3 px-3 text-center">
-              <Target className="h-4 w-4 text-primary mx-auto mb-1" />
-              <p className="text-2xl font-black text-foreground">{weeklySessions}</p>
-              <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-semibold">Sessions</p>
-              <p className="text-[8px] text-muted-foreground">Last 7 days</p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* 3. THIS WEEK + WEEKLY GOAL */}
+        {(() => {
+          const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+          const jsDay = new Date().getDay(); // 0=Sun ... 6=Sat
+          const todayIdx = jsDay === 0 ? 6 : jsDay - 1; // Mon=0 ... Sun=6
+          const goalTotal = 5;
+          const goalDone = Math.min(weeklySessions, goalTotal);
+          const goalPct = (goalDone / goalTotal) * 100;
+          return (
+            <Card className="bg-[hsl(0_0%_4%)] border-border/70">
+              <CardContent className="p-4 sm:p-5">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-xs tracking-[0.18em] uppercase text-primary font-bold">This Week</p>
+                  <button
+                    onClick={() => navigate('/records')}
+                    className="flex items-center gap-1 text-[10px] tracking-widest uppercase text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    View All <span aria-hidden>→</span>
+                  </button>
+                </div>
+
+                {/* Week row */}
+                <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-5">
+                  {days.map((d, i) => {
+                    const isCompleted = i < todayIdx;
+                    const isCurrent = i === todayIdx;
+                    return (
+                      <div key={d} className="flex flex-col items-center gap-1.5">
+                        <span className={`text-[9px] sm:text-[10px] tracking-widest uppercase font-semibold ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>{d}</span>
+                        <div
+                          className={[
+                            'h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center transition-colors',
+                            isCompleted ? 'bg-primary border border-primary text-primary-foreground' : '',
+                            isCurrent ? 'border-2 border-primary bg-transparent' : '',
+                            !isCompleted && !isCurrent ? 'border border-border/60 bg-transparent' : '',
+                          ].join(' ')}
+                        >
+                          {isCompleted && <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={3} />}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Weekly goal */}
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="shrink-0">
+                    <p className="text-[10px] sm:text-[11px] tracking-[0.18em] uppercase text-muted-foreground font-semibold">Weekly Goal</p>
+                    <p className="text-xs sm:text-sm text-foreground font-bold tracking-wider mt-0.5">
+                      <span className="text-primary tabular-nums">{goalDone}</span>
+                      <span className="text-muted-foreground"> / {goalTotal}</span> Sessions
+                    </p>
+                  </div>
+                  <div className="flex-1 h-2.5 bg-muted/30 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all"
+                      style={{ width: `${goalPct}%` }}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Library moved to floating button (top-right on desktop, lower-right on mobile) */}
 

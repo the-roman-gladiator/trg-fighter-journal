@@ -122,7 +122,7 @@ export default function TechniqueLibrary() {
           </Button>
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-primary" />
-            <h1 className="text-lg font-bold tracking-wide font-cinzel">Technique Library</h1>
+            <h1 className="text-lg font-bold tracking-wide font-display uppercase">Technique Library</h1>
           </div>
         </div>
       </header>

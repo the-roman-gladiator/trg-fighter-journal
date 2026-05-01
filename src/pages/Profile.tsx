@@ -141,7 +141,7 @@ export default function Profile() {
   const [savingAssessment, setSavingAssessment] = useState(false);
 
   // Local customization state
-  const [themeMode, setThemeMode] = useState(settings.theme_mode);
+  
   const [inputColor, setInputColor] = useState(settings.input_text_color);
   const [discColors, setDiscColors] = useState(settings.discipline_colors);
 
@@ -255,7 +255,6 @@ export default function Profile() {
 
 
   useEffect(() => {
-    setThemeMode(settings.theme_mode);
     setInputColor(settings.input_text_color);
     setDiscColors(settings.discipline_colors);
   }, [settings]);
@@ -318,12 +317,6 @@ export default function Profile() {
     },
   });
 
-  // Live apply theme
-  const handleThemeChange = (mode: 'dark' | 'light') => {
-    setThemeMode(mode);
-    updateSettings({ theme_mode: mode });
-  };
-
   const handleInputColorChange = (color: string) => {
     setInputColor(color);
     updateSettings({ input_text_color: color });
@@ -336,11 +329,10 @@ export default function Profile() {
   };
 
   const resetCustomization = () => {
-    setThemeMode('dark');
     setInputColor('#FFFFFF');
     setDiscColors(DEFAULT_DISCIPLINE_COLORS);
-    updateSettings(DEFAULT_SETTINGS);
-    toast({ title: 'Reset', description: 'Customization reset to defaults.' });
+    updateSettings({ input_text_color: '#FFFFFF', discipline_colors: DEFAULT_DISCIPLINE_COLORS });
+    toast({ title: 'Reset', description: 'Customisation reset to defaults.' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

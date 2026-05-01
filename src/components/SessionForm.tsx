@@ -1817,7 +1817,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   </div>
                 )}
 
-                {!stretching && (
+                {!stretching && !fightReview && (
                   <PredictiveTagInput
                     selectedTags={selectedTags}
                     onTagsChange={setSelectedTags}

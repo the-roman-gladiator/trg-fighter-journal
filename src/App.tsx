@@ -58,9 +58,6 @@ function RootRoute() {
   const { isAdmin, loading: subLoading } = useSubscription();
   if (loading || (user && subLoading)) return <LoadingScreen />;
   if (user && isAdmin) return <Navigate to="/admin" replace />;
-  if (user && profile && (profile as any).show_intro === true) {
-    return <Navigate to="/intro" replace />;
-  }
   return user ? <Dashboard /> : <Landing />;
 }
 

@@ -188,7 +188,7 @@ export default function Dashboard() {
     // Fetch profile for journal box
     const { data: prof } = await supabase
       .from('profiles')
-      .select('my_statement, target, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text, avatar_url')
+      .select('my_statement, target, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text, avatar_url, fighter_status')
       .eq('id', user.id)
       .maybeSingle();
 

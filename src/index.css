@@ -36,14 +36,14 @@
     /* Premium gradients */
     --gradient-primary: linear-gradient(135deg, hsl(358 79% 47%), hsl(358 79% 58%));
     --gradient-card: linear-gradient(145deg, hsl(0 0% 8%), hsl(0 0% 5.5%));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 6%) 0%, hsl(352 40% 10%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 6%) 0%, hsl(358 40% 10%) 100%);
 
     /* Premium shadows with red glow accents */
     --shadow-glow: 0 0 24px hsl(358 79% 47% / 0.25);
     --shadow-card-premium: 0 4px 16px -4px hsl(0 0% 0% / 0.5), 0 0 0 1px hsl(0 0% 100% / 0.04);
 
     /* Strategy semantic colors */
-    --strategy-attacking: 352 72% 56%;
+    --strategy-attacking: 358 72% 56%;
     --strategy-defending: 217 91% 60%;
     --strategy-countering: 32 100% 56%;
     --strategy-control: 265 70% 56%;
@@ -51,7 +51,7 @@
     --strategy-intercepting: 43 96% 56%;
 
     /* Chart colors */
-    --chart-1: 352 82% 50%;
+    --chart-1: 358 82% 50%;
     --chart-2: 217 91% 60%;
     --chart-3: 32 100% 56%;
     --chart-4: 265 70% 56%;
@@ -60,12 +60,12 @@
     /* Sidebar */
     --sidebar-background: 0 0% 4%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 352 82% 40%;
+    --sidebar-primary: 358 82% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 16%;
     --sidebar-accent-foreground: 0 0% 75%;
     --sidebar-border: 0 0% 14%;
-    --sidebar-ring: 352 82% 40%;
+    --sidebar-ring: 358 82% 40%;
     --sidebar: 0 0% 7%;
 
     /* Shadows */
@@ -110,14 +110,14 @@
     /* Light gradients */
     --gradient-primary: linear-gradient(135deg, hsl(358 79% 47%), hsl(358 79% 58%));
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 97%));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 99%) 0%, hsl(352 60% 96%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 99%) 0%, hsl(358 60% 96%) 100%);
 
     /* Light shadows */
     --shadow-glow: 0 0 24px hsl(358 79% 47% / 0.18);
     --shadow-card-premium: 0 4px 16px -4px hsl(0 0% 0% / 0.08), 0 0 0 1px hsl(0 0% 0% / 0.04);
 
     /* Strategy semantic colors — slightly deeper for contrast on light bg */
-    --strategy-attacking: 352 72% 46%;
+    --strategy-attacking: 358 72% 46%;
     --strategy-defending: 217 85% 48%;
     --strategy-countering: 28 95% 46%;
     --strategy-control: 265 65% 46%;
@@ -125,7 +125,7 @@
     --strategy-intercepting: 38 92% 44%;
 
     /* Chart colors */
-    --chart-1: 352 78% 46%;
+    --chart-1: 358 78% 46%;
     --chart-2: 217 85% 48%;
     --chart-3: 28 95% 46%;
     --chart-4: 265 65% 46%;
@@ -156,8 +156,8 @@
   /* Adjust body backdrop & scrollbar in light mode (overrides defaults below) */
   [data-theme='light'] body {
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(352 70% 92% / 0.55), transparent 60%),
-      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(352 70% 95% / 0.5), transparent 70%);
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(358 70% 92% / 0.55), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(358 70% 95% / 0.5), transparent 70%);
   }
   [data-theme='light'] ::-webkit-scrollbar-track { background: hsl(0 0% 94%); }
   [data-theme='light'] ::-webkit-scrollbar-thumb { background: hsl(0 0% 75%); }
@@ -174,8 +174,8 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(352 70% 12% / 0.35), transparent 60%),
-      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(352 70% 8% / 0.25), transparent 70%);
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(358 70% 12% / 0.35), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(358 70% 8% / 0.25), transparent 70%);
     background-attachment: fixed;
   }
   h1, h2, h3 {

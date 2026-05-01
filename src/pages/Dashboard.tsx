@@ -455,10 +455,9 @@ export default function Dashboard() {
                 aria-label="Change status"
               >
                 <p className="text-[9px] sm:text-[10px] tracking-[0.18em] uppercase text-muted-foreground font-semibold">Status</p>
-                <p className="mt-1 text-sm sm:text-lg font-black text-foreground leading-tight uppercase truncate group-hover:text-primary transition-colors">{fighterStatus}</p>
-                <div className="mt-1.5 flex items-center gap-1.5">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.8)]" />
-                  <span className="text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-medium">Tap to change</span>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.8)] shrink-0" />
+                  <p className="text-sm sm:text-base font-black text-foreground leading-tight uppercase group-hover:text-primary transition-colors break-words">{fighterStatus}</p>
                 </div>
               </button>
               {/* STREAK */}

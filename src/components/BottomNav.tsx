@@ -13,7 +13,7 @@ const tabs = [
   { to: '/award', label: 'Award', icon: Trophy },
 ];
 
-const HIDDEN_ROUTES = ['/auth', '/intro', '/onboarding', '/admin'];
+const HIDDEN_ROUTES = ['/auth', '/onboarding', '/admin'];
 
 export function BottomNav() {
   const { pathname } = useLocation();

@@ -441,7 +441,7 @@ export default function Dashboard() {
         </aside>
 
         {/* CENTER — original mobile content */}
-        <div className="space-y-6 dark:space-y-7 min-w-0">
+        <div className="space-y-3 dark:space-y-4 min-w-0">
 
         {/* 1. STATUS & STATS BAR */}
         <Card className="bg-[hsl(0_0%_4%)] border-border/70 shadow-[0_0_0_1px_hsl(var(--primary)/0.08),0_8px_24px_-12px_hsl(var(--primary)/0.25)]">

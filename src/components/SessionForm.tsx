@@ -1401,14 +1401,14 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {CARDIO_ACTIVITIES.map((a) => (
                         <Button
                           key={a}
                           type="button"
                           size="sm"
                           variant={cardioActivity === a ? 'default' : 'outline'}
-                          className={`text-xs h-10 ${cardioActivity === a ? '' : 'border-border'}`}
+                          className={`text-xs min-h-10 h-auto py-2 px-2 whitespace-normal text-center leading-tight break-words ${cardioActivity === a ? '' : 'border-border'}`}
                           onClick={() => setCardioActivity(cardioActivity === a ? '' : a)}
                         >
                           {a}

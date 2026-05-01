@@ -822,9 +822,9 @@ export default function Profile() {
                     <p className="text-[10px] text-muted-foreground mt-1">Applied to session titles, techniques, and movements</p>
                   </div>
 
-                  {/* Discipline Colors */}
+                  {/* Discipline Colours */}
                   <div>
-                    <Label className="mb-2 block">Discipline Colors</Label>
+                    <Label className="mb-2 block">Discipline Colours</Label>
                     <div className="space-y-2">
                       {ALL_DISCIPLINES.map(disc => (
                         <div key={disc} className="flex items-center justify-between gap-3">

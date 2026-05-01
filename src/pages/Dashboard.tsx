@@ -670,6 +670,63 @@ export default function Dashboard() {
           </Card>
         </aside>
       </main>
+
+      {/* CHANGE STATUS modal */}
+      <Dialog open={statusModalOpen} onOpenChange={(o) => { setStatusModalOpen(o); if (!o) setShowInfoFor(null); }}>
+        <DialogContent className="bg-[hsl(0_0%_4%)] border-border/70 max-w-md w-[calc(100%-2rem)] rounded-xl p-0 overflow-hidden">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-border/60">
+            <DialogTitle className="text-sm tracking-[0.22em] uppercase font-bold text-primary">
+              Change Status
+            </DialogTitle>
+            <p className="text-[11px] text-muted-foreground mt-1">Set your current training phase manually.</p>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto p-3 space-y-1.5">
+            {FIGHTER_STATUSES.map((s) => {
+              const selected = s.label === fighterStatus;
+              const showing = showInfoFor === s.label;
+              return (
+                <div
+                  key={s.label}
+                  className={[
+                    'rounded-lg border transition-colors',
+                    selected
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border/60 hover:border-primary/40 hover:bg-primary/5',
+                  ].join(' ')}
+                >
+                  <div className="flex items-stretch">
+                    <button
+                      type="button"
+                      onClick={() => saveFighterStatus(s.label)}
+                      className="flex-1 text-left px-4 py-3 focus:outline-none"
+                    >
+                      <p className={`text-sm font-bold uppercase tracking-wider ${selected ? 'text-primary' : 'text-foreground'}`}>
+                        {s.label}
+                      </p>
+                      {showing && (
+                        <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">{s.description}</p>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`More info about ${s.label}`}
+                      onClick={(e) => { e.stopPropagation(); setShowInfoFor(showing ? null : s.label); }}
+                      className="px-3 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors border-l border-border/40"
+                    >
+                      <Info className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="px-5 py-3 border-t border-border/60 flex justify-end">
+            <Button variant="ghost" size="sm" onClick={() => setStatusModalOpen(false)}>
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

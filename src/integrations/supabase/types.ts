@@ -1298,7 +1298,6 @@ export type Database = {
           name: string
           nickname: string | null
           primary_goal: string | null
-          show_intro: boolean
           strength_level: string | null
           strength_program_start_date: string | null
           surname: string | null
@@ -1338,7 +1337,6 @@ export type Database = {
           name: string
           nickname?: string | null
           primary_goal?: string | null
-          show_intro?: boolean
           strength_level?: string | null
           strength_program_start_date?: string | null
           surname?: string | null
@@ -1378,7 +1376,6 @@ export type Database = {
           name?: string
           nickname?: string | null
           primary_goal?: string | null
-          show_intro?: boolean
           strength_level?: string | null
           strength_program_start_date?: string | null
           surname?: string | null

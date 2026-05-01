@@ -1,7 +1,5 @@
-import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { X, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface MultiDisciplineSelectProps {
   options: string[];
@@ -12,8 +10,8 @@ interface MultiDisciplineSelectProps {
 }
 
 /**
- * Multi-select discipline chips. A session can belong to several disciplines.
- * Selected items appear as removable pills; tap any unselected option to add.
+ * Multi-select discipline buttons in a 2-column grid (matches Activity layout).
+ * Tap a button to toggle; selected = primary, unselected = outline.
  */
 export function MultiDisciplineSelect({
   options,
@@ -34,39 +32,22 @@ export function MultiDisciplineSelect({
     <div className="space-y-2">
       <Label>{label}</Label>
 
-      {/* Selected pills */}
-      {value.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {value.map(d => (
-            <Badge
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {options.map((d) => {
+          const active = value.includes(d);
+          return (
+            <Button
               key={d}
-              variant="default"
-              className="cursor-pointer text-xs px-2.5 py-1 bg-primary text-primary-foreground"
+              type="button"
+              size="sm"
+              variant={active ? 'default' : 'outline'}
+              className={`text-xs min-h-10 h-auto py-2 px-2 whitespace-normal text-center leading-tight break-words ${active ? '' : 'border-border'}`}
               onClick={() => toggle(d)}
             >
               {d}
-              <X className="h-3 w-3 ml-1.5" />
-            </Badge>
-          ))}
-        </div>
-      )}
-
-      {/* Available options */}
-      <div className="flex flex-wrap gap-1.5">
-        {options
-          .filter(o => !value.includes(o))
-          .map(d => (
-            <Badge
-              key={d}
-              variant="outline"
-              className={cn(
-                'cursor-pointer text-xs px-2.5 py-1 border-border hover:border-primary/40 hover:bg-primary/5 transition-colors'
-              )}
-              onClick={() => toggle(d)}
-            >
-              {d}
-            </Badge>
-          ))}
+            </Button>
+          );
+        })}
       </div>
 
       {helper && <p className="text-[11px] text-muted-foreground">{helper}</p>}

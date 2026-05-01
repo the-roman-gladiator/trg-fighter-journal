@@ -230,7 +230,23 @@ export default function Dashboard() {
     setLoading(false);
   };
 
-  if (loading) {
+  const saveFighterStatus = async (status: string) => {
+    if (!user) return;
+    const prev = fighterStatus;
+    setFighterStatus(status);
+    setStatusModalOpen(false);
+    setShowInfoFor(null);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ fighter_status: status } as any)
+      .eq('id', user.id);
+    if (error) {
+      setFighterStatus(prev);
+      toast.error('Failed to update status');
+    } else {
+      toast.success(`Status set to ${status}`);
+    }
+  };
     return <LoadingScreen />;
   }
 

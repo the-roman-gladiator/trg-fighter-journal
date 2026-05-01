@@ -733,7 +733,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             {!stretching && (
             <Card>
               <CardHeader>
-                <CardTitle>Session Details</CardTitle>
+                <CardTitle>{fightReview ? 'Review Fight' : 'Session Details'}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -741,26 +741,35 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Jab timing study" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                {fightReview ? (
                   <div>
                     <Label htmlFor="date">Date</Label>
                     <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
                   </div>
-                  <div>
-                    <Label htmlFor="startTime">Start Time</Label>
-                    <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="endTime">End Time</Label>
-                    <Input id="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-                  </div>
-                  <div>
-                    <Label>Duration</Label>
-                    <p className="text-sm font-medium mt-2 text-muted-foreground">{getDuration() || '—'}</p>
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="date">Date</Label>
+                        <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="startTime">Start Time</Label>
+                        <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="endTime">End Time</Label>
+                        <Input id="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+                      </div>
+                      <div>
+                        <Label>Duration</Label>
+                        <p className="text-sm font-medium mt-2 text-muted-foreground">{getDuration() || '—'}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {!cardio && !strength && (
                   <MultiDisciplineSelect

@@ -25,7 +25,8 @@
     --muted-foreground: 0 0% 62%;
     --accent: 352 70% 18%;
     --accent-foreground: 352 90% 70%;
-    --destructive: 0 75% 52%;
+    /* Canonical Fighter Journal red — #D71920 — only red allowed */
+    --destructive: 358 79% 47%;
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 15%;
     --input: 0 0% 13%;

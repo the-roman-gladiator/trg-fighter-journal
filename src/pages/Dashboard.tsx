@@ -461,13 +461,13 @@ export default function Dashboard() {
                     const yellow = ['In Recovery', 'Post Fight'];
                     const red = ['Off Season', 'Inactive'];
                     const color = green.includes(fighterStatus)
-                      ? 'bg-emerald-500 shadow-[0_0_6px_hsl(142_76%_45%/0.8)]'
+                      ? 'bg-[#00ff66] shadow-[0_0_8px_2px_#00ff66,0_0_16px_4px_rgba(0,255,102,0.6)]'
                       : yellow.includes(fighterStatus)
-                      ? 'bg-amber-400 shadow-[0_0_6px_hsl(45_93%_55%/0.8)]'
+                      ? 'bg-[#ffd400] shadow-[0_0_8px_2px_#ffd400,0_0_16px_4px_rgba(255,212,0,0.6)]'
                       : red.includes(fighterStatus)
-                      ? 'bg-red-500 shadow-[0_0_6px_hsl(0_84%_55%/0.8)]'
+                      ? 'bg-[#ff1a1a] shadow-[0_0_8px_2px_#ff1a1a,0_0_16px_4px_rgba(255,26,26,0.6)]'
                       : 'bg-muted-foreground/40';
-                    return <span className={`inline-block h-2 w-2 rounded-full ${color}`} aria-hidden="true" />;
+                    return <span className={`inline-block h-2.5 w-2.5 rounded-full animate-pulse ${color}`} aria-hidden="true" />;
                   })()}
                 </p>
                 <p className="mt-1 text-[11px] sm:text-sm font-black text-foreground leading-tight uppercase group-hover:text-primary transition-colors break-words">{fighterStatus}</p>

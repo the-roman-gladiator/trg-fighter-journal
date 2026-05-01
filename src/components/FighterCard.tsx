@@ -127,7 +127,7 @@ export function FighterCard({
         </span>
       </div>
 
-      <div className="flex gap-4 p-4">
+      <div className="flex gap-4 p-3">
         {/* Avatar — tall portrait on the left */}
         <button
           type="button"
@@ -135,7 +135,7 @@ export function FighterCard({
           disabled={uploading}
           aria-label="Upload fighter photo"
           className={cn(
-            'relative shrink-0 w-[112px] sm:w-[132px] rounded-md overflow-hidden self-stretch min-h-[320px] sm:min-h-[360px]',
+            'relative shrink-0 w-[100px] sm:w-[120px] rounded-md overflow-hidden self-stretch min-h-[220px] sm:min-h-[260px]',
             'border border-destructive/40 bg-white/5',
             'group focus:outline-none focus:ring-2 focus:ring-destructive/60 transition',
           )}

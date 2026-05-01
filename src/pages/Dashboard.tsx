@@ -18,6 +18,7 @@ import fighterBgLight from '@/assets/dashboard-fighter-bg-light.png';
 import { CoachNoteOffersInbox } from '@/components/coach/CoachNoteOffersInbox';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { FighterCard } from '@/components/FighterCard';
+import { ProfileSetupPrompt } from '@/components/ProfileSetupPrompt';
 
 const MARTIAL_ARTS = ['MMA', 'Muay Thai', 'K1', 'Wrestling', 'Grappling', 'BJJ'];
 
@@ -260,6 +261,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background dark:bg-transparent relative">
+      <ProfileSetupPrompt profile={profile} />
       {/* Light-mode soft background (kept) */}
       <div
         aria-hidden="true"

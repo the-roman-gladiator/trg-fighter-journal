@@ -1231,6 +1231,25 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   </CardContent>
                 </Card>
 
+                {/* Card 2.5 — Details (free comment, after Opponent) */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Details</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Label htmlFor="fightDetails" className="text-xs mb-2 block">
+                      Anything worth remembering — context, camp, weight cut, gameplan, what went down.
+                    </Label>
+                    <Textarea
+                      id="fightDetails"
+                      rows={5}
+                      value={fightFreeComment}
+                      onChange={(e) => setFightFreeComment(e.target.value)}
+                      placeholder="Free notes about the fight…"
+                    />
+                  </CardContent>
+                </Card>
+
                 {/* Card 3 — Rounds */}
                 <Card>
                   <CardHeader>

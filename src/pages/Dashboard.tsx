@@ -72,6 +72,11 @@ export default function Dashboard() {
   const [dailyMotivation, setDailyMotivation] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
+  // Fighter status (manually set)
+  const [fighterStatus, setFighterStatus] = useState<string>('In Training');
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [showInfoFor, setShowInfoFor] = useState<string | null>(null);
+
   // Pie chart data
   const [classTypeData, setClassTypeData] = useState<{ name: string; value: number }[]>([]);
 

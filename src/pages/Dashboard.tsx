@@ -8,7 +8,8 @@ import { ModeSwitcher } from '@/components/ModeSwitcher';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, User, Map, Swords, Shield, Network, GraduationCap, CalendarDays, Clock, BookOpen, CheckCircle2, Flame, Zap, Target, Quote, Sparkles } from 'lucide-react';
+import { Plus, User, Map, Swords, Shield, Network, GraduationCap, CalendarDays, Clock, BookOpen, CheckCircle2, Flame, Zap, Target, Quote, Sparkles, Info, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format, startOfWeek, startOfYear, subDays } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
@@ -27,6 +28,17 @@ const CLASS_TYPE_COLORS: Record<string, string> = {
   'Sparring': '#F9C74F',
   '1o1 PT': '#A78BFA',
 };
+
+const FIGHTER_STATUSES: { label: string; description: string }[] = [
+  { label: 'In Camp', description: 'Preparing for a fight' },
+  { label: 'In Training', description: 'Normal training' },
+  { label: 'Off Season', description: 'Lower-pressure training period' },
+  { label: 'In Recovery', description: 'Injury/fatigue recovery' },
+  { label: 'Fight Week', description: 'Final week before fight' },
+  { label: 'Post Fight', description: 'After competition' },
+  { label: 'In Growth', description: 'Skill development phase' },
+  { label: 'Inactive', description: 'Not currently training or logging regularly' },
+];
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
@@ -59,6 +71,11 @@ export default function Dashboard() {
   const [myDisciplines, setMyDisciplines] = useState<string[]>([]);
   const [dailyMotivation, setDailyMotivation] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  // Fighter status (manually set)
+  const [fighterStatus, setFighterStatus] = useState<string>('In Training');
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [showInfoFor, setShowInfoFor] = useState<string | null>(null);
 
   // Pie chart data
   const [classTypeData, setClassTypeData] = useState<{ name: string; value: number }[]>([]);
@@ -171,7 +188,7 @@ export default function Dashboard() {
     // Fetch profile for journal box
     const { data: prof } = await supabase
       .from('profiles')
-      .select('my_statement, target, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text, avatar_url')
+      .select('my_statement, target, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text, avatar_url, fighter_status')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -180,6 +197,7 @@ export default function Dashboard() {
       setTarget((prof as any).target || '');
       setMyDisciplines(prof.discipline ? prof.discipline.split(',').map((d: string) => d.trim()).filter(Boolean) : []);
       setAvatarUrl((prof as any).avatar_url || null);
+      setFighterStatus((prof as any).fighter_status || 'In Training');
 
       const motivationMode = prof.daily_motivation_mode || 'random';
       if (motivationMode === 'custom' && prof.custom_motivation_text) {
@@ -210,6 +228,24 @@ export default function Dashboard() {
     // through the CoachNoteOffersInbox widget (reads coach_note_offers).
 
     setLoading(false);
+  };
+
+  const saveFighterStatus = async (status: string) => {
+    if (!user) return;
+    const prev = fighterStatus;
+    setFighterStatus(status);
+    setStatusModalOpen(false);
+    setShowInfoFor(null);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ fighter_status: status } as any)
+      .eq('id', user.id);
+    if (error) {
+      setFighterStatus(prev);
+      toast.error('Failed to update status');
+    } else {
+      toast.success(`Status set to ${status}`);
+    }
   };
 
   if (loading) {
@@ -411,15 +447,20 @@ export default function Dashboard() {
         <Card className="bg-[hsl(0_0%_4%)] border-border/70 shadow-[0_0_0_1px_hsl(var(--primary)/0.08),0_8px_24px_-12px_hsl(var(--primary)/0.25)]">
           <CardContent className="p-0">
             <div className="grid grid-cols-4 divide-x divide-border/60">
-              {/* STATUS */}
-              <div className="px-3 py-3 sm:px-4 sm:py-4 text-left">
+              {/* STATUS — clickable */}
+              <button
+                type="button"
+                onClick={() => setStatusModalOpen(true)}
+                className="px-3 py-3 sm:px-4 sm:py-4 text-left hover:bg-primary/5 transition-colors focus:outline-none focus:bg-primary/5 group"
+                aria-label="Change status"
+              >
                 <p className="text-[9px] sm:text-[10px] tracking-[0.18em] uppercase text-muted-foreground font-semibold">Status</p>
-                <p className="mt-1 text-base sm:text-xl font-black text-foreground leading-none">READY</p>
+                <p className="mt-1 text-sm sm:text-lg font-black text-foreground leading-tight uppercase truncate group-hover:text-primary transition-colors">{fighterStatus}</p>
                 <div className="mt-1.5 flex items-center gap-1.5">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_6px_hsl(142_76%_45%/0.8)]" />
-                  <span className="text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-medium">In Camp</span>
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.8)]" />
+                  <span className="text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-medium">Tap to change</span>
                 </div>
-              </div>
+              </button>
               {/* STREAK */}
               <div className="px-2 py-3 sm:px-4 sm:py-4 text-center flex flex-col items-center justify-center">
                 <Flame className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary mb-1" />
@@ -629,6 +670,63 @@ export default function Dashboard() {
           </Card>
         </aside>
       </main>
+
+      {/* CHANGE STATUS modal */}
+      <Dialog open={statusModalOpen} onOpenChange={(o) => { setStatusModalOpen(o); if (!o) setShowInfoFor(null); }}>
+        <DialogContent className="bg-[hsl(0_0%_4%)] border-border/70 max-w-md w-[calc(100%-2rem)] rounded-xl p-0 overflow-hidden">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-border/60">
+            <DialogTitle className="text-sm tracking-[0.22em] uppercase font-bold text-primary">
+              Change Status
+            </DialogTitle>
+            <p className="text-[11px] text-muted-foreground mt-1">Set your current training phase manually.</p>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto p-3 space-y-1.5">
+            {FIGHTER_STATUSES.map((s) => {
+              const selected = s.label === fighterStatus;
+              const showing = showInfoFor === s.label;
+              return (
+                <div
+                  key={s.label}
+                  className={[
+                    'rounded-lg border transition-colors',
+                    selected
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border/60 hover:border-primary/40 hover:bg-primary/5',
+                  ].join(' ')}
+                >
+                  <div className="flex items-stretch">
+                    <button
+                      type="button"
+                      onClick={() => saveFighterStatus(s.label)}
+                      className="flex-1 text-left px-4 py-3 focus:outline-none"
+                    >
+                      <p className={`text-sm font-bold uppercase tracking-wider ${selected ? 'text-primary' : 'text-foreground'}`}>
+                        {s.label}
+                      </p>
+                      {showing && (
+                        <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">{s.description}</p>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`More info about ${s.label}`}
+                      onClick={(e) => { e.stopPropagation(); setShowInfoFor(showing ? null : s.label); }}
+                      className="px-3 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors border-l border-border/40"
+                    >
+                      <Info className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="px-5 py-3 border-t border-border/60 flex justify-end">
+            <Button variant="ghost" size="sm" onClick={() => setStatusModalOpen(false)}>
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

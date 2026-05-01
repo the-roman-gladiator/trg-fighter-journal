@@ -1284,6 +1284,7 @@ export type Database = {
           daily_motivation_mode: string
           discipline: string | null
           email: string
+          fighter_status: string | null
           first_name: string | null
           fitness_level: string | null
           fixed_motivation_id: string | null
@@ -1323,6 +1324,7 @@ export type Database = {
           daily_motivation_mode?: string
           discipline?: string | null
           email: string
+          fighter_status?: string | null
           first_name?: string | null
           fitness_level?: string | null
           fixed_motivation_id?: string | null
@@ -1362,6 +1364,7 @@ export type Database = {
           daily_motivation_mode?: string
           discipline?: string | null
           email?: string
+          fighter_status?: string | null
           first_name?: string | null
           fitness_level?: string | null
           fixed_motivation_id?: string | null

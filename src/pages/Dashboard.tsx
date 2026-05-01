@@ -349,7 +349,7 @@ export default function Dashboard() {
         <span className="sr-only">Fighter Pathway AI</span>
       </button>
 
-      <main className="container mx-auto px-4 py-6 max-w-lg lg:max-w-7xl lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] lg:gap-6 lg:items-start space-y-7 dark:space-y-8 lg:space-y-0 pb-28 relative z-10">
+      <main className="container mx-auto px-4 pt-2 pb-28 max-w-lg lg:max-w-7xl lg:grid lg:grid-cols-[280px_minmax(0,1fr)_320px] lg:gap-6 lg:items-start space-y-3 dark:space-y-4 lg:space-y-0 relative z-10">
         {/* DESKTOP LEFT — Quick Stats Panel */}
         <aside className="hidden lg:block space-y-4 sticky top-4">
           <Card className="border-border bg-card">

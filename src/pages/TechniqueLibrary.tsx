@@ -245,10 +245,10 @@ export default function TechniqueLibrary() {
                                   href={youtubeUrl(tech.youtube_search_query)}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex-shrink-0 p-1.5 rounded-md bg-red-900/20 hover:bg-red-900/40 transition-colors"
+                                  className="flex-shrink-0 p-1.5 rounded-md bg-destructive/15 hover:bg-destructive/30 transition-colors"
                                   onClick={e => e.stopPropagation()}
                                 >
-                                  <ExternalLink className="h-3.5 w-3.5 text-red-400" />
+                                  <ExternalLink className="h-3.5 w-3.5 text-destructive" />
                                 </a>
                               )}
                             </div>

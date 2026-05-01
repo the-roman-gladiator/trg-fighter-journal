@@ -672,21 +672,45 @@ export function SessionForm({ sessionId }: SessionFormProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {classTypeOptions.map((ct) => (
-                <Badge
-                  key={ct}
-                  variant={classType === ct ? 'default' : 'outline'}
-                  className={`cursor-pointer text-sm px-3 py-2 transition-colors ${
-                    classType === ct
-                      ? 'bg-primary text-primary-foreground'
-                      : 'border-border hover:border-primary/40 hover:bg-primary/5'
-                  }`}
-                  onClick={() => setClassType(classType === ct ? '' : ct)}
-                >
-                  {ct}
-                </Badge>
-              ))}
+            <div
+              className="grid grid-cols-3"
+              style={{ gap: 'clamp(8px, 1.6vw, 14px)' }}
+            >
+              {classTypeOptions.map((ct) => {
+                const isActive = classType === ct;
+                return (
+                  <button
+                    key={ct}
+                    type="button"
+                    onClick={() => setClassType(isActive ? '' : ct)}
+                    className="font-bold uppercase text-white transition-colors flex items-center justify-center text-center"
+                    style={{
+                      background: isActive ? '#cc0000' : '#111111',
+                      border: isActive ? '1px solid transparent' : '1px solid #2e2e2e',
+                      borderRadius: '6px',
+                      padding: 'clamp(14px, 3.2vw, 22px) clamp(6px, 1.4vw, 12px)',
+                      minHeight: 'clamp(72px, 14vw, 110px)',
+                      fontSize: 'clamp(10px, 1.8vw, 13px)',
+                      lineHeight: 1.2,
+                      letterSpacing: '0.04em',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = '#4a4a4a';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = '#2e2e2e';
+                      }
+                    }}
+                  >
+                    {ct}
+                  </button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

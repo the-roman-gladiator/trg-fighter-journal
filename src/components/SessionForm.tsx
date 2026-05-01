@@ -1627,9 +1627,10 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                 </div>
               </CardContent>
             </Card>
+            )}
 
-            {/* Effort — universal (cardio uses RPE so we keep the section but it's still useful as supplementary) */}
-            {!cardio && !sparring && !fightReview && (
+            {/* Effort — universal (hidden for stretching) */}
+            {!cardio && !sparring && !fightReview && !stretching && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

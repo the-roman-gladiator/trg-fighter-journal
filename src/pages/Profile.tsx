@@ -804,25 +804,9 @@ export default function Profile() {
             <CollapsibleContent>
               <Card className="mt-3">
                 <CardContent className="pt-6 space-y-6">
-                  {/* Theme Mode */}
+                  {/* Input Text Colour */}
                   <div>
-                    <Label className="mb-2 block">Theme Mode</Label>
-                    <div className="flex gap-2">
-                      {(['dark', 'light'] as const).map(mode => (
-                        <button key={mode} type="button" onClick={() => handleThemeChange(mode)}
-                          className={`flex-1 px-4 py-3 rounded-lg text-sm font-semibold uppercase transition-all border ${
-                            themeMode === mode
-                              ? 'bg-primary text-primary-foreground border-primary ring-2 ring-primary/30'
-                              : 'border-border text-muted-foreground hover:border-primary/40'
-                          }`}
-                        >{mode}</button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Input Text Color */}
-                  <div>
-                    <Label className="mb-2 block">Input Font Color</Label>
+                    <Label className="mb-2 block">Input Font Colour</Label>
                     <div className="flex gap-2 flex-wrap">
                       {INPUT_COLOR_PRESETS.map(p => (
                         <button key={p.value} type="button" onClick={() => handleInputColorChange(p.value)}

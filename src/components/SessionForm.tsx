@@ -926,8 +926,30 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               </Card>
             )}
 
-            {/* Stretching & Mobility */}
-            {stretching && (
+            {/* Stretching & Mobility — simple personal record */}
+            {stretching && (() => {
+              const STRETCH_SUGGESTIONS: Record<string, string[]> = {
+                'Hips': ['Pigeon pose', '90/90 hip switch', 'Deep squat hold', 'Butterfly stretch'],
+                'Hamstrings': ['Forward fold', 'Single-leg hamstring stretch', 'Downward dog', 'Jefferson curl'],
+                'Lower Back': ["Child's pose", 'Cat-cow', 'Supine twist', 'Knees-to-chest'],
+                'Upper Back': ['Thread the needle', 'Thoracic extension on foam roller', 'Cat-cow', 'Wall angels'],
+                'Shoulders': ['Cross-body shoulder stretch', 'Sleeper stretch', 'Doorway pec stretch', 'Shoulder dislocates'],
+                'Neck': ['Upper trap stretch', 'Levator scapulae stretch', 'Chin tucks', 'Neck rotations'],
+                'Quads': ['Standing quad stretch', 'Couch stretch', 'Kneeling lunge stretch', 'Side-lying quad stretch'],
+                'Calves': ['Wall calf stretch', 'Downward dog calf pulse', 'Soleus stretch', 'Step-down stretch'],
+                'Ankles': ['Ankle CARs', 'Banded ankle mobilization', 'Heel sit', 'Calf raises slow'],
+                'Wrists': ['Wrist flexor stretch', 'Wrist extensor stretch', 'Prayer stretch', 'Wrist CARs'],
+                'Chest': ['Doorway pec stretch', 'Floor angel', 'Cobra pose', 'Foam roller chest opener'],
+                'Glutes': ['Figure-4 stretch', 'Pigeon pose', 'Seated glute stretch', 'Supine glute stretch'],
+                'Full Body': ["Sun salutation flow", "Child's pose", 'Cat-cow', 'Standing forward fold'],
+              };
+              const suggested = Array.from(new Set(stretchFocusAreas.flatMap((a) => STRETCH_SUGGESTIONS[a] || [])));
+              const addExercise = (name: string, duration = '') => {
+                if (!name.trim()) return;
+                if (stretchExercises.some((e) => e.name.toLowerCase() === name.toLowerCase())) return;
+                setStretchExercises([...stretchExercises, { name: name.trim(), duration: duration.trim() }]);
+              };
+              return (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -937,8 +959,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label className="text-xs mb-2 block">Focus Areas</Label>
-                    <div className="flex flex-wrap gap-1.5">
+                    <Label className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2 block">Focus Areas</Label>
+                    <div className="flex flex-wrap gap-1">
                       {[
                         'Hips', 'Hamstrings', 'Lower Back', 'Upper Back',
                         'Shoulders', 'Neck', 'Quads', 'Calves',
@@ -947,14 +969,9 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                       ].map((area) => {
                         const active = stretchFocusAreas.includes(area);
                         return (
-                          <Badge
+                          <button
                             key={area}
-                            variant={active ? 'default' : 'outline'}
-                            className={`cursor-pointer text-xs px-2.5 py-1 transition-colors ${
-                              active
-                                ? 'bg-primary text-primary-foreground'
-                                : 'border-border hover:border-primary/40 hover:bg-primary/5'
-                            }`}
+                            type="button"
                             onClick={() =>
                               setStretchFocusAreas(
                                 active
@@ -962,64 +979,97 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                                   : [...stretchFocusAreas, area],
                               )
                             }
+                            className={`text-[11px] px-2 py-1 rounded-md border transition-colors ${
+                              active
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'border-border bg-secondary/30 hover:border-primary/40 hover:bg-primary/5 text-foreground'
+                            }`}
                           >
                             {area}
-                          </Badge>
+                          </button>
                         );
                       })}
                     </div>
                   </div>
 
                   <div>
-                    <Label className="text-xs mb-2 block">Exercises</Label>
+                    <Label className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2 block">Exercises</Label>
                     {stretchExercises.length > 0 && (
-                      <div className="space-y-1.5 mb-3">
+                      <div className="flex flex-wrap gap-1.5 mb-3">
                         {stretchExercises.map((ex, i) => (
                           <div
                             key={i}
-                            className="flex items-center justify-between gap-2 px-3 py-2 rounded-md border border-border bg-secondary/30"
+                            className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-md border border-primary/40 bg-primary/10 text-xs"
                           >
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium truncate">{ex.name}</p>
-                              {ex.duration && (
-                                <p className="text-xs text-muted-foreground">{ex.duration}</p>
-                              )}
-                            </div>
-                            <Button
+                            <span className="font-medium">{ex.name}</span>
+                            {ex.duration && (
+                              <span className="text-muted-foreground">· {ex.duration}</span>
+                            )}
+                            <button
                               type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 w-7 p-0 text-destructive"
+                              className="h-4 w-4 inline-flex items-center justify-center text-destructive hover:bg-destructive/10 rounded"
                               onClick={() =>
                                 setStretchExercises(stretchExercises.filter((_, j) => j !== i))
                               }
+                              aria-label={`Remove ${ex.name}`}
                             >
                               ×
-                            </Button>
+                            </button>
                           </div>
                         ))}
                       </div>
                     )}
-                    <div className="grid grid-cols-[1fr_110px_auto] gap-2">
+
+                    {suggested.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                          Suggestions for selected areas
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {suggested.map((name) => {
+                            const already = stretchExercises.some(
+                              (e) => e.name.toLowerCase() === name.toLowerCase(),
+                            );
+                            return (
+                              <button
+                                key={name}
+                                type="button"
+                                disabled={already}
+                                onClick={() => addExercise(name)}
+                                className={`text-[11px] px-2 py-1 rounded-md border transition-colors ${
+                                  already
+                                    ? 'border-primary/30 bg-primary/10 text-muted-foreground cursor-default'
+                                    : 'border-dashed border-border hover:border-primary/50 hover:bg-primary/5'
+                                }`}
+                              >
+                                {already ? '✓ ' : '+ '}{name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-[1fr_90px_auto] gap-1.5">
                       <Input
+                        className="h-8 text-xs"
                         value={stretchNewName}
                         onChange={(e) => setStretchNewName(e.target.value)}
-                        placeholder="e.g., Pigeon pose"
+                        placeholder="Custom exercise"
                       />
                       <Input
+                        className="h-8 text-xs"
                         value={stretchNewDuration}
                         onChange={(e) => setStretchNewDuration(e.target.value)}
-                        placeholder="e.g., 60s"
+                        placeholder="60s"
                       />
                       <Button
                         type="button"
                         size="sm"
+                        className="h-8"
                         disabled={!stretchNewName.trim()}
                         onClick={() => {
-                          setStretchExercises([
-                            ...stretchExercises,
-                            { name: stretchNewName.trim(), duration: stretchNewDuration.trim() },
-                          ]);
+                          addExercise(stretchNewName, stretchNewDuration);
                           setStretchNewName('');
                           setStretchNewDuration('');
                         }}
@@ -1030,7 +1080,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                   </div>
                 </CardContent>
               </Card>
-            )}
+              );
+            })()}
 
             {/* My Fight Review */}
             {fightReview && (

@@ -1401,25 +1401,19 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <Label className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2 block">Activity</Label>
-                    <div className="flex flex-wrap gap-1">
-                      {CARDIO_ACTIVITIES.map((a) => {
-                        const active = cardioActivity === a;
-                        return (
-                          <button
-                            key={a}
-                            type="button"
-                            onClick={() => setCardioActivity(active ? '' : a)}
-                            className={`text-[11px] px-2 py-1 rounded-md border transition-colors ${
-                              active
-                                ? 'bg-primary text-primary-foreground border-primary'
-                                : 'border-border bg-secondary/30 hover:border-primary/40 hover:bg-primary/5 text-foreground'
-                            }`}
-                          >
-                            {a}
-                          </button>
-                        );
-                      })}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {CARDIO_ACTIVITIES.map((a) => (
+                        <Button
+                          key={a}
+                          type="button"
+                          size="sm"
+                          variant={cardioActivity === a ? 'default' : 'outline'}
+                          className={`text-xs min-h-10 h-auto py-2 px-2 whitespace-normal text-center leading-tight break-words ${cardioActivity === a ? '' : 'border-border'}`}
+                          onClick={() => setCardioActivity(cardioActivity === a ? '' : a)}
+                        >
+                          {a}
+                        </Button>
+                      ))}
                     </div>
                     {cardioActivity === 'Other' && (
                       <div>

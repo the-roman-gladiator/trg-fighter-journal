@@ -599,21 +599,22 @@ export function SessionForm({ sessionId }: SessionFormProps) {
   );
 
   const ChipSelect = ({ options, value, onChange }: { options: string[]; value: string; onChange: (v: string) => void }) => (
-    <div className="flex flex-wrap gap-1.5">
-      {options.map((opt) => (
-        <Badge
-          key={opt}
-          variant={value === opt ? 'default' : 'outline'}
-          className={`cursor-pointer text-xs px-2.5 py-1 transition-colors ${
-            value === opt
-              ? 'bg-primary text-primary-foreground'
-              : 'border-border hover:border-primary/40 hover:bg-primary/5'
-          }`}
-          onClick={() => onChange(value === opt ? '' : opt)}
-        >
-          {opt}
-        </Badge>
-      ))}
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      {options.map((opt) => {
+        const active = value === opt;
+        return (
+          <Button
+            key={opt}
+            type="button"
+            size="sm"
+            variant={active ? 'default' : 'outline'}
+            className={`text-xs min-h-10 h-auto py-2 px-2 whitespace-normal text-center leading-tight break-words ${active ? '' : 'border-border'}`}
+            onClick={() => onChange(active ? '' : opt)}
+          >
+            {opt}
+          </Button>
+        );
+      })}
     </div>
   );
 

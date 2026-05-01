@@ -819,6 +819,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                 )}
               </CardContent>
             </Card>
+            )}
 
             {/* Movement Chain — technical & sparring */}
             {showTechnicalEntry && (

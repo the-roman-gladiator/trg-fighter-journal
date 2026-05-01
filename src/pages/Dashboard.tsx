@@ -581,46 +581,6 @@ export default function Dashboard() {
         {/* Library moved to floating button (top-right on desktop, lower-right on mobile) */}
 
 
-        {/* Pie Chart — Type Classes Distribution */}
-        <Card className="border-border bg-card">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Target className="h-4 w-4 text-primary" />
-              <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">Training Distribution</p>
-            </div>
-            {classTypeData.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No class type data recorded yet. Start logging sessions with a Type Class to see your distribution.</p>
-            ) : (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={classTypeData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
-                      paddingAngle={3}
-                      dataKey="value"
-                      nameKey="name"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      labelLine={false}
-                    >
-                      {classTypeData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={CLASS_TYPE_COLORS[entry.name] || '#888'} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
-                      formatter={(value: number, name: string) => [`${value} sessions`, name]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
         {/* Coach Notes offered to me — student saves create their own training session copy */}
         <CoachNoteOffersInbox />
 

@@ -447,15 +447,20 @@ export default function Dashboard() {
         <Card className="bg-[hsl(0_0%_4%)] border-border/70 shadow-[0_0_0_1px_hsl(var(--primary)/0.08),0_8px_24px_-12px_hsl(var(--primary)/0.25)]">
           <CardContent className="p-0">
             <div className="grid grid-cols-4 divide-x divide-border/60">
-              {/* STATUS */}
-              <div className="px-3 py-3 sm:px-4 sm:py-4 text-left">
+              {/* STATUS — clickable */}
+              <button
+                type="button"
+                onClick={() => setStatusModalOpen(true)}
+                className="px-3 py-3 sm:px-4 sm:py-4 text-left hover:bg-primary/5 transition-colors focus:outline-none focus:bg-primary/5 group"
+                aria-label="Change status"
+              >
                 <p className="text-[9px] sm:text-[10px] tracking-[0.18em] uppercase text-muted-foreground font-semibold">Status</p>
-                <p className="mt-1 text-base sm:text-xl font-black text-foreground leading-none">READY</p>
+                <p className="mt-1 text-sm sm:text-lg font-black text-foreground leading-tight uppercase truncate group-hover:text-primary transition-colors">{fighterStatus}</p>
                 <div className="mt-1.5 flex items-center gap-1.5">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_6px_hsl(142_76%_45%/0.8)]" />
-                  <span className="text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-medium">In Camp</span>
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.8)]" />
+                  <span className="text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-medium">Tap to change</span>
                 </div>
-              </div>
+              </button>
               {/* STREAK */}
               <div className="px-2 py-3 sm:px-4 sm:py-4 text-center flex flex-col items-center justify-center">
                 <Flame className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary mb-1" />

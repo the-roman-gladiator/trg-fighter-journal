@@ -454,7 +454,22 @@ export default function Dashboard() {
                 className="px-3 py-3 sm:px-4 sm:py-4 text-left hover:bg-primary/5 transition-colors focus:outline-none focus:bg-primary/5 group"
                 aria-label="Change status"
               >
-                <p className="text-[9px] sm:text-[10px] tracking-[0.18em] uppercase text-muted-foreground font-semibold">Status</p>
+                <p className="text-[9px] sm:text-[10px] tracking-[0.18em] uppercase text-muted-foreground font-semibold flex items-center gap-1.5">
+                  Status
+                  {(() => {
+                    const green = ['In Camp', 'In Training', 'Fight Week', 'In Growth'];
+                    const yellow = ['In Recovery', 'Post Fight'];
+                    const red = ['Off Season', 'Inactive'];
+                    const color = green.includes(fighterStatus)
+                      ? 'bg-emerald-500 shadow-[0_0_6px_hsl(142_76%_45%/0.8)]'
+                      : yellow.includes(fighterStatus)
+                      ? 'bg-amber-400 shadow-[0_0_6px_hsl(45_93%_55%/0.8)]'
+                      : red.includes(fighterStatus)
+                      ? 'bg-red-500 shadow-[0_0_6px_hsl(0_84%_55%/0.8)]'
+                      : 'bg-muted-foreground/40';
+                    return <span className={`inline-block h-2 w-2 rounded-full ${color}`} aria-hidden="true" />;
+                  })()}
+                </p>
                 <p className="mt-1 text-[11px] sm:text-sm font-black text-foreground leading-tight uppercase group-hover:text-primary transition-colors break-words">{fighterStatus}</p>
               </button>
               {/* STREAK */}

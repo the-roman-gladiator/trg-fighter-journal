@@ -28,7 +28,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const StrengthTraining = lazy(() => import("./pages/StrengthTraining"));
 const WorkoutSessionPage = lazy(() => import("./pages/WorkoutSessionPage"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
-const Intro = lazy(() => import("./pages/Intro"));
+
 const BeginnerDashboard = lazy(() => import("./pages/BeginnerDashboard"));
 const GuidedSession = lazy(() => import("./pages/GuidedSession"));
 const MyPathway = lazy(() => import("./pages/MyPathway"));

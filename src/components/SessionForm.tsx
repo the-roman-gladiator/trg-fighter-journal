@@ -729,7 +729,8 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         {/* Everything below requires a classType */}
         {classType && (
           <>
-            {/* Session Details */}
+            {/* Session Details — hidden for Stretching & Mobility (simple personal record) */}
+            {!stretching && (
             <Card>
               <CardHeader>
                 <CardTitle>Session Details</CardTitle>

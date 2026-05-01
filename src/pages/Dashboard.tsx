@@ -260,6 +260,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background dark:bg-transparent relative">
+      <ProfileSetupPrompt profile={profile} />
       {/* Light-mode soft background (kept) */}
       <div
         aria-hidden="true"

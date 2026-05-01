@@ -29,6 +29,17 @@ const CLASS_TYPE_COLORS: Record<string, string> = {
   '1o1 PT': '#A78BFA',
 };
 
+const FIGHTER_STATUSES: { label: string; description: string }[] = [
+  { label: 'In Camp', description: 'Preparing for a fight' },
+  { label: 'In Training', description: 'Normal training' },
+  { label: 'Off Season', description: 'Lower-pressure training period' },
+  { label: 'In Recovery', description: 'Injury/fatigue recovery' },
+  { label: 'Fight Week', description: 'Final week before fight' },
+  { label: 'Post Fight', description: 'After competition' },
+  { label: 'In Growth', description: 'Skill development phase' },
+  { label: 'Inactive', description: 'Not currently training or logging regularly' },
+];
+
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
   const { settings, getDisciplineColor } = useUserSettings();

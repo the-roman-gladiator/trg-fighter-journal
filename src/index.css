@@ -94,18 +94,18 @@
     --popover-foreground: 0 0% 8%;
     --primary: 358 79% 47%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 352 90% 56%;
+    --primary-glow: 358 79% 58%;
     --secondary: 0 0% 94%;
     --secondary-foreground: 0 0% 18%;
     --muted: 0 0% 94%;
     --muted-foreground: 0 0% 38%;
-    --accent: 352 80% 95%;
-    --accent-foreground: 352 84% 32%;
+    --accent: 358 80% 95%;
+    --accent-foreground: 358 79% 32%;
     --destructive: 358 79% 47%;
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 88%;
     --input: 0 0% 92%;
-    --ring: 352 84% 42%;
+    --ring: 358 79% 47%;
 
     /* Light gradients */
     --gradient-primary: linear-gradient(135deg, hsl(352 84% 42%), hsl(352 90% 56%));

@@ -65,6 +65,8 @@ export default function Dashboard() {
   const [longestStreak, setLongestStreak] = useState(0);
   const [avgEffort, setAvgEffort] = useState(0);
   const [weeklySessions, setWeeklySessions] = useState(0);
+  const [trainingDays, setTrainingDays] = useState<string[]>([]);
+  const [weekEntryDays, setWeekEntryDays] = useState<Set<string>>(new Set()); // 'mon'..'sun' that have any journal entry this week
 
   // Journal box state
   const [myStatement, setMyStatement] = useState('');

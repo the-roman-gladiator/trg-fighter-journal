@@ -152,6 +152,38 @@ export default function MyPathway() {
   const uniqueStrategies = [...new Set(pathwayChains.map(c => c.strategy).filter(Boolean))];
   const uniqueTechniques = [...new Set(pathwayChains.map(c => c.technique).filter(Boolean))];
 
+  // Group all sessions by pathway category (uses the same routing as SessionForm).
+  const sessionsByCategory = useMemo(() => {
+    const map: Record<PathwayCategoryKey, any[]> = {
+      technical: [], sparring: [], strength: [], cardio: [], stretching: [], fight_review: [],
+    };
+    for (const s of allSessions) {
+      const cat = classTypeCategory((s as any).class_type) as SessionCategory;
+      // Fall back: sessions with technical movement chains but no class_type still count as technical
+      if (cat === 'other') {
+        if (s.first_movement || s.opponent_action || s.second_movement || (s as any).technique) {
+          map.technical.push(s);
+        }
+        continue;
+      }
+      if (cat in map) map[cat as PathwayCategoryKey].push(s);
+    }
+    return map;
+  }, [allSessions]);
+
+  const categoryStats = (key: PathwayCategoryKey) => {
+    const list = sessionsByCategory[key] || [];
+    const count = list.length;
+    const latest = list[0]; // already sorted desc by date
+    const intensities = list
+      .map(s => Number((s as any).effort_score))
+      .filter(v => Number.isFinite(v) && v > 0);
+    const avgIntensity = intensities.length > 0
+      ? (intensities.reduce((a, b) => a + b, 0) / intensities.length)
+      : null;
+    return { count, latest, avgIntensity };
+  };
+
   const toggleTag = async (tagName: string) => {
     const newSelected = selectedTags.includes(tagName)
       ? selectedTags.filter(t => t !== tagName)

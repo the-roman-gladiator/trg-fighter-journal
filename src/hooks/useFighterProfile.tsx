@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -16,7 +16,28 @@ export interface FighterProfile {
   updated_at: string;
 }
 
-export function useFighterProfile() {
+interface FighterProfileContextValue {
+  fighterProfile: FighterProfile | null;
+  loading: boolean;
+  isHeadCoach: boolean;
+  isFighterApproved: boolean;
+  requestFighterAccess: (disciplines: string[]) => Promise<void>;
+  refreshFighterProfile: () => Promise<void>;
+}
+
+const FighterProfileContext = createContext<FighterProfileContextValue>({
+  fighterProfile: null,
+  loading: true,
+  isHeadCoach: false,
+  isFighterApproved: false,
+  requestFighterAccess: async () => {},
+  refreshFighterProfile: async () => {},
+});
+
+export const useFighterProfile = (): FighterProfileContextValue =>
+  useContext(FighterProfileContext);
+
+export function FighterProfileProvider({ children }: { children: ReactNode }) {
   const { user, profile } = useAuth();
   const [fighterProfile, setFighterProfile] = useState<FighterProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +46,11 @@ export function useFighterProfile() {
   const isFighterApproved = fighterProfile?.fighter_status === 'approved';
 
   const fetchFighterProfile = useCallback(async () => {
-    if (!user) { setLoading(false); return; }
+    if (!user) {
+      setFighterProfile(null);
+      setLoading(false);
+      return;
+    }
     const { data } = await supabase
       .from('fighter_profiles')
       .select('*')
@@ -35,7 +60,9 @@ export function useFighterProfile() {
     setLoading(false);
   }, [user]);
 
-  useEffect(() => { fetchFighterProfile(); }, [fetchFighterProfile]);
+  useEffect(() => {
+    fetchFighterProfile();
+  }, [fetchFighterProfile]);
 
   const requestFighterAccess = async (disciplines: string[]) => {
     if (!user) return;
@@ -65,12 +92,18 @@ export function useFighterProfile() {
     await fetchFighterProfile();
   };
 
-  return {
-    fighterProfile,
-    loading,
-    isHeadCoach,
-    isFighterApproved,
-    requestFighterAccess,
-    refreshFighterProfile: fetchFighterProfile,
-  };
+  return (
+    <FighterProfileContext.Provider
+      value={{
+        fighterProfile,
+        loading,
+        isHeadCoach,
+        isFighterApproved,
+        requestFighterAccess,
+        refreshFighterProfile: fetchFighterProfile,
+      }}
+    >
+      {children}
+    </FighterProfileContext.Provider>
+  );
 }

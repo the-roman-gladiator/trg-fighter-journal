@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -11,7 +11,16 @@ interface UseSubscriptionResult {
   loading: boolean;
 }
 
-export function useSubscription(): UseSubscriptionResult {
+const SubscriptionContext = createContext<UseSubscriptionResult>({
+  tier: 'free',
+  isPro: false,
+  isAdmin: false,
+  loading: true,
+});
+
+export const useSubscription = (): UseSubscriptionResult => useContext(SubscriptionContext);
+
+export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [tier, setTier] = useState<SubscriptionTier>('free');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -56,5 +65,9 @@ export function useSubscription(): UseSubscriptionResult {
 
   const isPro = isAdmin || tier === 'pro' || tier === 'pro_coach';
 
-  return { tier, isPro, isAdmin, loading };
+  return (
+    <SubscriptionContext.Provider value={{ tier, isPro, isAdmin, loading }}>
+      {children}
+    </SubscriptionContext.Provider>
+  );
 }

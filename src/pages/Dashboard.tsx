@@ -14,7 +14,6 @@ import { format, startOfWeek, startOfYear, subDays } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import fighterBgDark from '@/assets/dashboard-bg-octagon.png';
-import fighterBgLight from '@/assets/dashboard-fighter-bg-light.png';
 import { CoachNoteOffersInbox } from '@/components/coach/CoachNoteOffersInbox';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { FighterCard } from '@/components/FighterCard';
@@ -100,29 +99,56 @@ export default function Dashboard() {
     const yearStart = format(startOfYear(new Date()), 'yyyy-MM-dd');
     const sevenDaysAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd');
 
-    // Fetch last 7 days sessions for stats only
-    const { data: recent } = await supabase
-      .from('training_sessions')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('session_type', 'Completed')
-      .gte('date', sevenDaysAgo)
-      .order('date', { ascending: false })
-      .limit(50);
+    // Fire all independent queries in parallel
+    const [recentRes, yearRes, allRes, deepRes, profRes] = await Promise.all([
+      supabase
+        .from('training_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('session_type', 'Completed')
+        .gte('date', sevenDaysAgo)
+        .order('date', { ascending: false })
+        .limit(50),
+      supabase
+        .from('training_sessions')
+        .select('date')
+        .eq('user_id', user.id)
+        .eq('session_type', 'Completed')
+        .gte('date', yearStart),
+      supabase
+        .from('training_sessions')
+        .select('class_type')
+        .eq('user_id', user.id)
+        .eq('session_type', 'Completed')
+        .not('class_type', 'is', null),
+      supabase
+        .from('training_sessions')
+        .select('id, date, title, discipline, disciplines, strategy, class_type, notes, technique')
+        .eq('user_id', user.id)
+        .eq('session_type', 'Completed')
+        .order('date', { ascending: false })
+        .limit(200),
+      supabase
+        .from('profiles')
+        .select('my_statement, target, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text, avatar_url, fighter_status, training_days')
+        .eq('id', user.id)
+        .maybeSingle(),
+    ]);
+
+    const recent = recentRes.data;
+    const yearSessions = yearRes.data;
+    const allSessions = allRes.data;
+    const deepSessions = deepRes.data;
+    const prof = profRes.data;
 
     // Weekly sessions count (Monday-Sunday)
     const weekSessions = (recent || []).filter(s => s.date >= mondayOfThisWeek);
     setWeeklySessions(weekSessions.length);
 
-    // Training days from profile
-    const { data: profRow } = await supabase
-      .from('profiles')
-      .select('training_days')
-      .eq('id', user.id)
-      .maybeSingle();
-    setTrainingDays(((profRow as any)?.training_days as string[] | null) || []);
+    // Training days from profile (now part of the parallel fetch above)
+    setTrainingDays(((prof as any)?.training_days as string[] | null) || []);
 
-    // Daily reflections this week
+    // Daily reflections this week (depends on nothing else, but cheap; keep separate for clarity)
     const { data: weekReflections } = await supabase
       .from('daily_reflections')
       .select('reflection_date')
@@ -151,12 +177,6 @@ export default function Dashboard() {
     setAvgEffort(effortScores.length > 0 ? Math.round((effortScores.reduce((a: number, b: number) => a + b, 0) / effortScores.length) * 10) / 10 : 0);
 
     // Yearly streak
-    const { data: yearSessions } = await supabase
-      .from('training_sessions')
-      .select('date')
-      .eq('user_id', user.id)
-      .eq('session_type', 'Completed')
-      .gte('date', yearStart);
     const uniqueDays = new Set((yearSessions || []).map((s: any) => s.date));
     setYearlyStreak(uniqueDays.size);
 
@@ -177,14 +197,7 @@ export default function Dashboard() {
     }
     setLongestStreak(best);
 
-    // Fetch ALL sessions for pie chart (class_type distribution)
-    const { data: allSessions } = await supabase
-      .from('training_sessions')
-      .select('class_type')
-      .eq('user_id', user.id)
-      .eq('session_type', 'Completed')
-      .not('class_type', 'is', null);
-
+    // Class-type pie data
     const typeCounts: Record<string, number> = {};
     (allSessions || []).forEach((s: any) => {
       if (s.class_type) {
@@ -195,14 +208,6 @@ export default function Dashboard() {
     setClassTypeData(pieData);
 
     // Discipline + Strategy breakdowns + latest notes (for desktop side panels)
-    const { data: deepSessions } = await supabase
-      .from('training_sessions')
-      .select('id, date, title, discipline, disciplines, strategy, class_type, notes, technique')
-      .eq('user_id', user.id)
-      .eq('session_type', 'Completed')
-      .order('date', { ascending: false })
-      .limit(200);
-
     const discCounts: Record<string, number> = {};
     const stratCounts: Record<string, number> = {};
     (deepSessions || []).forEach((s: any) => {
@@ -219,13 +224,6 @@ export default function Dashboard() {
       Object.entries(stratCounts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value)
     );
     setLatestNotes((deepSessions || []).slice(0, 8));
-
-    // Fetch profile for journal box
-    const { data: prof } = await supabase
-      .from('profiles')
-      .select('my_statement, target, discipline, daily_motivation_mode, fixed_motivation_id, custom_motivation_text, avatar_url, fighter_status')
-      .eq('id', user.id)
-      .maybeSingle();
 
     if (prof) {
       setMyStatement(prof.my_statement || '');
@@ -291,29 +289,11 @@ export default function Dashboard() {
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const nickname = profile?.nickname || '';
 
-  const fighterBg = settings.theme_mode === 'light' ? fighterBgLight : fighterBgDark;
+  const fighterBg = fighterBgDark;
 
   return (
     <div className="min-h-screen bg-background dark:bg-transparent relative">
       <ProfileSetupPrompt profile={profile} />
-      {/* Light-mode soft background (kept) */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 dark:hidden"
-        style={{
-          backgroundImage: `url(${fighterBgLight})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center top',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.18,
-          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 80%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 80%)',
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 dark:hidden bg-gradient-to-b from-background/60 via-background/40 to-background"
-      />
 
       {/* Premium hero header — bold sports-headline */}
       <header className="relative z-10 border-b border-border/60 bg-gradient-to-b from-[hsl(0_0%_4%)] via-[hsl(0_0%_5%)] to-[hsl(0_0%_3.5%)]">

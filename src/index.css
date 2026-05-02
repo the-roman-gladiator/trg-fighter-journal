@@ -1,6 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&display=swap');
+/* Fonts are loaded via <link> in index.html for non-blocking render. */
 
 @tailwind base;
 @tailwind components;
@@ -83,85 +81,7 @@
     --font-headline: 'Barlow Condensed', 'Inter', sans-serif;
   }
 
-  /* TRG Light Theme — clean inverse of the dark gladiator theme */
-  [data-theme='light'] {
-    --background: 0 0% 98%;
-    --foreground: 0 0% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
-    --card-elevated: 0 0% 96%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
-    --primary: 358 79% 47%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 358 79% 58%;
-    --secondary: 0 0% 94%;
-    --secondary-foreground: 0 0% 18%;
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 38%;
-    --accent: 358 80% 95%;
-    --accent-foreground: 358 79% 32%;
-    --destructive: 358 79% 47%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 88%;
-    --input: 0 0% 92%;
-    --ring: 358 79% 47%;
-
-    /* Light gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(358 79% 47%), hsl(358 79% 58%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 97%));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 99%) 0%, hsl(358 60% 96%) 100%);
-
-    /* Light shadows */
-    --shadow-glow: 0 0 24px hsl(358 79% 47% / 0.18);
-    --shadow-card-premium: 0 4px 16px -4px hsl(0 0% 0% / 0.08), 0 0 0 1px hsl(0 0% 0% / 0.04);
-
-    /* Strategy semantic colors — slightly deeper for contrast on light bg */
-    --strategy-attacking: 358 72% 46%;
-    --strategy-defending: 217 85% 48%;
-    --strategy-countering: 28 95% 46%;
-    --strategy-control: 265 65% 46%;
-    --strategy-transitions: 170 60% 36%;
-    --strategy-intercepting: 38 92% 44%;
-
-    /* Chart colors */
-    --chart-1: 358 78% 46%;
-    --chart-2: 217 85% 48%;
-    --chart-3: 28 95% 46%;
-    --chart-4: 265 65% 46%;
-    --chart-5: 170 60% 36%;
-
-    /* Sidebar */
-    --sidebar-background: 0 0% 99%;
-    --sidebar-foreground: 0 0% 12%;
-    --sidebar-primary: 358 79% 47%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 94%;
-    --sidebar-accent-foreground: 0 0% 22%;
-    --sidebar-border: 0 0% 88%;
-    --sidebar-ring: 358 79% 47%;
-    --sidebar: 0 0% 99%;
-
-    /* Lighter shadows */
-    --shadow-2xs: 0 1px 2px 0px hsl(0 0% 0% / 0.04);
-    --shadow-xs: 0 1px 2px 0px hsl(0 0% 0% / 0.05);
-    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.06);
-    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.06);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.08), 0 2px 4px -2px hsl(0 0% 0% / 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.08), 0 4px 6px -4px hsl(0 0% 0% / 0.06);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.10), 0 8px 10px -6px hsl(0 0% 0% / 0.06);
-    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.18);
-  }
-
-  /* Adjust body backdrop & scrollbar in light mode (overrides defaults below) */
-  [data-theme='light'] body {
-    background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(358 70% 92% / 0.55), transparent 60%),
-      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(358 70% 95% / 0.5), transparent 70%);
-  }
-  [data-theme='light'] ::-webkit-scrollbar-track { background: hsl(0 0% 94%); }
-  [data-theme='light'] ::-webkit-scrollbar-thumb { background: hsl(0 0% 75%); }
-  [data-theme='light'] ::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.5); }
+  /* Light theme removed — app is dark-only. */
 }
 
 @layer base {
@@ -218,20 +138,7 @@
   input[type="month"], input[type="week"] {
     color-scheme: dark;
   }
-  [data-theme='light'] input[type="date"],
-  [data-theme='light'] input[type="time"],
-  [data-theme='light'] input[type="datetime-local"],
-  [data-theme='light'] input[type="month"],
-  [data-theme='light'] input[type="week"] {
-    color-scheme: light;
-  }
-  [data-theme='light'] input[type="date"]::-webkit-calendar-picker-indicator,
-  [data-theme='light'] input[type="time"]::-webkit-calendar-picker-indicator,
-  [data-theme='light'] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
-  [data-theme='light'] input[type="month"]::-webkit-calendar-picker-indicator,
-  [data-theme='light'] input[type="week"]::-webkit-calendar-picker-indicator {
-    filter: none;
-  }
+  /* Light theme rules removed — app is dark-only. */
 }
 
 /* Strategy badge utility classes */
@@ -268,87 +175,7 @@
   }
 }
 
-/* Bottom navigation light-mode override: red background with white icons & text */
-[data-theme='light'] nav[data-bottom-nav] {
-  background-color: hsl(var(--primary)) !important;
-  border-top-color: hsl(0 0% 0% / 0.2);
-  box-shadow: 0 -8px 32px -8px hsl(0 0% 0% / 0.25);
-}
-[data-theme='light'] nav[data-bottom-nav]::before {
-  background: linear-gradient(to right, transparent, hsl(0 0% 0% / 0.4), transparent);
-}
-[data-theme='light'] nav[data-bottom-nav] .nav-item-inactive,
-[data-theme='light'] nav[data-bottom-nav] .nav-item-inactive svg {
-  color: hsl(0 0% 100% / 0.8) !important;
-}
-[data-theme='light'] nav[data-bottom-nav] .nav-item-inactive:hover,
-[data-theme='light'] nav[data-bottom-nav] .nav-item-inactive:hover svg {
-  color: hsl(0 0% 100%) !important;
-}
-[data-theme='light'] nav[data-bottom-nav] .nav-item-active,
-[data-theme='light'] nav[data-bottom-nav] .nav-item-active svg {
-  color: hsl(0 0% 100%) !important;
-}
-[data-theme='light'] nav[data-bottom-nav] .nav-indicator {
-  background-color: hsl(0 0% 100%) !important;
-}
-
-/* Page headers in light mode: match bottom nav — red background, white text & icons */
-[data-theme='light'] header {
-  background-color: hsl(var(--primary)) !important;
-  background-image: none !important;
-  border-bottom-color: hsl(0 0% 0% / 0.2) !important;
-  color: hsl(0 0% 100%) !important;
-}
-[data-theme='light'] header * {
-  color: hsl(0 0% 100%) !important;
-  border-color: hsl(0 0% 100% / 0.25) !important;
-}
-[data-theme='light'] header svg {
-  color: hsl(0 0% 100%) !important;
-  stroke: hsl(0 0% 100%) !important;
-}
-/* Keep header buttons readable on red background */
-[data-theme='light'] header button:hover {
-  background-color: hsl(0 0% 100% / 0.15) !important;
-}
-[data-theme='light'] header [class*="bg-card"],
-[data-theme='light'] header [class*="bg-secondary"],
-[data-theme='light'] header [class*="bg-muted"] {
-  background-color: hsl(0 0% 100% / 0.15) !important;
-  background-image: none !important;
-}
-
-/* Dashboard fighter silhouette inside the red header in light mode — keep image visible
-   with a slight tone-down so it blends on the red background */
-[data-theme='light'] header div[aria-hidden="true"][style*="background-image"] {
-  filter: brightness(0.9) contrast(1.1) !important;
-  opacity: 0.95 !important;
-}
-
-/* "JOURNAL" headline must be black in light mode (FIGHTER stays white from header rule above) */
-[data-theme='light'] header .journal-title {
-  color: hsl(0 0% 0%) !important;
-  -webkit-text-fill-color: hsl(0 0% 0%) !important;
-  filter: none !important;
-  text-shadow: none !important;
-}
-
-/* Mode switcher (Athlete / Fighter / Coach) — darker grey track in light mode for contrast on red header */
-[data-theme='light'] header .bg-secondary\/50 {
-  background-color: hsl(0 0% 25% / 0.85) !important;
-}
-[data-theme='light'] header .bg-secondary\/50 button {
-  color: hsl(0 0% 100%) !important;
-}
-[data-theme='light'] header .bg-secondary\/50 button[class*="bg-primary"],
-[data-theme='light'] header .bg-secondary\/50 .bg-primary {
-  background-color: hsl(0 0% 100%) !important;
-  color: hsl(var(--primary)) !important;
-}
-[data-theme='light'] header .bg-secondary\/50 button[class*="bg-primary"] * {
-  color: hsl(var(--primary)) !important;
-}
+/* Light-mode-specific bottom-nav, header, journal-title, and mode-switcher overrides removed (dark-only). */
 
 /* Loading warrior horizontal flip (Y-axis spin, no rotation) */
 @keyframes flip-y {

@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface UserSettings {
-  theme_mode: 'dark' | 'light';
   input_text_color: string;
   discipline_colors: Record<string, string>;
 }
@@ -18,7 +17,6 @@ const DEFAULT_DISCIPLINE_COLORS: Record<string, string> = {
 };
 
 const DEFAULT_SETTINGS: UserSettings = {
-  theme_mode: 'dark',
   input_text_color: '#FFFFFF',
   discipline_colors: DEFAULT_DISCIPLINE_COLORS,
 };
@@ -63,20 +61,8 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
     fetchSettings(user.id);
   }, [user]);
 
-  // Apply theme mode to document
-  useEffect(() => {
-    const root = document.documentElement;
-    if (settings.theme_mode === 'light') {
-      root.classList.remove('dark');
-      root.setAttribute('data-theme', 'light');
-    } else {
-      root.classList.add('dark');
-      root.setAttribute('data-theme', 'dark');
-    }
-  }, [settings.theme_mode]);
-
   const fetchSettings = async (userId: string) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('user_settings' as any)
       .select('*')
       .eq('user_id', userId)
@@ -85,7 +71,6 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
     if (data) {
       setRowExists(true);
       setSettings({
-        theme_mode: (data as any).theme_mode || 'dark',
         input_text_color: (data as any).input_text_color || '#FFFFFF',
         discipline_colors: (data as any).discipline_colors || DEFAULT_DISCIPLINE_COLORS,
       });
@@ -100,7 +85,6 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
 
     const payload = {
       user_id: user.id,
-      theme_mode: newSettings.theme_mode,
       input_text_color: newSettings.input_text_color,
       discipline_colors: newSettings.discipline_colors,
       updated_at: new Date().toISOString(),

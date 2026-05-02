@@ -14,7 +14,8 @@ import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
 import { useAnalytics } from "./hooks/useAnalytics";
 import { useSubscription } from "./hooks/useSubscription";
 import globalBgDark from "@/assets/dashboard-bg-octagon.png";
-import globalBgLight from "@/assets/global-bg-octagon-light.png";
+import { SubscriptionProvider } from "./hooks/useSubscription";
+import { FighterProfileProvider } from "./hooks/useFighterProfile";
 
 // Eager: critical first-paint routes
 import Landing from "./pages/Landing";
@@ -51,7 +52,29 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const MockupDashboard = lazy(() => import("./pages/MockupDashboard"));
 
 
-const queryClient = new QueryClient();
+// Pre-warm route chunks while the browser is idle so first navigation is instant
+if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+  (window as any).requestIdleCallback(() => {
+    import('./pages/SessionEdit');
+    import('./pages/MyPathway');
+    import('./pages/Trends');
+    import('./pages/Reflection');
+    import('./pages/Profile');
+  });
+}
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      retry: 1,
+    },
+  },
+});
 
 function RootRoute() {
   const { user, profile, loading } = useAuth();
@@ -78,14 +101,14 @@ function AdminLockGate({ children }: { children: React.ReactNode }) {
 
 function GlobalDarkBackground() {
   const { pathname } = useLocation();
-  // Exclude the user profile page
-  if (pathname.startsWith('/profile')) return null;
+  // Background image lives ONLY on the main dashboard route ("/").
+  // Every other page uses the plain dark --background color from CSS.
+  if (pathname !== '/') return null;
   return (
     <>
-      {/* Dark mode background */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 hidden dark:block"
+        className="pointer-events-none fixed inset-0 z-0"
         style={{
           backgroundImage: `url(${globalBgDark})`,
           backgroundSize: 'cover',
@@ -96,23 +119,7 @@ function GlobalDarkBackground() {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 hidden dark:block bg-gradient-to-b from-background/55 via-background/35 to-background/85"
-      />
-      {/* Light mode background */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 dark:hidden"
-        style={{
-          backgroundImage: `url(${globalBgLight})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center top',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.42,
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 dark:hidden bg-gradient-to-b from-background/55 via-background/35 to-background/85"
+        className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-background/55 via-background/35 to-background/85"
       />
     </>
   );
@@ -182,12 +189,16 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <UserSettingsProvider>
-              <AppModeProvider>
-                <GlobalErrorListener />
-                <AppShell />
-              </AppModeProvider>
-            </UserSettingsProvider>
+            <SubscriptionProvider>
+              <FighterProfileProvider>
+                <UserSettingsProvider>
+                  <AppModeProvider>
+                    <GlobalErrorListener />
+                    <AppShell />
+                  </AppModeProvider>
+                </UserSettingsProvider>
+              </FighterProfileProvider>
+            </SubscriptionProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

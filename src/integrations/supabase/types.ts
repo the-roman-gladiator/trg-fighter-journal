@@ -1303,6 +1303,7 @@ export type Database = {
           surname: string | null
           suspended: boolean
           target: string | null
+          training_days: string[]
           training_frequency_per_week: string | null
           updated_at: string
         }
@@ -1342,6 +1343,7 @@ export type Database = {
           surname?: string | null
           suspended?: boolean
           target?: string | null
+          training_days?: string[]
           training_frequency_per_week?: string | null
           updated_at?: string
         }
@@ -1381,6 +1383,7 @@ export type Database = {
           surname?: string | null
           suspended?: boolean
           target?: string | null
+          training_days?: string[]
           training_frequency_per_week?: string | null
           updated_at?: string
         }

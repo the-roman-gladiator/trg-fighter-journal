@@ -68,6 +68,7 @@ export default function MyPathway() {
   // Pathway filter
   const [pathwayFilter, setPathwayFilter] = useState('all');
   const [mapFocusSessionId, setMapFocusSessionId] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<PathwayCategoryKey | null>(null);
 
   // Persist current view as a "tab" so user lands back on the same screen
   useEffect(() => {

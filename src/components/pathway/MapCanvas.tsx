@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { PathwayNode, PathwayEdge } from './FuturisticMap';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export interface MapCanvasHandle {
   zoomIn: () => void;

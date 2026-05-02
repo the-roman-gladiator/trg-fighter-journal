@@ -422,7 +422,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         // fall back to the user's primary discipline.
         discipline: discipline,
         disciplines: (cardio || strength || stretching || fightReview) ? [] : selectedDisciplines,
-        title: title || null,
+        title: (title || (stretching ? (stretchFocusAreas.length > 0 ? `Mobility — ${stretchFocusAreas.slice(0, 3).join(', ')}${stretchFocusAreas.length > 3 ? '…' : ''}` : 'Stretching & Mobility') : null)) || null,
         notes: notes || null,
         video_url: videoUrl.trim() || null,
         strategy: showTechnicalEntry ? (strategy || null) : null,

@@ -293,7 +293,7 @@ export default function MyPathway() {
     );
   };
 
-  // Home
+  // Home — 6 pathway folders + secondary tools
   if (view === 'home') {
     return (
       <div className="min-h-screen bg-background">
@@ -304,49 +304,197 @@ export default function MyPathway() {
           </div>
         </header>
         <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
-          <Card className="cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setView('pathways')}>
-            <CardContent className="pt-6 pb-6 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                <GitBranch className="h-6 w-6 text-primary" />
+            <div className="grid grid-cols-2 gap-3">
+              {CATEGORY_META.map(({ key, title, subtitle, Icon, accent }) => {
+                const { count, latest, avgIntensity } = categoryStats(key);
+                return (
+                  <Card
+                    key={key}
+                    className="cursor-pointer hover:border-primary/40 transition-colors"
+                    onClick={() => {
+                      setSelectedCategory(key);
+                      setView('category-detail');
+                    }}
+                  >
+                    <CardContent className="pt-4 pb-4 space-y-2">
+                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${accent}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm leading-tight uppercase tracking-wide">{title}</h3>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>
+                      </div>
+                      <div className="flex items-center justify-between pt-1">
+                        <Badge variant="outline" className="text-[10px]">{count} session{count === 1 ? '' : 's'}</Badge>
+                        {avgIntensity !== null && (
+                          <span className="text-[10px] text-muted-foreground">avg {avgIntensity.toFixed(1)}/5</span>
+                        )}
+                      </div>
+                      {latest && (
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          Last: {format(new Date(latest.date), 'MMM d')}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            <Card className="cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setView('all-notes')}>
+              <CardContent className="pt-4 pb-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <BookOpen className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm">All Notes</h3>
+                  <p className="text-xs text-muted-foreground">{archivedSessions.length} archived sessions</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setView('interactive-map')}>
+              <CardContent className="pt-4 pb-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Network className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm">Interactive Map</h3>
+                  <p className="text-xs text-muted-foreground">Explore knowledge by tags</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="py-4 text-center">
+                <p className="text-sm font-semibold text-primary italic">
+                  "Progress is not given. It is earned session by session."
+                </p>
+              </CardContent>
+            </Card>
+        </main>
+      </div>
+    );
+  }
+
+  // Category detail — total / latest / avg intensity / history
+  if (view === 'category-detail' && selectedCategory) {
+    const meta = CATEGORY_META.find(c => c.key === selectedCategory)!;
+    const list = sessionsByCategory[selectedCategory] || [];
+    const { count, latest, avgIntensity } = categoryStats(selectedCategory);
+    const Icon = meta.Icon;
+
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border bg-card">
+          <div className="container mx-auto px-4 py-4">
+            <Button variant="ghost" onClick={() => { setSelectedCategory(null); setView('home'); }}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back
+            </Button>
+            <div className="flex items-center gap-3 mt-2">
+              <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${meta.accent}`}>
+                <Icon className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-semibold">Technical Pathways</h3>
-                <p className="text-sm text-muted-foreground">{pathwayChains.length} movement chains recorded</p>
+                <h1 className="text-lg font-bold uppercase tracking-wide leading-tight">{meta.title}</h1>
+                <p className="text-xs text-muted-foreground">{meta.subtitle}</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
+          {/* Stat cards */}
+          <div className="grid grid-cols-3 gap-2">
+            <Card>
+              <CardContent className="py-3 text-center">
+                <p className="text-[10px] text-muted-foreground uppercase">Total</p>
+                <p className="text-2xl font-bold tabular-nums">{count}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="py-3 text-center">
+                <p className="text-[10px] text-muted-foreground uppercase">Latest</p>
+                <p className="text-sm font-bold tabular-nums">
+                  {latest ? format(new Date(latest.date), 'MMM d') : '—'}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="py-3 text-center">
+                <p className="text-[10px] text-muted-foreground uppercase">Avg Int.</p>
+                <p className="text-2xl font-bold tabular-nums">
+                  {avgIntensity !== null ? avgIntensity.toFixed(1) : '—'}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setView('all-notes')}>
-            <CardContent className="pt-6 pb-6 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                <BookOpen className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold">All Notes</h3>
-                <p className="text-sm text-muted-foreground">{archivedSessions.length} archived sessions</p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Progress over time — sparkline of intensity by session (newest right) */}
+          {list.length > 1 && (
+            <Card>
+              <CardContent className="py-3">
+                <p className="text-[10px] text-muted-foreground uppercase mb-2">Progress over time</p>
+                <div className="flex items-end gap-1 h-14">
+                  {[...list].reverse().slice(-30).map((s, i) => {
+                    const v = Number((s as any).effort_score) || 0;
+                    const h = Math.max(4, (v / 5) * 56);
+                    return (
+                      <div
+                        key={s.id || i}
+                        className="flex-1 rounded-sm bg-primary/40"
+                        style={{ height: `${h}px` }}
+                        title={`${format(new Date(s.date), 'MMM d')} – ${v ? v.toFixed(1) : '—'}/5`}
+                      />
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-          <Card className="cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setView('interactive-map')}>
-            <CardContent className="pt-6 pb-6 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Network className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Interactive Map</h3>
-                <p className="text-sm text-muted-foreground">Explore knowledge by tags</p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Special hook for Technical → Neural Map */}
+          {selectedCategory === 'technical' && (
+            <Card
+              className="cursor-pointer hover:border-primary/40 transition-colors border-primary/30 bg-primary/5"
+              onClick={() => setView('interactive-map')}
+            >
+              <CardContent className="py-3 flex items-center gap-3">
+                <Network className="h-5 w-5 text-primary" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">Open Neural Pathway Map</p>
+                  <p className="text-xs text-muted-foreground">Explore your technique connections</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {selectedCategory === 'technical' && pathwayChains.length > 0 && (
+            <Card
+              className="cursor-pointer hover:border-primary/40 transition-colors"
+              onClick={() => setView('pathways')}
+            >
+              <CardContent className="py-3 flex items-center gap-3">
+                <GitBranch className="h-5 w-5 text-primary" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">Technical Pathways</p>
+                  <p className="text-xs text-muted-foreground">{pathwayChains.length} movement chains</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-          <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="py-4 text-center">
-              <p className="text-sm font-semibold text-primary italic">
-                "Progress is not given. It is earned session by session."
-              </p>
-            </CardContent>
-          </Card>
+          {/* History list */}
+          <div>
+            <p className="text-xs text-muted-foreground uppercase mb-2">History</p>
+            {list.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-6">No sessions yet in this pathway.</p>
+            ) : (
+              <div className="space-y-2">
+                {list.map(s => (
+                  <SessionCard key={s.id} session={s} />
+                ))}
+              </div>
+            )}
+          </div>
         </main>
       </div>
     );

@@ -463,7 +463,7 @@ export function SessionForm({ sessionId }: SessionFormProps) {
               notes: fightOpponentNotes.trim() || null,
             }
           : null,
-        fight_rounds: fightReview && fightRounds.length > 0 ? fightRounds : null,
+        fight_rounds: fightReview && fightRounds.length > 0 ? fightRounds : [],
         fight_emotion_before: fightReview ? (beforeEmotion || null) : null,
         fight_emotion_after: fightReview ? (afterEmotion || null) : null,
         fight_mindset: fightReview ? (fightMindset || null) : null,

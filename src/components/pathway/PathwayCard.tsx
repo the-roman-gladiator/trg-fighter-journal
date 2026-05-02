@@ -106,30 +106,42 @@ export function PathwayCard({ data, index, variant = 'A', onClick }: Props) {
             />
           </span>
 
-          <span
-            className="font-display tabular-nums leading-none"
-            style={{
-              fontSize: 30,
-              fontWeight: 900,
-              color: 'var(--fj-text)',
-              textShadow: '0 2px 6px rgba(0,0,0,0.6)',
-            }}
-          >
-            {data.sessionCount}
-          </span>
+          <div className="flex flex-col items-end leading-none">
+            <span
+              className="font-display tabular-nums leading-none"
+              style={{
+                fontSize: 32,
+                fontWeight: 900,
+                color: 'var(--fj-text)',
+                textShadow: '0 2px 6px rgba(0,0,0,0.6)',
+              }}
+            >
+              {data.sessionCount}
+            </span>
+            <span
+              className="mt-1 uppercase font-bold"
+              style={{
+                fontSize: 10,
+                letterSpacing: '0.18em',
+                color: `hsl(${accent} / 0.95)`,
+              }}
+            >
+              {data.sessionCount === 1 ? 'Session' : 'Sessions'}
+            </span>
+          </div>
         </div>
 
         {/* Title block */}
         <div className="min-w-0">
           <h3
             className="uppercase font-display leading-[1.05] truncate"
-            style={{ fontWeight: 800, fontSize: 15, color: 'var(--fj-text)', letterSpacing: '0.01em' }}
+            style={{ fontWeight: 800, fontSize: 16, color: 'var(--fj-text)', letterSpacing: '0.015em' }}
           >
             {data.title}
           </h3>
           <p
-            className="truncate mt-0.5"
-            style={{ fontSize: 11, color: 'var(--fj-text-muted)', letterSpacing: '0.02em' }}
+            className="truncate mt-1"
+            style={{ fontSize: 12, color: 'var(--fj-text-soft)', letterSpacing: '0.01em' }}
           >
             {data.subtitle}
           </p>
@@ -143,47 +155,41 @@ export function PathwayCard({ data, index, variant = 'A', onClick }: Props) {
           {isTactical ? (
             <IntensityBar avg={data.avg} accent={accent} />
           ) : (
-            <div className="flex items-center justify-between gap-2">
-              <span
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full uppercase font-bold"
-                style={{
-                  fontSize: 10,
-                  letterSpacing: '0.14em',
-                  color: 'var(--fj-text-soft)',
-                  background: 'rgba(0,0,0,0.5)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.6)',
-                }}
-              >
-                <span style={{ color: `hsl(${accent})` }}>●</span> Sessions
-              </span>
-              {data.avg !== null && (
+            data.avg !== null && (
+              <div className="flex items-center justify-between gap-2">
                 <span
-                  className="font-mono tabular-nums"
-                  style={{ fontSize: 11, color: 'var(--fj-text-soft)' }}
+                  className="uppercase font-bold"
+                  style={{
+                    fontSize: 10.5,
+                    letterSpacing: '0.16em',
+                    color: 'var(--fj-text-muted)',
+                  }}
+                >
+                  Avg Intensity
+                </span>
+                <span
+                  className="font-display tabular-nums font-bold"
+                  style={{ fontSize: 13, color: 'var(--fj-text)' }}
                 >
                   {data.avg.toFixed(1)}
-                  <span style={{ color: 'var(--fj-text-muted)' }}>/5</span>
+                  <span style={{ color: 'var(--fj-text-muted)', fontWeight: 500 }}>/5</span>
                 </span>
-              )}
-            </div>
+              </div>
+            )
           )}
 
-          {data.lastDate ? (
-            <p
-              className="truncate font-mono uppercase"
-              style={{ color: 'var(--fj-text-muted)', fontSize: 9.5, letterSpacing: '0.16em' }}
-            >
-              Last · {format(new Date(data.lastDate), 'MMM d')}
-            </p>
-          ) : (
-            <p
-              className="truncate font-mono uppercase"
-              style={{ color: 'var(--fj-text-muted)', fontSize: 9.5, letterSpacing: '0.16em' }}
-            >
-              No sessions yet
-            </p>
-          )}
+          <p
+            className="truncate uppercase font-semibold"
+            style={{
+              color: data.lastDate ? 'var(--fj-text-soft)' : 'var(--fj-text-muted)',
+              fontSize: 10.5,
+              letterSpacing: '0.14em',
+            }}
+          >
+            {data.lastDate
+              ? `Last · ${format(new Date(data.lastDate), 'MMM d')}`
+              : 'No sessions yet'}
+          </p>
         </div>
       </div>
     </button>
@@ -197,13 +203,23 @@ function IntensityBar({ avg, accent }: { avg: number | null; accent: string }) {
   const pct = avg !== null ? (avg / 5) * 100 : 0;
   return (
     <div className="space-y-1.5">
-      <div
-        className="flex items-center justify-between font-mono uppercase"
-        style={{ fontSize: 9, letterSpacing: '0.18em', color: 'var(--fj-text-muted)' }}
-      >
-        <span>Intensity</span>
-        <span style={{ color: 'var(--fj-text-soft)' }}>
-          {avg !== null ? `${avg.toFixed(1)}/5` : '—'}
+      <div className="flex items-center justify-between">
+        <span
+          className="uppercase font-bold"
+          style={{ fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--fj-text-muted)' }}
+        >
+          Intensity
+        </span>
+        <span
+          className="font-display tabular-nums font-bold"
+          style={{ fontSize: 12, color: 'var(--fj-text)' }}
+        >
+          {avg !== null ? (
+            <>
+              {avg.toFixed(1)}
+              <span style={{ color: 'var(--fj-text-muted)', fontWeight: 500 }}>/5</span>
+            </>
+          ) : '—'}
         </span>
       </div>
       <div

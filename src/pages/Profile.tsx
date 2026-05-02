@@ -621,6 +621,48 @@ export default function Profile() {
                       </div>
                     </div>
                     <div>
+                      <Label>Training Days</Label>
+                      <p className="text-xs text-muted-foreground mt-0.5 mb-2">
+                        Pick the days you plan to train. Your dashboard "This Week" ticks reflect notes logged on these days.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { key: 'mon', label: 'Mon' },
+                          { key: 'tue', label: 'Tue' },
+                          { key: 'wed', label: 'Wed' },
+                          { key: 'thu', label: 'Thu' },
+                          { key: 'fri', label: 'Fri' },
+                          { key: 'sat', label: 'Sat' },
+                          { key: 'sun', label: 'Sun' },
+                        ].map(({ key, label }) => {
+                          const active = trainingDays.includes(key);
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() =>
+                                setTrainingDays(prev =>
+                                  prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key]
+                                )
+                              }
+                              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                                active
+                                  ? 'bg-primary text-primary-foreground border-primary'
+                                  : 'border-border text-foreground hover:border-primary/50'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {trainingDays.length > 0 && (
+                        <p className="text-[11px] text-muted-foreground mt-2">
+                          {trainingDays.length} day{trainingDays.length === 1 ? '' : 's'} per week
+                        </p>
+                      )}
+                    </div>
+                    <div>
                       <Label>Martial Arts Level</Label>
                       <Select value={martialLevel} onValueChange={setMartialLevel}>
                         <SelectTrigger><SelectValue /></SelectTrigger>

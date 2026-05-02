@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { PathwayNode, PathwayEdge } from './FuturisticMap';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export interface MapCanvasHandle {
   zoomIn: () => void;
@@ -79,7 +80,49 @@ function getFullPathway(nodeId: string, edges: PathwayEdge[]): Set<string> {
 
 export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeClick, onNodeDrag, pathwayNodeIdsOverride }, ref) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: 800, h: 600 });
+
+  // Compute world bounds + min/max viewBox sizes from nodes
+  const worldBounds = useMemo(() => {
+    if (nodes.length === 0) {
+      return { minX: -400, minY: -300, maxX: 400, maxY: 300 };
+    }
+    const xs = nodes.map(n => n.position_x);
+    const ys = nodes.map(n => n.position_y);
+    const PAD = 200;
+    return {
+      minX: Math.min(...xs) - PAD,
+      minY: Math.min(...ys) - PAD,
+      maxX: Math.max(...xs) + PAD,
+      maxY: Math.max(...ys) + PAD,
+    };
+  }, [nodes]);
+
+  // Clamp a viewBox so it stays within world bounds and within sane scale.
+  // MIN_W/MAX_W act as zoom limits (smaller viewBox = more zoomed-in).
+  const clampViewBox = useCallback((v: { x: number; y: number; w: number; h: number }) => {
+    const worldW = worldBounds.maxX - worldBounds.minX;
+    const worldH = worldBounds.maxY - worldBounds.minY;
+    // Zoom limits: don't allow viewing more than 2x world (zoom-out)
+    // or less than 30% of world (zoom-in)
+    const MIN_W = Math.max(200, worldW * 0.3);
+    const MAX_W = Math.max(400, worldW * 2);
+    const ratio = v.h / v.w || 0.75;
+    let w = Math.max(MIN_W, Math.min(MAX_W, v.w));
+    let h = w * ratio;
+    // Clamp translation so viewBox center stays inside world bounds
+    const cx = v.x + v.w / 2;
+    const cy = v.y + v.h / 2;
+    const minCx = worldBounds.minX;
+    const maxCx = worldBounds.maxX;
+    const minCy = worldBounds.minY;
+    const maxCy = worldBounds.maxY;
+    const clampedCx = Math.max(minCx, Math.min(maxCx, cx));
+    const clampedCy = Math.max(minCy, Math.min(maxCy, cy));
+    return { x: clampedCx - w / 2, y: clampedCy - h / 2, w, h };
+  }, [worldBounds]);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [dragNode, setDragNode] = useState<string | null>(null);
@@ -102,25 +145,25 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
     const minY = Math.min(...ys) - 150;
     const maxX = Math.max(...xs) + 150;
     const maxY = Math.max(...ys) + 150;
-    setViewBox({ x: minX, y: minY, w: Math.max(maxX - minX, 400), h: Math.max(maxY - minY, 300) });
-  }, [nodes]);
+    setViewBox(clampViewBox({ x: minX, y: minY, w: Math.max(maxX - minX, 400), h: Math.max(maxY - minY, 300) }));
+  }, [nodes, clampViewBox]);
 
   useImperativeHandle(ref, () => ({
     zoomIn: () => setViewBox(v => {
       const cx = v.x + v.w / 2, cy = v.y + v.h / 2;
       const nw = v.w * 0.8, nh = v.h * 0.8;
-      return { x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh };
+      return clampViewBox({ x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh });
     }),
     zoomOut: () => setViewBox(v => {
       const cx = v.x + v.w / 2, cy = v.y + v.h / 2;
       const nw = v.w * 1.25, nh = v.h * 1.25;
-      return { x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh };
+      return clampViewBox({ x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh });
     }),
-    panBy: (dx: number, dy: number) => setViewBox(v => ({
-      ...v, x: v.x + dx * (v.w / 800), y: v.y + dy * (v.h / 600)
-    })),
+    panBy: (dx: number, dy: number) => setViewBox(v =>
+      clampViewBox({ ...v, x: v.x + dx * (v.w / 800), y: v.y + dy * (v.h / 600) })
+    ),
     recenter: () => centerOnNodes(),
-  }), [centerOnNodes]);
+  }), [centerOnNodes, clampViewBox]);
 
   // Full pathway highlighting — prefer the explicit override (which is
   // discipline-aware in FuturisticMap) over the naive edge walker.
@@ -180,43 +223,42 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2 && lastPinchDist.current !== null && lastPinchCenter.current !== null) {
       e.preventDefault();
+      // Cancel any single-touch pan that may have started before the second finger landed
+      setIsPanning(false);
+      setDragNode(null);
+
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy);
       const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
       const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
 
-      // Ignore tiny finger distances — fingers just placed
-      if (dist < 60) {
+      // Skip first frames while fingers settle
+      if (dist < 30) {
         lastPinchDist.current = dist;
         lastPinchCenter.current = { x: cx, y: cy };
         return;
       }
 
-      const distanceDelta = Math.abs(dist - lastPinchDist.current);
-      // Ignore jitter below 18px
-      if (distanceDelta < 18) {
-        return;
-      }
-
-      // Ultra-slow zoom: clamp ratio tightly, then dampen further
+      // Direct ratio — clamp per-frame so a jittery delta can't blow up the view
       const rawFactor = lastPinchDist.current / dist;
-      const clampedRawFactor = Math.max(0.985, Math.min(1.015, rawFactor));
-      const factor = 1 + (clampedRawFactor - 1) * 0.08;
+      const factor = Math.max(0.85, Math.min(1.18, rawFactor));
+
+      // Zoom toward the midpoint of the two fingers (in SVG coords)
       const svgPt = getSvgPoint(cx, cy);
 
       setViewBox(prev => {
-        const newW = Math.max(240, Math.min(3000, prev.w * factor));
-        const newH = Math.max(180, Math.min(2250, prev.h * factor));
-        const newX = svgPt.x - (svgPt.x - prev.x) * (newW / prev.w);
-        const newY = svgPt.y - (svgPt.y - prev.y) * (newH / prev.h);
-        return { x: newX, y: newY, w: newW, h: newH };
+        const nextW = prev.w * factor;
+        const nextH = prev.h * factor;
+        const newX = svgPt.x - (svgPt.x - prev.x) * (nextW / prev.w);
+        const newY = svgPt.y - (svgPt.y - prev.y) * (nextH / prev.h);
+        return clampViewBox({ x: newX, y: newY, w: nextW, h: nextH });
       });
 
       lastPinchDist.current = dist;
       lastPinchCenter.current = { x: cx, y: cy };
     }
-  }, [getSvgPoint]);
+  }, [getSvgPoint, clampViewBox]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     // Double-tap detection (single finger)
@@ -241,6 +283,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
   }, [centerOnNodes, onNodeClick]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    // If a pinch is currently active, ignore additional pointer-downs (avoid pan during pinch)
+    if (lastPinchDist.current !== null) return;
     const target = e.target as SVGElement;
     const nodeId = target.closest('[data-node-id]')?.getAttribute('data-node-id');
     
@@ -259,6 +303,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
   }, [nodes, getSvgPoint]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    // If a pinch is in progress, ignore single-pointer pan
+    if (lastPinchDist.current !== null) return;
     if (dragNode) {
       const svgPt = getSvgPoint(e.clientX, e.clientY);
       const newX = svgPt.x - dragOffset.x;
@@ -268,10 +314,10 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
       const dx = e.clientX - panStart.x;
       const dy = e.clientY - panStart.y;
       const scale = viewBox.w / (svgRef.current?.getBoundingClientRect().width || 800);
-      setViewBox(prev => ({ ...prev, x: prev.x - dx * scale, y: prev.y - dy * scale }));
+      setViewBox(prev => clampViewBox({ ...prev, x: prev.x - dx * scale, y: prev.y - dy * scale }));
       setPanStart({ x: e.clientX, y: e.clientY });
     }
-  }, [dragNode, isPanning, panStart, viewBox, dragOffset, getSvgPoint, onNodeDrag]);
+  }, [dragNode, isPanning, panStart, viewBox, dragOffset, getSvgPoint, onNodeDrag, clampViewBox]);
 
   const handlePointerUp = useCallback(() => {
     if (dragNode) {
@@ -288,13 +334,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
     const factor = e.deltaY > 0 ? 1.05 : 0.95;
     const svgPt = getSvgPoint(e.clientX, e.clientY);
     setViewBox(prev => {
-      const newW = Math.max(200, Math.min(3000, prev.w * factor));
-      const newH = Math.max(150, Math.min(2250, prev.h * factor));
-      const newX = svgPt.x - (svgPt.x - prev.x) * (newW / prev.w);
-      const newY = svgPt.y - (svgPt.y - prev.y) * (newH / prev.h);
-      return { x: newX, y: newY, w: newW, h: newH };
+      const nextW = prev.w * factor;
+      const nextH = prev.h * factor;
+      const newX = svgPt.x - (svgPt.x - prev.x) * (nextW / prev.w);
+      const newY = svgPt.y - (svgPt.y - prev.y) * (nextH / prev.h);
+      return clampViewBox({ x: newX, y: newY, w: nextW, h: nextH });
     });
-  }, [getSvgPoint]);
+  }, [getSvgPoint, clampViewBox]);
 
   // Center view on nodes on load
   useEffect(() => {
@@ -302,10 +348,45 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
     centerOnNodes();
   }, [nodes.length === 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // On mobile: when a node is selected, pan the viewBox so the selected node
+  // appears in the upper 2/3 of the canvas (the bottom 1/3 is covered by the sheet).
+  useEffect(() => {
+    if (!isMobile || !selectedNodeId) return;
+    const node = nodes.find(n => n.id === selectedNodeId);
+    if (!node) return;
+    setViewBox(prev => {
+      const desiredCx = node.position_x;
+      const desiredCy = node.position_y - prev.h * 0.25;
+      return clampViewBox({
+        x: desiredCx - prev.w / 2,
+        y: desiredCy - prev.h / 2,
+        w: prev.w,
+        h: prev.h,
+      });
+    });
+  }, [selectedNodeId, isMobile, nodes, clampViewBox]);
+
   const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
 
+  // Native non-passive touchmove listener — React's synthetic touchmove is passive
+  // in many browsers, so calling e.preventDefault() there has no effect. Without it
+  // the browser starts native pinch/scroll gestures and the map appears to "fly away".
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const block = (e: TouchEvent) => {
+      if (e.touches.length >= 2) e.preventDefault();
+    };
+    el.addEventListener('touchmove', block, { passive: false });
+    el.addEventListener('touchstart', block, { passive: false });
+    return () => {
+      el.removeEventListener('touchmove', block);
+      el.removeEventListener('touchstart', block);
+    };
+  }, []);
+
   return (
-    <div className="relative w-full h-full overflow-hidden">
+    <div ref={wrapperRef} className="relative w-full h-full overflow-hidden" style={{ touchAction: 'none' }}>
       {/* Static neural background — fast, no video decode */}
       <div
         aria-hidden="true"
@@ -476,13 +557,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
             opacity={dimmed ? 0.35 : 1}
             style={{ transition: 'opacity 0.4s ease' }}
           >
-            {/* Outer glow ring for selected */}
+            {/* Outer glow ring for selected — smaller on mobile so it doesn't swallow neighbors */}
             {isSelected && (
               <>
                 <circle
                   cx={node.position_x}
                   cy={node.position_y + floatOffset}
-                  r={baseRadius * pulse + 16}
+                  r={baseRadius * pulse + (isMobile ? 8 : 16)}
                   fill="none"
                   stroke={colors.glow}
                   strokeWidth={1}
@@ -492,7 +573,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
                 <circle
                   cx={node.position_x}
                   cy={node.position_y + floatOffset}
-                  r={baseRadius * pulse + 10}
+                  r={baseRadius * pulse + (isMobile ? 5 : 10)}
                   fill="none"
                   stroke={colors.glow}
                   strokeWidth={1.5}

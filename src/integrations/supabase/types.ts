@@ -1749,8 +1749,8 @@ export type Database = {
           second_movement: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           strategy: Database["public"]["Enums"]["strategy"] | null
-          stretching_exercises: Json
-          stretching_focus_areas: string[]
+          stretching_exercises: Json | null
+          stretching_focus_areas: string[] | null
           technique: string | null
           time: string | null
           title: string | null
@@ -1820,8 +1820,8 @@ export type Database = {
           second_movement?: string | null
           session_type: Database["public"]["Enums"]["session_type"]
           strategy?: Database["public"]["Enums"]["strategy"] | null
-          stretching_exercises?: Json
-          stretching_focus_areas?: string[]
+          stretching_exercises?: Json | null
+          stretching_focus_areas?: string[] | null
           technique?: string | null
           time?: string | null
           title?: string | null
@@ -1891,8 +1891,8 @@ export type Database = {
           second_movement?: string | null
           session_type?: Database["public"]["Enums"]["session_type"]
           strategy?: Database["public"]["Enums"]["strategy"] | null
-          stretching_exercises?: Json
-          stretching_focus_areas?: string[]
+          stretching_exercises?: Json | null
+          stretching_focus_areas?: string[] | null
           technique?: string | null
           time?: string | null
           title?: string | null

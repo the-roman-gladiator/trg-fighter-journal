@@ -79,7 +79,48 @@ function getFullPathway(nodeId: string, edges: PathwayEdge[]): Set<string> {
 
 export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeClick, onNodeDrag, pathwayNodeIdsOverride }, ref) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: 800, h: 600 });
+
+  // Compute world bounds + min/max viewBox sizes from nodes
+  const worldBounds = useMemo(() => {
+    if (nodes.length === 0) {
+      return { minX: -400, minY: -300, maxX: 400, maxY: 300 };
+    }
+    const xs = nodes.map(n => n.position_x);
+    const ys = nodes.map(n => n.position_y);
+    const PAD = 200;
+    return {
+      minX: Math.min(...xs) - PAD,
+      minY: Math.min(...ys) - PAD,
+      maxX: Math.max(...xs) + PAD,
+      maxY: Math.max(...ys) + PAD,
+    };
+  }, [nodes]);
+
+  // Clamp a viewBox so it stays within world bounds and within sane scale.
+  // MIN_W/MAX_W act as zoom limits (smaller viewBox = more zoomed-in).
+  const clampViewBox = useCallback((v: { x: number; y: number; w: number; h: number }) => {
+    const worldW = worldBounds.maxX - worldBounds.minX;
+    const worldH = worldBounds.maxY - worldBounds.minY;
+    // Zoom limits: don't allow viewing more than 2x world (zoom-out)
+    // or less than 30% of world (zoom-in)
+    const MIN_W = Math.max(200, worldW * 0.3);
+    const MAX_W = Math.max(400, worldW * 2);
+    const ratio = v.h / v.w || 0.75;
+    let w = Math.max(MIN_W, Math.min(MAX_W, v.w));
+    let h = w * ratio;
+    // Clamp translation so viewBox center stays inside world bounds
+    const cx = v.x + v.w / 2;
+    const cy = v.y + v.h / 2;
+    const minCx = worldBounds.minX;
+    const maxCx = worldBounds.maxX;
+    const minCy = worldBounds.minY;
+    const maxCy = worldBounds.maxY;
+    const clampedCx = Math.max(minCx, Math.min(maxCx, cx));
+    const clampedCy = Math.max(minCy, Math.min(maxCy, cy));
+    return { x: clampedCx - w / 2, y: clampedCy - h / 2, w, h };
+  }, [worldBounds]);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [dragNode, setDragNode] = useState<string | null>(null);

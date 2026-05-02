@@ -228,6 +228,219 @@
   }
 }
 
+/* ====================================================================== */
+/* Fighter Journal — reusable pathway / combat-panel utility classes       */
+/* These build the layered "premium tactical panel" look without flatness. */
+/* ====================================================================== */
+@layer components {
+  /* Page shell — full-bleed dark performance background */
+  .pathway-shell {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    background: var(--fj-bg-0);
+  }
+
+  /* Hero / atmospheric background layer — drop into .pathway-shell */
+  .pathway-hero-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 90% 60% at 50% -10%, rgba(255, 43, 43, 0.18), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 100% 25%, rgba(77, 163, 255, 0.10), transparent 65%),
+      linear-gradient(180deg, var(--fj-bg-1) 0%, var(--fj-bg-0) 100%);
+  }
+  .pathway-hero-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black 30%, transparent 80%);
+            mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black 30%, transparent 80%);
+    opacity: 0.45;
+  }
+  .pathway-hero-bg::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 28%;
+    width: 120%;
+    height: 16rem;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, var(--fj-red-glow), transparent 60%);
+  }
+
+  /* Premium card shell */
+  .pathway-card {
+    position: relative;
+    display: block;
+    width: 100%;
+    text-align: left;
+    overflow: hidden;
+    border-radius: var(--fj-radius-card);
+    background: linear-gradient(180deg, rgba(18, 24, 32, 0.96) 0%, rgba(9, 12, 17, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: var(--fj-shadow-card), var(--fj-shadow-inset);
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+    isolation: isolate;
+  }
+  .pathway-card:hover,
+  .pathway-card:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: var(--fj-shadow-card), var(--fj-shadow-inset), var(--fj-glow-red);
+  }
+  .pathway-card:active {
+    transform: translateY(0) scale(0.985);
+  }
+  .pathway-card::before {
+    content: '';
+    position: absolute;
+    left: 16px; right: 16px; top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.40), transparent);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .pathway-card::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: calc(var(--fj-radius-card) + 8px);
+    background: radial-gradient(circle at 50% 0%, var(--fj-red-glow), transparent 70%);
+    opacity: 0;
+    filter: blur(18px);
+    pointer-events: none;
+    transition: opacity 220ms ease;
+    z-index: -1;
+  }
+  .pathway-card:hover::after,
+  .pathway-card:focus-visible::after { opacity: 1; }
+
+  .pathway-card-angle {
+    position: absolute; top: 0; right: 0;
+    height: 40px; width: 96px;
+    background: linear-gradient(135deg, transparent 55%, rgba(77, 163, 255, 0.15) 55%, rgba(255, 43, 43, 0.18));
+    -webkit-clip-path: polygon(35% 0, 100% 0, 100% 100%);
+            clip-path: polygon(35% 0, 100% 0, 100% 100%);
+    border-top-right-radius: var(--fj-radius-card);
+    pointer-events: none;
+  }
+  .pathway-card-slash {
+    position: absolute; top: 0; left: 24px;
+    height: 2px; width: 64px; border-radius: 999px;
+    background: linear-gradient(90deg, var(--fj-red), var(--fj-blue));
+    box-shadow: 0 0 10px var(--fj-red-glow);
+    pointer-events: none;
+  }
+  .pathway-card-edge {
+    position: absolute; left: 0; top: 20px; bottom: 20px;
+    width: 2px;
+    background: linear-gradient(180deg, transparent, var(--fj-blue), var(--fj-red), transparent);
+    box-shadow: 0 0 8px var(--fj-blue-glow);
+    pointer-events: none;
+  }
+  .pathway-card-texture {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.7'/></svg>");
+  }
+  .pathway-card-body {
+    position: relative;
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1;
+  }
+
+  /* Icon badge */
+  .pathway-icon-badge {
+    position: relative;
+    height: 56px; width: 56px;
+    display: inline-flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    border-radius: var(--fj-radius-badge);
+    background: linear-gradient(180deg, rgba(25, 28, 36, 0.96), rgba(10, 12, 18, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow:
+      0 8px 20px rgba(0, 0, 0, 0.35),
+      0 0 18px rgba(255, 43, 43, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  .pathway-icon-badge--bevel {
+    -webkit-clip-path: polygon(18% 0, 82% 0, 100% 18%, 100% 82%, 82% 100%, 18% 100%, 0 82%, 0 18%);
+            clip-path: polygon(18% 0, 82% 0, 100% 18%, 100% 82%, 82% 100%, 18% 100%, 0 82%, 0 18%);
+    border-radius: 0;
+  }
+  .pathway-icon-badge--hex {
+    -webkit-clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+            clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    border-radius: 0;
+  }
+  .pathway-icon-badge-glow {
+    position: absolute; inset: -6px;
+    border-radius: var(--fj-radius-badge);
+    background: radial-gradient(circle, var(--fj-red-glow), transparent 70%);
+    filter: blur(8px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Metric pill */
+  .pathway-metric-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--fj-radius-pill);
+    font-size: 12px; font-weight: 800; letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fj-text);
+    background: linear-gradient(180deg, rgba(8, 10, 14, 0.9), rgba(14, 18, 24, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.40),
+      0 0 10px rgba(255, 43, 43, 0.10);
+  }
+  .pathway-metric-pill .label {
+    color: var(--fj-text-muted);
+    font-weight: 700;
+  }
+
+  /* Title / support text */
+  .pathway-title {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    font-weight: 800;
+    color: var(--fj-text);
+    font-size: 14px;
+    line-height: 1.05;
+    letter-spacing: 0.01em;
+  }
+  .pathway-subtitle {
+    color: var(--fj-text-muted);
+    font-size: 11px;
+    line-height: 1.35;
+    margin-top: 4px;
+  }
+
+  /* Active bottom-nav state */
+  .nav-item-active {
+    color: var(--fj-text) !important;
+    text-shadow: 0 0 8px var(--fj-red-glow);
+  }
+  .nav-indicator {
+    background: linear-gradient(90deg, var(--fj-red), var(--fj-red-2)) !important;
+    box-shadow: 0 0 8px var(--fj-red), 0 0 14px var(--fj-red-glow);
+  }
+}
+
 /* Light-mode-specific bottom-nav, header, journal-title, and mode-switcher overrides removed (dark-only). */
 
 /* Loading warrior horizontal flip (Y-axis spin, no rotation) */

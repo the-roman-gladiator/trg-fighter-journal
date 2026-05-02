@@ -29,7 +29,7 @@ export default function SessionEdit() {
             Back
           </Button>
           <h1 className="text-2xl font-bold text-primary">
-            {id === 'new' ? 'New Training Session' : 'Edit Training Session'}
+            {!id || id === 'new' ? 'New Training Session' : 'Edit Training Session'}
           </h1>
         </div>
       </header>

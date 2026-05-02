@@ -165,12 +165,12 @@ export function PathwayHome({ variant: initialVariant, archivedCount, categorySt
             <div className="flex-1 min-w-0">
               <h3
                 className="uppercase font-display leading-tight"
-                style={{ fontWeight: 800, fontSize: 14, color: 'var(--fj-text)', letterSpacing: '0.02em' }}
+                style={{ fontWeight: 800, fontSize: 15, color: 'var(--fj-text)', letterSpacing: '0.02em' }}
               >
                 All Notes
               </h3>
-              <p style={{ fontSize: 11, color: 'var(--fj-text-muted)' }}>
-                {archivedCount} archived sessions
+              <p style={{ fontSize: 12, color: 'var(--fj-text-soft)' }}>
+                <span className="font-display font-bold tabular-nums" style={{ color: 'var(--fj-text)' }}>{archivedCount}</span> archived sessions
               </p>
             </div>
             <ChevronRight

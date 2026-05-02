@@ -416,8 +416,12 @@ export function SessionForm({ sessionId }: SessionFormProps) {
         date,
         time: startTime || null,
         session_type: 'Completed',
-        discipline: (cardio || strength) ? (classType || discipline) : discipline,
-        disciplines: (cardio || strength) ? [] : selectedDisciplines,
+        // `discipline` is a strict enum (MMA/Muay Thai/K1/Wrestling/Grappling/BJJ).
+        // The session-type label (e.g. "Cardio & Endurance") is stored in `class_type`,
+        // not here. For non-technical sessions we still need a valid enum value, so
+        // fall back to the user's primary discipline.
+        discipline: discipline,
+        disciplines: (cardio || strength || stretching || fightReview) ? [] : selectedDisciplines,
         title: title || null,
         notes: notes || null,
         video_url: videoUrl.trim() || null,

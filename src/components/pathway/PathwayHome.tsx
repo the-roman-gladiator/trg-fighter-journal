@@ -40,13 +40,7 @@ interface Props {
   onOpenAllNotes: () => void;
 }
 
-export function PathwayHome({ variant: initialVariant, archivedCount, categoryStats, onOpenCategory, onOpenAllNotes }: Props) {
-  const [variant, setVariant] = useState<'A' | 'B'>(initialVariant);
-  const switchVariant = (v: 'A' | 'B') => {
-    setVariant(v);
-    try { localStorage.setItem('pathway-variant', v); } catch { /* no-op */ }
-  };
-
+export function PathwayHome({ archivedCount, categoryStats, onOpenCategory, onOpenAllNotes }: Props) {
   return (
     <div className="relative min-h-screen bg-background">
       {/* ===== Header ===== */}
@@ -58,48 +52,16 @@ export function PathwayHome({ variant: initialVariant, archivedCount, categorySt
               Fighter Journal
             </span>
           </div>
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <h1
-                className="font-display uppercase font-black leading-[0.95] tracking-tight"
-                style={{ fontSize: 40, color: 'var(--fj-text)' }}
-              >
-                My<br />Pathway
-              </h1>
-              <p className="mt-2 tracking-wide" style={{ fontSize: 12, color: 'var(--fj-text-muted)' }}>
-                Your training knowledge base
-              </p>
-            </div>
-            {/* Variant toggle */}
-            <div
-              className="flex items-center gap-1 rounded-full p-1"
-              style={{
-                background: 'rgba(0,0,0,0.5)',
-                border: '1px solid var(--fj-line-mid)',
-              }}
+          <div>
+            <h1
+              className="font-display uppercase font-black leading-[0.95] tracking-tight"
+              style={{ fontSize: 40, color: 'var(--fj-text)' }}
             >
-              {(['A', 'B'] as const).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => switchVariant(v)}
-                  className={cn(
-                    'h-7 w-7 rounded-full text-[11px] font-bold transition-all',
-                    variant === v ? 'text-white' : 'hover:text-white',
-                  )}
-                  style={
-                    variant === v
-                      ? {
-                          background: 'linear-gradient(180deg, var(--fj-red), var(--fj-red-dark))',
-                          boxShadow: '0 0 10px var(--fj-red-glow)',
-                        }
-                      : { color: 'var(--fj-text-muted)' }
-                  }
-                  aria-label={`Variant ${v}`}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
+              My<br />Pathway
+            </h1>
+            <p className="mt-2 tracking-wide" style={{ fontSize: 12, color: 'var(--fj-text-muted)' }}>
+              Your training knowledge base
+            </p>
           </div>
         </div>
       </header>
@@ -125,7 +87,7 @@ export function PathwayHome({ variant: initialVariant, archivedCount, categorySt
                 key={def.key}
                 data={data}
                 index={idx}
-                variant={variant}
+                variant="B"
                 onClick={() => onOpenCategory(def.key)}
               />
             );

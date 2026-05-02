@@ -360,18 +360,6 @@ export default function MyPathway() {
               </CardContent>
             </Card>
 
-            <Card className="cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setView('interactive-map')}>
-              <CardContent className="pt-4 pb-4 flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Network className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-sm">Interactive Map</h3>
-                  <p className="text-xs text-muted-foreground">Explore knowledge by tags</p>
-                </div>
-              </CardContent>
-            </Card>
-
             <Card className="bg-primary/5 border-primary/20">
               <CardContent className="py-4 text-center">
                 <p className="text-sm font-semibold text-primary italic">

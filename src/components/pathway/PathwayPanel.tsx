@@ -347,7 +347,7 @@ export function PathwayPanel({
     if (!selectedNode) return null;
     return (
       <div
-        className="fixed inset-x-0 bottom-0 z-40 h-[50vh] bg-[#0d0d18] border-t border-cyan-900/30 rounded-t-2xl shadow-2xl flex flex-col animate-fade-in"
+        className="fixed inset-x-0 bottom-0 z-40 h-[33vh] max-h-[33vh] bg-[#0d0d18] border-t border-cyan-900/30 rounded-t-2xl shadow-2xl flex flex-col animate-fade-in"
         style={{ touchAction: 'pan-y' }}
         onPointerDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}

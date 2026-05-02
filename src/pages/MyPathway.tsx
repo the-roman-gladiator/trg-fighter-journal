@@ -13,6 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { InteractiveMap } from '@/components/pathway/InteractiveMap';
 import { FuturisticMap } from '@/components/pathway/FuturisticMap';
 import { classTypeCategory, type SessionCategory } from '@/hooks/useUserLists';
+import iconTechnical from '@/assets/pathway-technical.png';
+import iconSparring from '@/assets/pathway-sparring.png';
+import iconStrength from '@/assets/pathway-strength.png';
+import iconCardio from '@/assets/pathway-cardio.png';
+import iconRecovery from '@/assets/pathway-recovery.png';
+import iconMindset from '@/assets/pathway-mindset.png';
 
 type ViewMode = 'home' | 'all-notes' | 'interactive-map' | 'pathways' | 'category-detail';
 
@@ -23,16 +29,17 @@ interface CategoryMeta {
   title: string;
   subtitle: string;
   Icon: typeof Brain;
+  iconImg: string;
   accent: string; // tailwind classes for icon tile
 }
 
 const CATEGORY_META: CategoryMeta[] = [
-  { key: 'technical',    title: 'Technical Skills / Neural Map', subtitle: 'Movement chains & techniques', Icon: Brain,    accent: 'bg-primary/10 text-primary' },
-  { key: 'sparring',     title: 'Sparring & Rolling',            subtitle: 'Live rounds & rolls',         Icon: Swords,   accent: 'bg-destructive/15 text-destructive' },
-  { key: 'strength',     title: 'Strength Training',             subtitle: 'Lifts, sets & load',          Icon: Dumbbell, accent: 'bg-amber-500/15 text-amber-300' },
-  { key: 'cardio',       title: 'Cardio & Conditioning',         subtitle: 'Endurance & HR work',         Icon: Heart,    accent: 'bg-rose-500/15 text-rose-300' },
-  { key: 'stretching',   title: 'Mobility, Stretching & Recovery', subtitle: 'Mobility & rehab',          Icon: Activity, accent: 'bg-emerald-500/15 text-emerald-300' },
-  { key: 'fight_review', title: 'Mindset & Fight Reflection',    subtitle: 'Reflection & fight review',   Icon: Sparkles, accent: 'bg-blue-500/15 text-blue-300' },
+  { key: 'technical',    title: 'Technical Skills / Neural Map', subtitle: 'Movement chains & techniques', Icon: Brain,    iconImg: iconTechnical, accent: 'bg-primary/10 text-primary' },
+  { key: 'sparring',     title: 'Sparring & Rolling',            subtitle: 'Live rounds & rolls',         Icon: Swords,   iconImg: iconSparring,  accent: 'bg-destructive/15 text-destructive' },
+  { key: 'strength',     title: 'Strength Training',             subtitle: 'Lifts, sets & load',          Icon: Dumbbell, iconImg: iconStrength,  accent: 'bg-amber-500/15 text-amber-300' },
+  { key: 'cardio',       title: 'Cardio & Conditioning',         subtitle: 'Endurance & HR work',         Icon: Heart,    iconImg: iconCardio,    accent: 'bg-rose-500/15 text-rose-300' },
+  { key: 'stretching',   title: 'Mobility, Stretching & Recovery', subtitle: 'Mobility & rehab',          Icon: Activity, iconImg: iconRecovery,  accent: 'bg-emerald-500/15 text-emerald-300' },
+  { key: 'fight_review', title: 'Mindset & Fight Reflection',    subtitle: 'Reflection & fight review',   Icon: Sparkles, iconImg: iconMindset,   accent: 'bg-blue-500/15 text-blue-300' },
 ];
 
 interface PathwayChain {
@@ -305,7 +312,7 @@ export default function MyPathway() {
         </header>
         <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              {CATEGORY_META.map(({ key, title, subtitle, Icon, accent }) => {
+              {CATEGORY_META.map(({ key, title, subtitle, Icon, iconImg, accent }) => {
                 const { count, latest, avgIntensity } = categoryStats(key);
                 return (
                   <Card
@@ -317,8 +324,8 @@ export default function MyPathway() {
                     }}
                   >
                     <CardContent className="pt-4 pb-4 space-y-2">
-                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${accent}`}>
-                        <Icon className="h-5 w-5" />
+                      <div className="h-12 w-12 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 overflow-hidden">
+                        <img src={iconImg} alt="" loading="lazy" width={48} height={48} className="h-10 w-10 object-contain" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-sm leading-tight uppercase tracking-wide">{title}</h3>
@@ -392,8 +399,8 @@ export default function MyPathway() {
               <ArrowLeft className="mr-2 h-4 w-4" /> Back
             </Button>
             <div className="flex items-center gap-3 mt-2">
-              <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${meta.accent}`}>
-                <Icon className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 overflow-hidden">
+                <img src={meta.iconImg} alt="" loading="lazy" width={48} height={48} className="h-10 w-10 object-contain" />
               </div>
               <div>
                 <h1 className="text-lg font-bold uppercase tracking-wide leading-tight">{meta.title}</h1>

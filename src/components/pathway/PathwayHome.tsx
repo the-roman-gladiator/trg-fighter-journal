@@ -48,13 +48,7 @@ export function PathwayHome({ variant: initialVariant, archivedCount, categorySt
   };
 
   return (
-    <div className="pathway-shell">
-      {/* Layered hero background (handled by .pathway-hero-bg ::before / ::after) */}
-      <div className="pathway-hero-bg" />
-
-      {/* Faint fighter silhouette top-right for atmosphere */}
-      <FighterSilhouette />
-
+    <div className="relative min-h-screen bg-background">
       {/* ===== Header ===== */}
       <header className="relative z-10 px-5 pt-7 pb-5">
         <div className="max-w-lg mx-auto">

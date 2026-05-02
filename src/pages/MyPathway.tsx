@@ -12,6 +12,7 @@ import { format, subDays } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InteractiveMap } from '@/components/pathway/InteractiveMap';
 import { FuturisticMap } from '@/components/pathway/FuturisticMap';
+import { PathwayHome } from '@/components/pathway/PathwayHome';
 import { classTypeCategory, type SessionCategory } from '@/hooks/useUserLists';
 import iconTechnical from '@/assets/pathway-technical.png';
 import iconSparring from '@/assets/pathway-sparring.png';

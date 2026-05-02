@@ -36,11 +36,11 @@ interface CategoryMeta {
 
 const CATEGORY_META: CategoryMeta[] = [
   { key: 'technical',    title: 'Technical Skills / Neural Map', subtitle: 'Movement chains & techniques', Icon: Brain,    iconImg: iconTechnical, accent: 'bg-primary/10 text-primary' },
-  { key: 'sparring',     title: 'Sparring & Rolling',            subtitle: 'Live rounds & rolls',         Icon: Swords,   iconImg: iconSparring,  accent: 'bg-destructive/15 text-destructive' },
-  { key: 'strength',     title: 'Strength Training',             subtitle: 'Lifts, sets & load',          Icon: Dumbbell, iconImg: iconStrength,  accent: 'bg-amber-500/15 text-amber-300' },
-  { key: 'cardio',       title: 'Cardio & Conditioning',         subtitle: 'Endurance & HR work',         Icon: Heart,    iconImg: iconCardio,    accent: 'bg-rose-500/15 text-rose-300' },
-  { key: 'stretching',   title: 'Mobility, Stretching & Recovery', subtitle: 'Mobility & rehab',          Icon: Activity, iconImg: iconRecovery,  accent: 'bg-emerald-500/15 text-emerald-300' },
-  { key: 'fight_review', title: 'Mindset & Fight Reflection',    subtitle: 'Reflection & fight review',   Icon: Sparkles, iconImg: iconMindset,   accent: 'bg-blue-500/15 text-blue-300' },
+  { key: 'sparring',     title: 'Sparring & Rolling',            subtitle: 'Live rounds & rolls',          Icon: Swords,   iconImg: iconSparring,  accent: 'bg-destructive/15 text-destructive' },
+  { key: 'strength',     title: 'Strength & Conditioning',       subtitle: 'Lifts, sets & load',           Icon: Dumbbell, iconImg: iconStrength,  accent: 'bg-amber-500/15 text-amber-300' },
+  { key: 'cardio',       title: 'Cardio & Endurance',            subtitle: 'Endurance & HR work',          Icon: Heart,    iconImg: iconCardio,    accent: 'bg-rose-500/15 text-rose-300' },
+  { key: 'stretching',   title: 'Stretching & Mobility',         subtitle: 'Stretching · rehab',           Icon: Activity, iconImg: iconRecovery,  accent: 'bg-emerald-500/15 text-emerald-300' },
+  { key: 'fight_review', title: 'My Fight Review',               subtitle: 'Fight review',                 Icon: Sparkles, iconImg: iconMindset,   accent: 'bg-blue-500/15 text-blue-300' },
 ];
 
 interface PathwayChain {

@@ -13,6 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { InteractiveMap } from '@/components/pathway/InteractiveMap';
 import { FuturisticMap } from '@/components/pathway/FuturisticMap';
 import { classTypeCategory, type SessionCategory } from '@/hooks/useUserLists';
+import iconTechnical from '@/assets/pathway-technical.png';
+import iconSparring from '@/assets/pathway-sparring.png';
+import iconStrength from '@/assets/pathway-strength.png';
+import iconCardio from '@/assets/pathway-cardio.png';
+import iconRecovery from '@/assets/pathway-recovery.png';
+import iconMindset from '@/assets/pathway-mindset.png';
 
 type ViewMode = 'home' | 'all-notes' | 'interactive-map' | 'pathways' | 'category-detail';
 

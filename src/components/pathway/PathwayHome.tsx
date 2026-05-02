@@ -61,7 +61,7 @@ export function PathwayHome({ variant: initialVariant, archivedCount, categorySt
           <div className="flex items-end justify-between gap-3">
             <div>
               <h1
-                className="font-display uppercase font-black leading-[0.95] tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]"
+                className="font-display uppercase font-black leading-[0.95] tracking-tight"
                 style={{ fontSize: 40, color: 'var(--fj-text)' }}
               >
                 My<br />Pathway
@@ -72,11 +72,10 @@ export function PathwayHome({ variant: initialVariant, archivedCount, categorySt
             </div>
             {/* Variant toggle */}
             <div
-              className="flex items-center gap-1 rounded-full p-1 backdrop-blur-md"
+              className="flex items-center gap-1 rounded-full p-1"
               style={{
-                background: 'rgba(0,0,0,0.6)',
+                background: 'rgba(0,0,0,0.5)',
                 border: '1px solid var(--fj-line-mid)',
-                boxShadow: 'var(--fj-shadow-card)',
               }}
             >
               {(['A', 'B'] as const).map((v) => (
@@ -85,13 +84,14 @@ export function PathwayHome({ variant: initialVariant, archivedCount, categorySt
                   onClick={() => switchVariant(v)}
                   className={cn(
                     'h-7 w-7 rounded-full text-[11px] font-bold transition-all',
-                    variant === v
-                      ? 'text-white shadow-[0_0_12px_var(--fj-red-glow)]'
-                      : 'hover:text-white',
+                    variant === v ? 'text-white' : 'hover:text-white',
                   )}
                   style={
                     variant === v
-                      ? { background: 'linear-gradient(180deg, var(--fj-red), var(--fj-red-dark))' }
+                      ? {
+                          background: 'linear-gradient(180deg, var(--fj-red), var(--fj-red-dark))',
+                          boxShadow: '0 0 10px var(--fj-red-glow)',
+                        }
                       : { color: 'var(--fj-text-muted)' }
                   }
                   aria-label={`Variant ${v}`}
@@ -132,21 +132,46 @@ export function PathwayHome({ variant: initialVariant, archivedCount, categorySt
           })}
         </div>
 
-        {/* All Notes — uses the same premium card shell */}
+        {/* All Notes — clean wide card */}
         <button
           type="button"
           onClick={onOpenAllNotes}
-          className="pathway-card group mt-4 block"
+          className="group relative mt-4 block w-full overflow-hidden text-left transition-all duration-300 hover:-translate-y-0.5"
+          style={{
+            borderRadius: 'var(--fj-radius-card)',
+            background: 'linear-gradient(180deg, rgba(18,24,32,0.96) 0%, rgba(9,12,17,0.98) 100%)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: 'var(--fj-shadow-card), var(--fj-shadow-inset)',
+          }}
         >
-          <span className="pathway-card-edge" />
-          <span className="pathway-card-texture" />
-          <div className="pathway-card-body !flex-row items-center gap-4">
-            <span className="pathway-icon-badge pathway-icon-badge--bevel">
-              <BookOpen className="h-5 w-5" style={{ color: 'var(--fj-red)' }} />
+          <span
+            className="absolute top-0 left-4 right-4 h-px pointer-events-none"
+            style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)' }}
+          />
+          <div className="relative flex items-center gap-3 p-4">
+            <span
+              className="flex items-center justify-center shrink-0"
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: 'linear-gradient(160deg, rgba(255,255,255,0.06), rgba(8,11,16,0.95))',
+                border: '1px solid rgba(255,255,255,0.10)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+              }}
+            >
+              <BookOpen className="h-5 w-5" style={{ color: 'var(--fj-text-soft)' }} />
             </span>
-            <div className="flex-1">
-              <h3 className="pathway-title">All Notes</h3>
-              <p className="pathway-subtitle">{archivedCount} archived sessions</p>
+            <div className="flex-1 min-w-0">
+              <h3
+                className="uppercase font-display leading-tight"
+                style={{ fontWeight: 800, fontSize: 14, color: 'var(--fj-text)', letterSpacing: '0.02em' }}
+              >
+                All Notes
+              </h3>
+              <p style={{ fontSize: 11, color: 'var(--fj-text-muted)' }}>
+                {archivedCount} archived sessions
+              </p>
             </div>
             <ChevronRight
               className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
@@ -155,60 +180,32 @@ export function PathwayHome({ variant: initialVariant, archivedCount, categorySt
           </div>
         </button>
 
-        {/* Quote */}
+        {/* Quote — subtle, not loud */}
         <div
-          className="mt-4 relative rounded-[var(--fj-radius-card)] overflow-hidden"
+          className="mt-4 relative overflow-hidden"
           style={{
-            background: 'linear-gradient(180deg, rgba(28,10,12,0.9) 0%, rgba(9,12,17,0.98) 100%)',
-            border: '1px solid rgba(255,43,43,0.22)',
-            padding: '16px 18px',
-            boxShadow: 'var(--fj-shadow-card), var(--fj-glow-red)',
+            borderRadius: 'var(--fj-radius-card)',
+            background: 'linear-gradient(180deg, rgba(18,24,32,0.96) 0%, rgba(9,12,17,0.98) 100%)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            padding: '14px 16px',
+            boxShadow: 'var(--fj-shadow-card), var(--fj-shadow-inset)',
           }}
         >
-          <div className="absolute inset-0 opacity-50 pointer-events-none" style={{
-            background: 'radial-gradient(circle at 20% 50%, var(--fj-red-glow), transparent 60%)',
-          }} />
-          <div className="relative flex items-start gap-3">
+          <span
+            className="absolute left-0 top-3 bottom-3 w-[2px]"
+            style={{ background: 'var(--fj-red)', boxShadow: '0 0 8px var(--fj-red-glow)' }}
+          />
+          <div className="relative flex items-start gap-3 pl-2">
             <Sparkles
               className="h-4 w-4 mt-0.5 shrink-0"
-              style={{ color: 'var(--fj-red)', filter: 'drop-shadow(0 0 6px var(--fj-red-glow))' }}
+              style={{ color: 'var(--fj-red)' }}
             />
-            <p className="font-semibold italic leading-snug" style={{ color: 'var(--fj-text)', fontSize: 14 }}>
+            <p className="font-medium italic leading-snug" style={{ color: 'var(--fj-text-soft)', fontSize: 13 }}>
               "Progress is not given. It is earned session by session."
             </p>
           </div>
         </div>
       </main>
-    </div>
-  );
-}
-
-/* ====================================================================== */
-/* Faint fighter silhouette — atmospheric only                             */
-/* ====================================================================== */
-function FighterSilhouette() {
-  return (
-    <div
-      className="absolute -top-6 -right-10 w-72 h-80 pointer-events-none"
-      style={{
-        opacity: 0.13,
-        WebkitMaskImage: 'radial-gradient(ellipse at 60% 30%, black 30%, transparent 70%)',
-        maskImage: 'radial-gradient(ellipse at 60% 30%, black 30%, transparent 70%)',
-      }}
-    >
-      <svg viewBox="0 0 200 240" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-        <defs>
-          <linearGradient id="fjFighterGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#f5f7fb" />
-            <stop offset="100%" stopColor="#8f1010" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M100 18c-22 0-38 16-40 38-1 14 4 24 10 32-4 6-6 14-6 22 0 4 1 8 3 12l-18 14c-8 6-12 14-12 24v40c0 6 4 10 10 10h106c6 0 10-4 10-10v-40c0-10-4-18-12-24l-18-14c2-4 3-8 3-12 0-8-2-16-6-22 6-8 11-18 10-32-2-22-18-38-40-38z"
-          fill="url(#fjFighterGrad)"
-        />
-        <ellipse cx="48" cy="158" rx="18" ry="22" fill="#ff2b2b" opacity="0.85" />
-      </svg>
     </div>
   );
 }

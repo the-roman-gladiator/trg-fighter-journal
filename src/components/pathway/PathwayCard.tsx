@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 /* ====================================================================== */
-/* Public types — data-driven by an array of these                         */
+/* Public types — data-driven                                             */
 /* ====================================================================== */
 export type AccentTheme = 'tech' | 'sparring' | 'strength' | 'cardio' | 'recovery' | 'mindset';
 export type TextureType = 'grid' | 'lines' | 'wave' | 'pulse' | 'dots' | 'streaks';
@@ -11,153 +11,180 @@ export interface PathwayCardData {
   id: string;
   title: string;
   subtitle: string;
-  /** Imported PNG / SVG path */
   icon: string;
   sessionCount: number;
   avg: number | null;        // 0–5
   lastDate: string | null;   // ISO date
   accentTheme: AccentTheme;
-  textureType: TextureType;
+  textureType: TextureType;  // kept for API compatibility (unused now for cleanliness)
 }
 
 interface Props {
   data: PathwayCardData;
   index: number;
-  /** A = cinematic dark-glass, B = tactical engineered */
   variant?: 'A' | 'B';
   onClick?: () => void;
 }
 
-/* ====================================================================== */
-/* Accent theme → secondary HSL accent (red is always the global primary) */
-/* ====================================================================== */
+/* Secondary accent per theme. Red is reserved for hero/danger only. */
 const ACCENT_HSL: Record<AccentTheme, string> = {
-  tech:     '210 100% 60%', // electric blue
-  sparring: '358 90% 55%',  // deep crimson
-  strength: '20 95% 55%',   // ember orange
-  cardio:   '340 95% 60%',  // pulse pink
-  recovery: '180 70% 55%',  // soft cyan
-  mindset:  '270 70% 65%',  // subtle violet
+  tech:     '210 100% 60%',
+  sparring: '358 90% 55%',
+  strength: '20 95% 55%',
+  cardio:   '340 95% 60%',
+  recovery: '180 70% 55%',
+  mindset:  '270 70% 65%',
 };
 
 /* ====================================================================== */
-/* Reusable PathwayCard — built from layered pseudo-elements & wrappers    */
+/* Premium tactical card — clean, deep, minimal noise                     */
 /* ====================================================================== */
 export function PathwayCard({ data, index, variant = 'A', onClick }: Props) {
   const accent = ACCENT_HSL[data.accentTheme];
-  const idLabel = `FJ·${String(index + 1).padStart(2, '0')}`;
   const isTactical = variant === 'B';
+  const isSparring = data.accentTheme === 'sparring';
+  // Red glow ONLY where it matters (sparring / fight context)
+  const useRedGlow = isSparring;
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={cn(
-        'pathway-card group focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--fj-blue)]/50',
-      )}
       aria-label={`${data.title} — ${data.sessionCount} sessions`}
+      className="group relative text-left w-full overflow-hidden transition-all duration-300 hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--fj-blue)]/50"
+      style={{
+        borderRadius: 'var(--fj-radius-card)',
+        background: 'linear-gradient(180deg, rgba(18,24,32,0.96) 0%, rgba(9,12,17,0.98) 100%)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: useRedGlow
+          ? '0 18px 40px rgba(0,0,0,0.45), 0 6px 18px rgba(0,0,0,0.35), 0 0 22px rgba(255,43,43,0.12), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(255,255,255,0.02)'
+          : 'var(--fj-shadow-card), var(--fj-shadow-inset)',
+      }}
     >
-      {/* Layer 1 — angled top accent panel */}
-      <span className="pathway-card-angle" style={{
-        background: `linear-gradient(135deg, transparent 55%, hsl(${accent} / 0.18) 55%, rgba(255,43,43,0.18))`
-      }} />
-
-      {/* Layer 2 — top accent slash */}
-      <span className="pathway-card-slash" style={{
-        background: `linear-gradient(90deg, var(--fj-red), hsl(${accent}))`,
-      }} />
-
-      {/* Layer 3 — side blue edge highlight */}
-      <span className="pathway-card-edge" style={{
-        background: `linear-gradient(180deg, transparent, hsl(${accent}), var(--fj-red), transparent)`,
-      }} />
-
-      {/* Layer 4 — subtle texture overlay (0.06) */}
-      <TextureLayer type={data.textureType} accent={accent} />
-
-      {/* Layer 5 — index marker */}
+      {/* Top accent hairline — single, refined */}
       <span
-        className="absolute top-2 right-3 font-mono font-bold tracking-[0.15em]"
-        style={{ fontSize: 9, color: 'var(--fj-text-soft)', zIndex: 3 }}
-      >
-        {idLabel}
-      </span>
+        className="absolute top-0 left-4 right-4 h-px pointer-events-none"
+        style={{
+          background: useRedGlow
+            ? 'linear-gradient(90deg, transparent, var(--fj-red), transparent)'
+            : `linear-gradient(90deg, transparent, hsl(${accent} / 0.7), transparent)`,
+          opacity: 0.85,
+        }}
+      />
 
-      {/* Layer 6 — content body */}
-      <div className="pathway-card-body">
-        {/* Icon row */}
+      {/* Soft accent vignette in corner — depth without noise */}
+      <span
+        className="absolute -top-10 -right-10 w-32 h-32 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle, hsl(${accent} / 0.18), transparent 70%)`,
+          filter: 'blur(2px)',
+        }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 p-[18px] flex flex-col gap-3 min-h-[168px]">
+        {/* Top row: icon + count */}
         <div className="flex items-start justify-between">
-          <div className="relative">
-            <span className="pathway-icon-badge-glow" />
-            <span
-              className={cn(
-                'pathway-icon-badge',
-                isTactical ? 'pathway-icon-badge--hex' : 'pathway-icon-badge--bevel',
+          <span
+            className="relative flex items-center justify-center shrink-0"
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 14,
+              background: `linear-gradient(160deg, hsl(${accent} / 0.22), rgba(8,11,16,0.95))`,
+              border: `1px solid hsl(${accent} / 0.35)`,
+              boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -1px 0 rgba(0,0,0,0.5), 0 6px 16px rgba(0,0,0,0.45)`,
+            }}
+          >
+            <img
+              src={data.icon}
+              alt=""
+              loading="lazy"
+              width={36}
+              height={36}
+              className="h-9 w-9 object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]"
+            />
+          </span>
+
+          <span
+            className="font-display tabular-nums leading-none"
+            style={{
+              fontSize: 30,
+              fontWeight: 900,
+              color: 'var(--fj-text)',
+              textShadow: '0 2px 6px rgba(0,0,0,0.6)',
+            }}
+          >
+            {data.sessionCount}
+          </span>
+        </div>
+
+        {/* Title block */}
+        <div className="min-w-0">
+          <h3
+            className="uppercase font-display leading-[1.05] truncate"
+            style={{ fontWeight: 800, fontSize: 15, color: 'var(--fj-text)', letterSpacing: '0.01em' }}
+          >
+            {data.title}
+          </h3>
+          <p
+            className="truncate mt-0.5"
+            style={{ fontSize: 11, color: 'var(--fj-text-muted)', letterSpacing: '0.02em' }}
+          >
+            {data.subtitle}
+          </p>
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Stats footer */}
+        <div className="space-y-2">
+          {isTactical ? (
+            <IntensityBar avg={data.avg} accent={accent} />
+          ) : (
+            <div className="flex items-center justify-between gap-2">
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full uppercase font-bold"
+                style={{
+                  fontSize: 10,
+                  letterSpacing: '0.14em',
+                  color: 'var(--fj-text-soft)',
+                  background: 'rgba(0,0,0,0.5)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.6)',
+                }}
+              >
+                <span style={{ color: `hsl(${accent})` }}>●</span> Sessions
+              </span>
+              {data.avg !== null && (
+                <span
+                  className="font-mono tabular-nums"
+                  style={{ fontSize: 11, color: 'var(--fj-text-soft)' }}
+                >
+                  {data.avg.toFixed(1)}
+                  <span style={{ color: 'var(--fj-text-muted)' }}>/5</span>
+                </span>
               )}
-              style={{
-                boxShadow: `0 8px 20px rgba(0,0,0,0.35), 0 0 18px rgba(255,43,43,0.14), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px hsl(${accent} / 0.25)`,
-              }}
+            </div>
+          )}
+
+          {data.lastDate ? (
+            <p
+              className="truncate font-mono uppercase"
+              style={{ color: 'var(--fj-text-muted)', fontSize: 9.5, letterSpacing: '0.16em' }}
             >
-              <img
-                src={data.icon}
-                alt=""
-                loading="lazy"
-                width={42}
-                height={42}
-                className="h-[42px] w-[42px] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]"
-              />
-            </span>
-          </div>
-          {isTactical && (
-            <span
-              className="font-display tabular-nums leading-none mt-1"
-              style={{
-                fontSize: 32,
-                fontWeight: 900,
-                color: 'var(--fj-text)',
-                textShadow: `0 0 14px hsl(${accent} / 0.45), 0 2px 4px rgba(0,0,0,0.6)`,
-              }}
+              Last · {format(new Date(data.lastDate), 'MMM d')}
+            </p>
+          ) : (
+            <p
+              className="truncate font-mono uppercase"
+              style={{ color: 'var(--fj-text-muted)', fontSize: 9.5, letterSpacing: '0.16em' }}
             >
-              {data.sessionCount}
-            </span>
+              No sessions yet
+            </p>
           )}
         </div>
-
-        {/* Title */}
-        <div>
-          <h3 className="pathway-title">{data.title}</h3>
-          <p className="pathway-subtitle truncate">{data.subtitle}</p>
-        </div>
-
-        {/* Stats */}
-        {!isTactical ? (
-          <div className="flex items-center justify-between gap-2 pt-0.5">
-            <span className="pathway-metric-pill">
-              {data.sessionCount}
-              <span className="label">SES</span>
-            </span>
-            {data.avg !== null && (
-              <span
-                className="font-mono tabular-nums"
-                style={{ fontSize: 11, color: 'var(--fj-text-soft)' }}
-              >
-                {data.avg.toFixed(1)}
-                <span style={{ color: 'var(--fj-text-muted)' }}>/5</span>
-              </span>
-            )}
-          </div>
-        ) : (
-          <IntensityBar avg={data.avg} accent={accent} />
-        )}
-
-        {data.lastDate && (
-          <p
-            className="truncate font-mono uppercase tracking-[0.15em]"
-            style={{ color: 'var(--fj-text-muted)', fontSize: 9.5 }}
-          >
-            {isTactical ? '▸' : '◢'} Last: {format(new Date(data.lastDate), 'MMM d')}
-          </p>
-        )}
       </div>
     </button>
   );
@@ -182,88 +209,23 @@ function IntensityBar({ avg, accent }: { avg: number | null; accent: string }) {
       <div
         className="overflow-hidden"
         style={{
-          height: 6,
+          height: 5,
           borderRadius: 999,
           background: 'rgba(0,0,0,0.55)',
-          border: '1px solid rgba(255,255,255,0.06)',
+          border: '1px solid rgba(255,255,255,0.05)',
           boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.6)',
         }}
       >
         <div
-          className="h-full transition-all"
+          className="h-full transition-all duration-500"
           style={{
             width: `${pct}%`,
-            background: `linear-gradient(90deg, hsl(${accent}), var(--fj-red))`,
-            boxShadow: `0 0 8px hsl(${accent} / 0.6)`,
+            background: `linear-gradient(90deg, hsl(${accent}), hsl(${accent} / 0.7))`,
+            boxShadow: `0 0 8px hsl(${accent} / 0.5)`,
             borderRadius: 999,
           }}
         />
       </div>
     </div>
-  );
-}
-
-/* ---------------------------------------------------------------------- */
-/* Subtle SVG texture layer                                               */
-/* ---------------------------------------------------------------------- */
-function TextureLayer({ type, accent }: { type: TextureType; accent: string }) {
-  const stroke = `hsl(${accent} / 0.45)`;
-  return (
-    <svg
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ opacity: 0.07, zIndex: 0 }}
-      viewBox="0 0 200 200"
-      preserveAspectRatio="none"
-      aria-hidden
-    >
-      {type === 'grid' && (
-        <g stroke={stroke} strokeWidth="0.4" fill="none">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <g key={i}>
-              <line x1={i * 20} y1="0" x2={i * 20} y2="200" />
-              <line x1="0" y1={i * 20} x2="200" y2={i * 20} />
-            </g>
-          ))}
-        </g>
-      )}
-      {type === 'lines' && (
-        <g stroke={stroke} strokeWidth="0.6" fill="none">
-          {Array.from({ length: 14 }).map((_, i) => (
-            <line key={i} x1={-50 + i * 25} y1="0" x2={i * 25} y2="200" />
-          ))}
-        </g>
-      )}
-      {type === 'wave' && (
-        <g stroke={stroke} strokeWidth="0.8" fill="none">
-          {[40, 80, 120, 160].map((y) => (
-            <path key={y} d={`M0 ${y} Q 25 ${y - 14} 50 ${y} T 100 ${y} T 150 ${y} T 200 ${y}`} />
-          ))}
-        </g>
-      )}
-      {type === 'pulse' && (
-        <path
-          d="M0 100 L40 100 L50 70 L60 130 L70 50 L80 150 L90 100 L200 100"
-          stroke={stroke}
-          strokeWidth="0.9"
-          fill="none"
-        />
-      )}
-      {type === 'dots' && (
-        <g fill={stroke}>
-          {Array.from({ length: 10 }).flatMap((_, x) =>
-            Array.from({ length: 10 }).map((_, y) => (
-              <circle key={`${x}-${y}`} cx={x * 20 + 10} cy={y * 20 + 10} r="0.8" />
-            ))
-          )}
-        </g>
-      )}
-      {type === 'streaks' && (
-        <g stroke={stroke} strokeWidth="0.6" fill="none">
-          {[20, 60, 100, 140, 180].map((y) => (
-            <line key={y} x1="0" y1={y} x2="200" y2={y - 8} strokeDasharray="2 6" />
-          ))}
-        </g>
-      )}
-    </svg>
   );
 }

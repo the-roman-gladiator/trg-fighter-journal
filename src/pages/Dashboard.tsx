@@ -65,6 +65,8 @@ export default function Dashboard() {
   const [longestStreak, setLongestStreak] = useState(0);
   const [avgEffort, setAvgEffort] = useState(0);
   const [weeklySessions, setWeeklySessions] = useState(0);
+  const [trainingDays, setTrainingDays] = useState<string[]>([]);
+  const [weekEntryDays, setWeekEntryDays] = useState<Set<string>>(new Set()); // 'mon'..'sun' that have any journal entry this week
 
   // Journal box state
   const [myStatement, setMyStatement] = useState('');
@@ -111,6 +113,38 @@ export default function Dashboard() {
     // Weekly sessions count (Monday-Sunday)
     const weekSessions = (recent || []).filter(s => s.date >= mondayOfThisWeek);
     setWeeklySessions(weekSessions.length);
+
+    // Training days from profile
+    const { data: profRow } = await supabase
+      .from('profiles')
+      .select('training_days')
+      .eq('id', user.id)
+      .maybeSingle();
+    setTrainingDays(((profRow as any)?.training_days as string[] | null) || []);
+
+    // Daily reflections this week
+    const { data: weekReflections } = await supabase
+      .from('daily_reflections')
+      .select('reflection_date')
+      .eq('user_id', user.id)
+      .gte('reflection_date', mondayOfThisWeek);
+
+    // Build set of weekday keys (mon..sun) that have any entry this week
+    const dayKeys = ['sun','mon','tue','wed','thu','fri','sat'];
+    const entrySet = new Set<string>();
+    weekSessions.forEach((s: any) => {
+      if (s.date) {
+        const d = new Date(s.date + 'T00:00:00');
+        entrySet.add(dayKeys[d.getDay()]);
+      }
+    });
+    (weekReflections || []).forEach((r: any) => {
+      if (r.reflection_date) {
+        const d = new Date(r.reflection_date + 'T00:00:00');
+        entrySet.add(dayKeys[d.getDay()]);
+      }
+    });
+    setWeekEntryDays(entrySet);
 
     // Calculate avg effort
     const effortScores = (recent || []).map((s: any) => s.effort_score).filter((s: any) => s != null && s > 0);
@@ -514,12 +548,23 @@ export default function Dashboard() {
 
         {/* 3. THIS WEEK + WEEKLY GOAL */}
         {(() => {
-          const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+          const days: { label: string; key: string }[] = [
+            { label: 'MON', key: 'mon' },
+            { label: 'TUE', key: 'tue' },
+            { label: 'WED', key: 'wed' },
+            { label: 'THU', key: 'thu' },
+            { label: 'FRI', key: 'fri' },
+            { label: 'SAT', key: 'sat' },
+            { label: 'SUN', key: 'sun' },
+          ];
           const jsDay = new Date().getDay(); // 0=Sun ... 6=Sat
           const todayIdx = jsDay === 0 ? 6 : jsDay - 1; // Mon=0 ... Sun=6
-          const goalTotal = 5;
-          const goalDone = Math.min(weeklySessions, goalTotal);
-          const goalPct = (goalDone / goalTotal) * 100;
+          const planned = new Set(trainingDays);
+          const goalTotal = planned.size > 0 ? planned.size : 5;
+          const goalDone = planned.size > 0
+            ? days.filter(d => planned.has(d.key) && weekEntryDays.has(d.key)).length
+            : Math.min(weeklySessions, goalTotal);
+          const goalPct = goalTotal > 0 ? (goalDone / goalTotal) * 100 : 0;
           return (
             <Card className="bg-[hsl(0_0%_4%)] border-border/70">
               <CardContent className="p-4 sm:p-5">
@@ -537,20 +582,37 @@ export default function Dashboard() {
                 {/* Week row */}
                 <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-5">
                   {days.map((d, i) => {
-                    const isCompleted = i < todayIdx;
                     const isCurrent = i === todayIdx;
+                    const isPlanned = planned.has(d.key);
+                    const hasEntry = weekEntryDays.has(d.key);
+                    const isPast = i < todayIdx;
+
+                    // Tick states
+                    const ticked = isPlanned && hasEntry; // planned & logged → primary tick
+                    const bonus = !isPlanned && hasEntry; // unplanned but logged → bonus
+                    const missed = isPlanned && !hasEntry && (isPast || isCurrent); // planned, no entry yet, today or past
+
                     return (
-                      <div key={d} className="flex flex-col items-center gap-1.5">
-                        <span className={`text-[9px] sm:text-[10px] tracking-widest uppercase font-semibold ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>{d}</span>
+                      <div key={d.key} className="flex flex-col items-center gap-1.5">
+                        <span
+                          className={`text-[9px] sm:text-[10px] tracking-widest uppercase font-semibold ${
+                            isCurrent ? 'text-primary' : isPlanned ? 'text-foreground' : 'text-muted-foreground'
+                          }`}
+                        >
+                          {d.label}
+                        </span>
                         <div
                           className={[
                             'h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center transition-colors',
-                            isCompleted ? 'bg-primary border border-primary text-primary-foreground' : '',
-                            isCurrent ? 'border-2 border-primary bg-transparent' : '',
-                            !isCompleted && !isCurrent ? 'border border-border/60 bg-transparent' : '',
+                            ticked ? 'bg-primary border border-primary text-primary-foreground' : '',
+                            bonus ? 'bg-primary/15 border border-primary/40 text-primary' : '',
+                            !ticked && !bonus && isCurrent ? 'border-2 border-primary bg-transparent' : '',
+                            !ticked && !bonus && !isCurrent && missed ? 'border border-destructive/50 bg-transparent' : '',
+                            !ticked && !bonus && !isCurrent && !missed && isPlanned ? 'border border-primary/40 bg-transparent' : '',
+                            !ticked && !bonus && !isCurrent && !isPlanned ? 'border border-border/40 bg-transparent opacity-50' : '',
                           ].join(' ')}
                         >
-                          {isCompleted && <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={3} />}
+                          {(ticked || bonus) && <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={3} />}
                         </div>
                       </div>
                     );

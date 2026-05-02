@@ -102,6 +102,7 @@ export default function Profile() {
   const [nickname, setNickname] = useState('');
   const [accountType, setAccountType] = useState<AccountType>('free');
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
+  const [trainingDays, setTrainingDays] = useState<string[]>([]);
   const [martialLevel, setMartialLevel] = useState('Beginner');
   const [fitnessLevel, setFitnessLevel] = useState<FitnessLevel>('Beginner');
   const [profileOpen, setProfileOpen] = useState(false);
@@ -154,6 +155,7 @@ export default function Profile() {
       setNickname(profile.nickname || '');
       setAccountType((profile.account_type as AccountType) || 'free');
       setSelectedDisciplines(profile.discipline ? profile.discipline.split(',').map(d => d.trim()).filter(Boolean) : []);
+      setTrainingDays(((profile as any).training_days as string[] | null) || []);
       const lvl = profile.level;
       setMartialLevel(lvl === 'Pro' ? 'Fighter' : lvl);
       setFitnessLevel((profile.fitness_level as FitnessLevel) || 'Beginner');
@@ -283,7 +285,7 @@ export default function Profile() {
   const profileLoaded = !!profile && !!user;
   const profileSnapshot = {
     name, middleName, surname, nickname, accountType,
-    selectedDisciplines, martialLevel, fitnessLevel,
+    selectedDisciplines, trainingDays, martialLevel, fitnessLevel,
     myStatement, target, motivationMode, fixedMotivationId, customMotivation,
   };
   const { status: autosaveStatus } = useAutosave({
@@ -302,6 +304,7 @@ export default function Profile() {
           nickname,
           account_type: accountType,
           discipline: selectedDisciplines.join(', '),
+          training_days: trainingDays as any,
           level: dbLevel as any,
           fitness_level: fitnessLevel,
           my_statement: myStatement || null,
@@ -347,6 +350,7 @@ export default function Profile() {
           name, middle_name: middleName || null, surname: surname || null,
           nickname, account_type: accountType,
           discipline: selectedDisciplines.join(', '),
+          training_days: trainingDays as any,
           level: dbLevel as any, fitness_level: fitnessLevel,
           my_statement: myStatement || null,
           target: target || null,
@@ -615,6 +619,48 @@ export default function Profile() {
                           >{d}</button>
                         ))}
                       </div>
+                    </div>
+                    <div>
+                      <Label>Training Days</Label>
+                      <p className="text-xs text-muted-foreground mt-0.5 mb-2">
+                        Pick the days you plan to train. Your dashboard "This Week" ticks reflect notes logged on these days.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { key: 'mon', label: 'Mon' },
+                          { key: 'tue', label: 'Tue' },
+                          { key: 'wed', label: 'Wed' },
+                          { key: 'thu', label: 'Thu' },
+                          { key: 'fri', label: 'Fri' },
+                          { key: 'sat', label: 'Sat' },
+                          { key: 'sun', label: 'Sun' },
+                        ].map(({ key, label }) => {
+                          const active = trainingDays.includes(key);
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() =>
+                                setTrainingDays(prev =>
+                                  prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key]
+                                )
+                              }
+                              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                                active
+                                  ? 'bg-primary text-primary-foreground border-primary'
+                                  : 'border-border text-foreground hover:border-primary/50'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {trainingDays.length > 0 && (
+                        <p className="text-[11px] text-muted-foreground mt-2">
+                          {trainingDays.length} day{trainingDays.length === 1 ? '' : 's'} per week
+                        </p>
+                      )}
                     </div>
                     <div>
                       <Label>Martial Arts Level</Label>

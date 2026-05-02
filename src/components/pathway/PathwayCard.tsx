@@ -122,7 +122,7 @@ export function PathwayCard({ data, index, variant = 'A', onClick }: Props) {
         {/* Title block */}
         <div className="min-w-0">
           <h3
-            className="uppercase font-display leading-[1.05] truncate"
+            className="uppercase leading-[1.05] truncate font-sans font-bold"
             style={{ fontWeight: 800, fontSize: 16, color: 'var(--fj-text)', letterSpacing: '0.015em' }}
           >
             {data.title}

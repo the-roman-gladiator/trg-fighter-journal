@@ -539,13 +539,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
             opacity={dimmed ? 0.35 : 1}
             style={{ transition: 'opacity 0.4s ease' }}
           >
-            {/* Outer glow ring for selected */}
+            {/* Outer glow ring for selected — smaller on mobile so it doesn't swallow neighbors */}
             {isSelected && (
               <>
                 <circle
                   cx={node.position_x}
                   cy={node.position_y + floatOffset}
-                  r={baseRadius * pulse + 16}
+                  r={baseRadius * pulse + (isMobile ? 8 : 16)}
                   fill="none"
                   stroke={colors.glow}
                   strokeWidth={1}
@@ -555,7 +555,7 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
                 <circle
                   cx={node.position_x}
                   cy={node.position_y + floatOffset}
-                  r={baseRadius * pulse + 10}
+                  r={baseRadius * pulse + (isMobile ? 5 : 10)}
                   fill="none"
                   stroke={colors.glow}
                   strokeWidth={1.5}

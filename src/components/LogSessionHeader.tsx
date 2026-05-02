@@ -4,8 +4,8 @@ import { Menu } from 'lucide-react';
 const CATEGORIES = [
   'TECHNICAL SKILLS',
   'SPARRING & ROLLING',
-  'CARDIO & ENDURANCE',
   'STRENGTH & CONDITIONING',
+  'CARDIO & ENDURANCE',
   'STRETCHING & MOBILITY',
   'MY FIGHT REVIEW',
 ] as const;

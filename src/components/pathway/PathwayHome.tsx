@@ -22,12 +22,12 @@ interface CardDef {
 }
 
 const PATHWAY_CARDS: CardDef[] = [
-  { key: 'technical',    title: 'Technical Skills',     subtitle: 'Neural Map · chains',   icon: iconTechnical, accentTheme: 'tech',     textureType: 'grid' },
-  { key: 'sparring',     title: 'Sparring & Rolling',   subtitle: 'Live rounds & rolls',   icon: iconSparring,  accentTheme: 'sparring', textureType: 'streaks' },
-  { key: 'strength',     title: 'Strength Training',    subtitle: 'Lifts, sets & load',    icon: iconStrength,  accentTheme: 'strength', textureType: 'lines' },
-  { key: 'cardio',       title: 'MY FIGHT REVIEW',      subtitle: 'Endurance & HR work',   icon: iconCardio,    accentTheme: 'cardio',   textureType: 'pulse' },
-  { key: 'stretching',   title: 'Mobility & Recovery',  subtitle: 'Stretching · rehab',    icon: iconRecovery,  accentTheme: 'recovery', textureType: 'wave' },
-  { key: 'fight_review', title: 'Mindset & Reflection', subtitle: 'Fight review',          icon: iconMindset,   accentTheme: 'mindset',  textureType: 'dots' },
+  { key: 'technical',    title: 'Technical Skills',        subtitle: 'Movement chains & techniques', icon: iconTechnical, accentTheme: 'tech',     textureType: 'grid' },
+  { key: 'sparring',     title: 'Sparring & Rolling',      subtitle: 'Live rounds & rolls',          icon: iconSparring,  accentTheme: 'sparring', textureType: 'streaks' },
+  { key: 'strength',     title: 'Strength & Conditioning', subtitle: 'Lifts, sets & load',           icon: iconStrength,  accentTheme: 'strength', textureType: 'lines' },
+  { key: 'cardio',       title: 'Cardio & Endurance',      subtitle: 'Endurance & HR work',          icon: iconCardio,    accentTheme: 'cardio',   textureType: 'pulse' },
+  { key: 'stretching',   title: 'Stretching & Mobility',   subtitle: 'Stretching · rehab',           icon: iconRecovery,  accentTheme: 'recovery', textureType: 'wave' },
+  { key: 'fight_review', title: 'My Fight Review',         subtitle: 'Fight review',                 icon: iconMindset,   accentTheme: 'mindset',  textureType: 'dots' },
 ];
 
 interface Props {

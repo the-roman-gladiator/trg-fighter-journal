@@ -221,43 +221,42 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2 && lastPinchDist.current !== null && lastPinchCenter.current !== null) {
       e.preventDefault();
+      // Cancel any single-touch pan that may have started before the second finger landed
+      setIsPanning(false);
+      setDragNode(null);
+
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy);
       const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
       const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
 
-      // Ignore tiny finger distances — fingers just placed
-      if (dist < 60) {
+      // Skip first frames while fingers settle
+      if (dist < 30) {
         lastPinchDist.current = dist;
         lastPinchCenter.current = { x: cx, y: cy };
         return;
       }
 
-      const distanceDelta = Math.abs(dist - lastPinchDist.current);
-      // Ignore jitter below 18px
-      if (distanceDelta < 18) {
-        return;
-      }
-
-      // Ultra-slow zoom: clamp ratio tightly, then dampen further
+      // Direct ratio — clamp per-frame so a jittery delta can't blow up the view
       const rawFactor = lastPinchDist.current / dist;
-      const clampedRawFactor = Math.max(0.985, Math.min(1.015, rawFactor));
-      const factor = 1 + (clampedRawFactor - 1) * 0.08;
+      const factor = Math.max(0.85, Math.min(1.18, rawFactor));
+
+      // Zoom toward the midpoint of the two fingers (in SVG coords)
       const svgPt = getSvgPoint(cx, cy);
 
       setViewBox(prev => {
-        const newW = Math.max(240, Math.min(3000, prev.w * factor));
-        const newH = Math.max(180, Math.min(2250, prev.h * factor));
-        const newX = svgPt.x - (svgPt.x - prev.x) * (newW / prev.w);
-        const newY = svgPt.y - (svgPt.y - prev.y) * (newH / prev.h);
-        return { x: newX, y: newY, w: newW, h: newH };
+        const nextW = prev.w * factor;
+        const nextH = prev.h * factor;
+        const newX = svgPt.x - (svgPt.x - prev.x) * (nextW / prev.w);
+        const newY = svgPt.y - (svgPt.y - prev.y) * (nextH / prev.h);
+        return clampViewBox({ x: newX, y: newY, w: nextW, h: nextH });
       });
 
       lastPinchDist.current = dist;
       lastPinchCenter.current = { x: cx, y: cy };
     }
-  }, [getSvgPoint]);
+  }, [getSvgPoint, clampViewBox]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     // Double-tap detection (single finger)

@@ -425,7 +425,13 @@ export default function MyPathway() {
             ) : (
               <div className="space-y-2">
                 {list.map(s => (
-                  <SessionCard key={s.id} session={s} />
+                  <SessionCard
+                    key={s.id}
+                    session={s}
+                    onOpen={selectedCategory === 'technical'
+                      ? (sess) => { setMapFocusSessionId(sess.id); setView('interactive-map'); }
+                      : undefined}
+                  />
                 ))}
               </div>
             )}

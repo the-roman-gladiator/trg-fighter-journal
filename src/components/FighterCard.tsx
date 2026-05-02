@@ -198,7 +198,7 @@ export function FighterCard({
 
           {target && (
             <p
-              className="mt-5 text-white sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2 text-sm"
+              className="mt-5 text-white sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2 text-sm font-sans"
               style={displayFont}
             >
               {target}
@@ -207,7 +207,7 @@ export function FighterCard({
 
           {statement && (
             <p
-              className="mt-5 text-white sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2 text-sm"
+              className="mt-5 text-white sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2 text-sm font-sans"
               style={displayFont}
             >
               {statement}
@@ -216,7 +216,7 @@ export function FighterCard({
 
           {level && (
             <p
-              className="mt-5 text-white sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2 text-sm"
+              className="mt-5 text-white sm:text-[14px] font-semibold uppercase tracking-[0.12em] leading-snug break-words line-clamp-2 text-sm font-sans"
               style={displayFont}
             >
               {level}

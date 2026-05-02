@@ -178,7 +178,8 @@
   input[type="datetime-local"]::-webkit-calendar-picker-indicator,
   input[type="month"]::-webkit-calendar-picker-indicator,
   input[type="week"]::-webkit-calendar-picker-indicator {
-    filter: invert(1) brightness(1.2) opacity(0.85);
+    filter: invert(1) brightness(2);
+    opacity: 1;
     cursor: pointer;
   }
   input[type="date"]::-webkit-calendar-picker-indicator:hover,

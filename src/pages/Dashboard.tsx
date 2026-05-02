@@ -626,7 +626,7 @@ export default function Dashboard() {
         {/* Coach Notes offered to me — student saves create their own training session copy */}
         <CoachNoteOffersInbox />
 
-        <p className="text-center tracking-widest pt-4 pb-8 text-base font-serif bg-secondary-foreground text-muted-foreground">
+        <p className="text-center tracking-widest pt-4 pb-8 text-base font-serif text-muted-foreground bg-sidebar-ring">
           STRENGTH & HONOUR
         </p>
         </div>

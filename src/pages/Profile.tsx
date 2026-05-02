@@ -155,6 +155,7 @@ export default function Profile() {
       setNickname(profile.nickname || '');
       setAccountType((profile.account_type as AccountType) || 'free');
       setSelectedDisciplines(profile.discipline ? profile.discipline.split(',').map(d => d.trim()).filter(Boolean) : []);
+      setTrainingDays(((profile as any).training_days as string[] | null) || []);
       const lvl = profile.level;
       setMartialLevel(lvl === 'Pro' ? 'Fighter' : lvl);
       setFitnessLevel((profile.fitness_level as FitnessLevel) || 'Beginner');

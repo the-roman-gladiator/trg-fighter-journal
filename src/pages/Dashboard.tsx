@@ -120,10 +120,9 @@ export default function Dashboard() {
         .gte('date', yearStart),
       supabase
         .from('training_sessions')
-        .select('class_type')
+        .select('class_type, date, intensity')
         .eq('user_id', user.id)
-        .eq('session_type', 'Completed')
-        .not('class_type', 'is', null),
+        .eq('session_type', 'Completed'),
       supabase
         .from('training_sessions')
         .select('id, date, title, discipline, disciplines, strategy, class_type, notes, technique')

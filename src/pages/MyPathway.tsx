@@ -312,7 +312,7 @@ export default function MyPathway() {
         </header>
         <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              {CATEGORY_META.map(({ key, title, subtitle, Icon, accent }) => {
+              {CATEGORY_META.map(({ key, title, subtitle, Icon, iconImg, accent }) => {
                 const { count, latest, avgIntensity } = categoryStats(key);
                 return (
                   <Card
@@ -324,8 +324,8 @@ export default function MyPathway() {
                     }}
                   >
                     <CardContent className="pt-4 pb-4 space-y-2">
-                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${accent}`}>
-                        <Icon className="h-5 w-5" />
+                      <div className="h-12 w-12 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 overflow-hidden">
+                        <img src={iconImg} alt="" loading="lazy" width={48} height={48} className="h-10 w-10 object-contain" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-sm leading-tight uppercase tracking-wide">{title}</h3>
@@ -399,8 +399,8 @@ export default function MyPathway() {
               <ArrowLeft className="mr-2 h-4 w-4" /> Back
             </Button>
             <div className="flex items-center gap-3 mt-2">
-              <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${meta.accent}`}>
-                <Icon className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 overflow-hidden">
+                <img src={meta.iconImg} alt="" loading="lazy" width={48} height={48} className="h-10 w-10 object-contain" />
               </div>
               <div>
                 <h1 className="text-lg font-bold uppercase tracking-wide leading-tight">{meta.title}</h1>

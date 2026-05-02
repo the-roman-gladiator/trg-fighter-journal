@@ -531,7 +531,7 @@ export default function Dashboard() {
               {/* INTENSITY */}
               <div className="px-2 py-3 sm:px-4 sm:py-4 text-center flex flex-col items-center justify-center">
                 <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary mb-1" />
-                <p className="text-base sm:text-lg font-black text-foreground leading-none tabular-nums">3.3</p>
+                <p className="text-base sm:text-lg font-black text-foreground leading-none tabular-nums">{avgIntensity || '—'}</p>
                 <p className="mt-1 text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-semibold">Intensity</p>
               </div>
             </div>

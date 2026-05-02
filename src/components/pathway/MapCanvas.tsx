@@ -348,6 +348,24 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
     centerOnNodes();
   }, [nodes.length === 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // On mobile: when a node is selected, pan the viewBox so the selected node
+  // appears in the upper 2/3 of the canvas (the bottom 1/3 is covered by the sheet).
+  useEffect(() => {
+    if (!isMobile || !selectedNodeId) return;
+    const node = nodes.find(n => n.id === selectedNodeId);
+    if (!node) return;
+    setViewBox(prev => {
+      const desiredCx = node.position_x;
+      const desiredCy = node.position_y - prev.h * 0.25;
+      return clampViewBox({
+        x: desiredCx - prev.w / 2,
+        y: desiredCy - prev.h / 2,
+        w: prev.w,
+        h: prev.h,
+      });
+    });
+  }, [selectedNodeId, isMobile, nodes, clampViewBox]);
+
   const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
 
   // Native non-passive touchmove listener — React's synthetic touchmove is passive

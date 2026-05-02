@@ -114,6 +114,38 @@ export default function Dashboard() {
     const weekSessions = (recent || []).filter(s => s.date >= mondayOfThisWeek);
     setWeeklySessions(weekSessions.length);
 
+    // Training days from profile
+    const { data: profRow } = await supabase
+      .from('profiles')
+      .select('training_days')
+      .eq('id', user.id)
+      .maybeSingle();
+    setTrainingDays(((profRow as any)?.training_days as string[] | null) || []);
+
+    // Daily reflections this week
+    const { data: weekReflections } = await supabase
+      .from('daily_reflections')
+      .select('reflection_date')
+      .eq('user_id', user.id)
+      .gte('reflection_date', mondayOfThisWeek);
+
+    // Build set of weekday keys (mon..sun) that have any entry this week
+    const dayKeys = ['sun','mon','tue','wed','thu','fri','sat'];
+    const entrySet = new Set<string>();
+    weekSessions.forEach((s: any) => {
+      if (s.date) {
+        const d = new Date(s.date + 'T00:00:00');
+        entrySet.add(dayKeys[d.getDay()]);
+      }
+    });
+    (weekReflections || []).forEach((r: any) => {
+      if (r.reflection_date) {
+        const d = new Date(r.reflection_date + 'T00:00:00');
+        entrySet.add(dayKeys[d.getDay()]);
+      }
+    });
+    setWeekEntryDays(entrySet);
+
     // Calculate avg effort
     const effortScores = (recent || []).map((s: any) => s.effort_score).filter((s: any) => s != null && s > 0);
     setAvgEffort(effortScores.length > 0 ? Math.round((effortScores.reduce((a: number, b: number) => a + b, 0) / effortScores.length) * 10) / 10 : 0);

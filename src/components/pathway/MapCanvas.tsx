@@ -299,6 +299,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
   }, [nodes, getSvgPoint]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    // If a pinch is in progress, ignore single-pointer pan
+    if (lastPinchDist.current !== null) return;
     if (dragNode) {
       const svgPt = getSvgPoint(e.clientX, e.clientY);
       const newX = svgPt.x - dragOffset.x;
@@ -308,10 +310,10 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
       const dx = e.clientX - panStart.x;
       const dy = e.clientY - panStart.y;
       const scale = viewBox.w / (svgRef.current?.getBoundingClientRect().width || 800);
-      setViewBox(prev => ({ ...prev, x: prev.x - dx * scale, y: prev.y - dy * scale }));
+      setViewBox(prev => clampViewBox({ ...prev, x: prev.x - dx * scale, y: prev.y - dy * scale }));
       setPanStart({ x: e.clientX, y: e.clientY });
     }
-  }, [dragNode, isPanning, panStart, viewBox, dragOffset, getSvgPoint, onNodeDrag]);
+  }, [dragNode, isPanning, panStart, viewBox, dragOffset, getSvgPoint, onNodeDrag, clampViewBox]);
 
   const handlePointerUp = useCallback(() => {
     if (dragNode) {
@@ -328,13 +330,13 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
     const factor = e.deltaY > 0 ? 1.05 : 0.95;
     const svgPt = getSvgPoint(e.clientX, e.clientY);
     setViewBox(prev => {
-      const newW = Math.max(200, Math.min(3000, prev.w * factor));
-      const newH = Math.max(150, Math.min(2250, prev.h * factor));
-      const newX = svgPt.x - (svgPt.x - prev.x) * (newW / prev.w);
-      const newY = svgPt.y - (svgPt.y - prev.y) * (newH / prev.h);
-      return { x: newX, y: newY, w: newW, h: newH };
+      const nextW = prev.w * factor;
+      const nextH = prev.h * factor;
+      const newX = svgPt.x - (svgPt.x - prev.x) * (nextW / prev.w);
+      const newY = svgPt.y - (svgPt.y - prev.y) * (nextH / prev.h);
+      return clampViewBox({ x: newX, y: newY, w: nextW, h: nextH });
     });
-  }, [getSvgPoint]);
+  }, [getSvgPoint, clampViewBox]);
 
   // Center view on nodes on load
   useEffect(() => {

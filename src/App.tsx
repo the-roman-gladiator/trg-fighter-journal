@@ -189,12 +189,16 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <UserSettingsProvider>
-              <AppModeProvider>
-                <GlobalErrorListener />
-                <AppShell />
-              </AppModeProvider>
-            </UserSettingsProvider>
+            <SubscriptionProvider>
+              <FighterProfileProvider>
+                <UserSettingsProvider>
+                  <AppModeProvider>
+                    <GlobalErrorListener />
+                    <AppShell />
+                  </AppModeProvider>
+                </UserSettingsProvider>
+              </FighterProfileProvider>
+            </SubscriptionProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

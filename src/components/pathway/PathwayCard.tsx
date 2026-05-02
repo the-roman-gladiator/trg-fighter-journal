@@ -203,13 +203,23 @@ function IntensityBar({ avg, accent }: { avg: number | null; accent: string }) {
   const pct = avg !== null ? (avg / 5) * 100 : 0;
   return (
     <div className="space-y-1.5">
-      <div
-        className="flex items-center justify-between font-mono uppercase"
-        style={{ fontSize: 9, letterSpacing: '0.18em', color: 'var(--fj-text-muted)' }}
-      >
-        <span>Intensity</span>
-        <span style={{ color: 'var(--fj-text-soft)' }}>
-          {avg !== null ? `${avg.toFixed(1)}/5` : '—'}
+      <div className="flex items-center justify-between">
+        <span
+          className="uppercase font-bold"
+          style={{ fontSize: 10.5, letterSpacing: '0.16em', color: 'var(--fj-text-muted)' }}
+        >
+          Intensity
+        </span>
+        <span
+          className="font-display tabular-nums font-bold"
+          style={{ fontSize: 12, color: 'var(--fj-text)' }}
+        >
+          {avg !== null ? (
+            <>
+              {avg.toFixed(1)}
+              <span style={{ color: 'var(--fj-text-muted)', fontWeight: 500 }}>/5</span>
+            </>
+          ) : '—'}
         </span>
       </div>
       <div

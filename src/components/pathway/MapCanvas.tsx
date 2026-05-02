@@ -81,6 +81,7 @@ function getFullPathway(nodeId: string, edges: PathwayEdge[]): Set<string> {
 export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function MapCanvas({ nodes, edges, selectedNodeId, reconnectMode, onNodeClick, onNodeDrag, pathwayNodeIdsOverride }, ref) {
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: 800, h: 600 });
 
   // Compute world bounds + min/max viewBox sizes from nodes

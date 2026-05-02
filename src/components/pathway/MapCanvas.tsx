@@ -233,16 +233,26 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
       const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
       const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
 
-      // Skip first frames while fingers settle
-      if (dist < 30) {
+      // Require fingers to be reasonably far apart before zooming (avoids huge jumps when fingers are close)
+      if (dist < 60 || lastPinchDist.current < 60) {
         lastPinchDist.current = dist;
         lastPinchCenter.current = { x: cx, y: cy };
         return;
       }
 
-      // Direct ratio — clamp per-frame so a jittery delta can't blow up the view
+      // Ignore tiny jitter (dead zone) — finger noise shouldn't move the view
+      const delta = Math.abs(dist - lastPinchDist.current);
+      if (delta < 2) {
+        lastPinchCenter.current = { x: cx, y: cy };
+        return;
+      }
+
+      // Dampen the ratio toward 1 so each frame moves only a fraction of the raw change.
+      // Then hard-clamp per frame to prevent any single jittery delta from blowing up the view.
       const rawFactor = lastPinchDist.current / dist;
-      const factor = Math.max(0.85, Math.min(1.18, rawFactor));
+      const SENSITIVITY = 0.35; // lower = less sensitive
+      const damped = 1 + (rawFactor - 1) * SENSITIVITY;
+      const factor = Math.max(0.95, Math.min(1.05, damped));
 
       // Zoom toward the midpoint of the two fingers (in SVG coords)
       const svgPt = getSvgPoint(cx, cy);

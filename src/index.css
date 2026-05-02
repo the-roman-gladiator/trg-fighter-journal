@@ -6,6 +6,59 @@
 
 @layer base {
   :root {
+    /* ================================================================
+       Fighter Journal — combat-performance design tokens
+       Use these for the new pathway / cards / badges / glow surfaces.
+       ================================================================ */
+    --fj-bg-0: #050608;
+    --fj-bg-1: #0a0d12;
+    --fj-bg-2: #10151d;
+    --fj-bg-3: #141b24;
+
+    --fj-surface-1: rgba(17, 22, 30, 0.88);
+    --fj-surface-2: rgba(12, 16, 22, 0.94);
+    --fj-surface-3: rgba(20, 26, 35, 0.90);
+
+    --fj-line-soft: rgba(255, 255, 255, 0.06);
+    --fj-line-mid: rgba(255, 255, 255, 0.10);
+    --fj-line-strong: rgba(255, 255, 255, 0.16);
+
+    --fj-text: #f5f7fb;
+    --fj-text-soft: #c5ced8;
+    --fj-text-muted: #8f9aaa;
+
+    --fj-red: #ff2b2b;
+    --fj-red-2: #ff4343;
+    --fj-red-dark: #8f1010;
+    --fj-red-glow: rgba(255, 43, 43, 0.32);
+
+    --fj-blue: #4da3ff;
+    --fj-blue-2: #7db8ff;
+    --fj-blue-glow: rgba(77, 163, 255, 0.22);
+
+    --fj-crimson: #d81f3f;
+    --fj-orange: #ff7a18;
+    --fj-pulse: #ff4d6d;
+    --fj-cyan: #55d6ff;
+    --fj-violet: #8b5cf6;
+
+    --fj-radius-card: 24px;
+    --fj-radius-pill: 16px;
+    --fj-radius-badge: 18px;
+
+    --fj-shadow-card:
+      0 18px 40px rgba(0, 0, 0, 0.45),
+      0 6px 18px rgba(0, 0, 0, 0.35);
+    --fj-shadow-inset:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.02);
+    --fj-glow-red:
+      0 0 0 1px rgba(255, 43, 43, 0.08),
+      0 0 18px rgba(255, 43, 43, 0.16);
+    --fj-glow-blue:
+      0 0 0 1px rgba(77, 163, 255, 0.05),
+      0 0 20px rgba(77, 163, 255, 0.12);
+
     /* TRG Dark Gladiator Theme — premium fighter journal */
     --background: 0 0% 3.5%;
     --foreground: 0 0% 98%;

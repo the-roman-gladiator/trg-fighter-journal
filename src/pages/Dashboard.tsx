@@ -14,7 +14,6 @@ import { format, startOfWeek, startOfYear, subDays } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import fighterBgDark from '@/assets/dashboard-bg-octagon.png';
-import fighterBgLight from '@/assets/dashboard-fighter-bg-light.png';
 import { CoachNoteOffersInbox } from '@/components/coach/CoachNoteOffersInbox';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { FighterCard } from '@/components/FighterCard';
@@ -291,29 +290,11 @@ export default function Dashboard() {
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const nickname = profile?.nickname || '';
 
-  const fighterBg = settings.theme_mode === 'light' ? fighterBgLight : fighterBgDark;
+  const fighterBg = fighterBgDark;
 
   return (
     <div className="min-h-screen bg-background dark:bg-transparent relative">
       <ProfileSetupPrompt profile={profile} />
-      {/* Light-mode soft background (kept) */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 dark:hidden"
-        style={{
-          backgroundImage: `url(${fighterBgLight})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center top',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.18,
-          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 80%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black 0%, transparent 80%)',
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 dark:hidden bg-gradient-to-b from-background/60 via-background/40 to-background"
-      />
 
       {/* Premium hero header — bold sports-headline */}
       <header className="relative z-10 border-b border-border/60 bg-gradient-to-b from-[hsl(0_0%_4%)] via-[hsl(0_0%_5%)] to-[hsl(0_0%_3.5%)]">

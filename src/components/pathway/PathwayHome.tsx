@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { BookOpen, ChevronRight, Sparkles } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { PathwayCard, type PathwayCardData, type AccentTheme, type TextureType } from './PathwayCard';
 import iconTechnical from '@/assets/pathway-technical.png';
 import iconSparring from '@/assets/pathway-sparring.png';
@@ -33,7 +31,7 @@ const PATHWAY_CARDS: CardDef[] = [
 ];
 
 interface Props {
-  variant: 'A' | 'B';
+  variant?: 'A' | 'B';
   archivedCount: number;
   categoryStats: (k: PathwayCategoryKey) => { count: number; latest: any; avgIntensity: number | null };
   onOpenCategory: (k: PathwayCategoryKey) => void;

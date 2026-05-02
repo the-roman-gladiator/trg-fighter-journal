@@ -180,7 +180,7 @@ export function FighterCard({
         <div className="min-w-0 flex-1 flex flex-col text-left">
           {/* 1. NICKNAME — primary (wraps to 2 lines if long) */}
           <h2
-            className="text-white uppercase leading-[0.95] tracking-tight sm:text-[32px] break-words line-clamp-2 mx-0 font-extrabold font-serif text-2xl"
+            className="text-white uppercase leading-[0.95] tracking-tight sm:text-[32px] break-words line-clamp-2 mx-0 font-extrabold text-2xl font-serif"
             style={displayFont}
           >
             {displayName}

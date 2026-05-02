@@ -22,7 +22,7 @@ interface CardDef {
 }
 
 const PATHWAY_CARDS: CardDef[] = [
-  { key: 'technical',    title: 'MINDSET & \nREFLECTION', subtitle: 'Neural Map · chains',   icon: iconTechnical, accentTheme: 'tech',     textureType: 'grid' },
+  { key: 'technical',    title: 'Technical Skills',     subtitle: 'Neural Map · chains',   icon: iconTechnical, accentTheme: 'tech',     textureType: 'grid' },
   { key: 'sparring',     title: 'Sparring & Rolling',   subtitle: 'Live rounds & rolls',   icon: iconSparring,  accentTheme: 'sparring', textureType: 'streaks' },
   { key: 'strength',     title: 'Strength Training',    subtitle: 'Lifts, sets & load',    icon: iconStrength,  accentTheme: 'strength', textureType: 'lines' },
   { key: 'cardio',       title: 'MY FIGHT REVIEW',      subtitle: 'Endurance & HR work',   icon: iconCardio,    accentTheme: 'cardio',   textureType: 'pulse' },

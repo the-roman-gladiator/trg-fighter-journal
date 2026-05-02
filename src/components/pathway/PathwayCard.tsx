@@ -70,7 +70,7 @@ export function PathwayCard({ data, index, variant = 'A', onClick }: Props) {
       />
 
       {/* Content */}
-      <div className="relative z-10 p-[18px] flex flex-col gap-3 min-h-[168px] border border-[#2541f4] border-solid rounded-sm shadow-sm">
+      <div className="relative z-10 p-[18px] flex flex-col gap-3 min-h-[168px]">
         {/* Top row: icon + count */}
         <div className="flex items-start justify-between">
           <span

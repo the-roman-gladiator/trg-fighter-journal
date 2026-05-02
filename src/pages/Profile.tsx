@@ -285,7 +285,7 @@ export default function Profile() {
   const profileLoaded = !!profile && !!user;
   const profileSnapshot = {
     name, middleName, surname, nickname, accountType,
-    selectedDisciplines, martialLevel, fitnessLevel,
+    selectedDisciplines, trainingDays, martialLevel, fitnessLevel,
     myStatement, target, motivationMode, fixedMotivationId, customMotivation,
   };
   const { status: autosaveStatus } = useAutosave({

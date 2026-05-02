@@ -122,14 +122,14 @@ export function PathwayCard({ data, index, variant = 'A', onClick }: Props) {
         {/* Title block */}
         <div className="min-w-0">
           <h3
-            className="uppercase leading-[1.05] truncate font-sans font-bold"
-            style={{ fontWeight: 800, fontSize: 16, color: 'var(--fj-text)', letterSpacing: '0.015em' }}
+            className="uppercase font-sans font-bold break-words"
+            style={{ fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: 'var(--fj-text)', letterSpacing: '0.015em' }}
           >
             {data.title}
           </h3>
           <p
-            className="truncate mt-1"
-            style={{ fontSize: 12, color: 'var(--fj-text-soft)', letterSpacing: '0.01em' }}
+            className="mt-1 break-words"
+            style={{ fontSize: 12, lineHeight: 1.25, color: 'var(--fj-text-soft)', letterSpacing: '0.01em' }}
           >
             {data.subtitle}
           </p>

@@ -19,8 +19,8 @@ export interface CustomListItem {
 export const DEFAULT_CLASS_TYPES = [
   'Technical Skills',
   'Sparring & Rolling',
-  'Cardio & Endurance',
   'Strength & Conditioning',
+  'Cardio & Endurance',
   'Stretching & Mobility',
   'My Fight Review',
 ];

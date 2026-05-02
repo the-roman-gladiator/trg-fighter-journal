@@ -44,10 +44,10 @@ export function classTypeCategory(label: string | null | undefined): SessionCate
   const k = label.toLowerCase().trim();
   // Sparring (incl. legacy "Sparring / Rolling")
   if (k.includes('sparring') || k.includes('rolling')) return 'sparring';
-  // Stretching & Mobility (new)
-  if (k.includes('stretch') || k.includes('mobility')) return 'stretching';
-  // Fight review (new "My Fight Review" + legacy "Fight Review")
-  if (k.includes('fight review')) return 'fight_review';
+  // Stretching, Mobility & Recovery (incl. rehab, recovery)
+  if (k.includes('stretch') || k.includes('mobility') || k.includes('recovery') || k.includes('rehab')) return 'stretching';
+  // Fight review + Mindset / Reflection (grouped as "Mindset & Fight Reflection")
+  if (k.includes('fight review') || k.includes('mindset') || k.includes('reflection') || k.includes('reflect')) return 'fight_review';
   // Cardio (new "Cardio & Endurance" + legacy "Cardio / Endurance")
   if (k.includes('cardio') || k.includes('endurance')) return 'cardio';
   // Strength (new "Strength & Conditioning" + legacy "Strength / Conditioning")

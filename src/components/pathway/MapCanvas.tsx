@@ -346,8 +346,25 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
 
   const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
 
+  // Native non-passive touchmove listener — React's synthetic touchmove is passive
+  // in many browsers, so calling e.preventDefault() there has no effect. Without it
+  // the browser starts native pinch/scroll gestures and the map appears to "fly away".
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const block = (e: TouchEvent) => {
+      if (e.touches.length >= 2) e.preventDefault();
+    };
+    el.addEventListener('touchmove', block, { passive: false });
+    el.addEventListener('touchstart', block, { passive: false });
+    return () => {
+      el.removeEventListener('touchmove', block);
+      el.removeEventListener('touchstart', block);
+    };
+  }, []);
+
   return (
-    <div className="relative w-full h-full overflow-hidden">
+    <div ref={wrapperRef} className="relative w-full h-full overflow-hidden" style={{ touchAction: 'none' }}>
       {/* Static neural background — fast, no video decode */}
       <div
         aria-hidden="true"

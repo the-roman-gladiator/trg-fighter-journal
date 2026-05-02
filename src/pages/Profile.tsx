@@ -102,6 +102,7 @@ export default function Profile() {
   const [nickname, setNickname] = useState('');
   const [accountType, setAccountType] = useState<AccountType>('free');
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
+  const [trainingDays, setTrainingDays] = useState<string[]>([]);
   const [martialLevel, setMartialLevel] = useState('Beginner');
   const [fitnessLevel, setFitnessLevel] = useState<FitnessLevel>('Beginner');
   const [profileOpen, setProfileOpen] = useState(false);

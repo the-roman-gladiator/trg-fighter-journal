@@ -143,25 +143,25 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
     const minY = Math.min(...ys) - 150;
     const maxX = Math.max(...xs) + 150;
     const maxY = Math.max(...ys) + 150;
-    setViewBox({ x: minX, y: minY, w: Math.max(maxX - minX, 400), h: Math.max(maxY - minY, 300) });
-  }, [nodes]);
+    setViewBox(clampViewBox({ x: minX, y: minY, w: Math.max(maxX - minX, 400), h: Math.max(maxY - minY, 300) }));
+  }, [nodes, clampViewBox]);
 
   useImperativeHandle(ref, () => ({
     zoomIn: () => setViewBox(v => {
       const cx = v.x + v.w / 2, cy = v.y + v.h / 2;
       const nw = v.w * 0.8, nh = v.h * 0.8;
-      return { x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh };
+      return clampViewBox({ x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh });
     }),
     zoomOut: () => setViewBox(v => {
       const cx = v.x + v.w / 2, cy = v.y + v.h / 2;
       const nw = v.w * 1.25, nh = v.h * 1.25;
-      return { x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh };
+      return clampViewBox({ x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh });
     }),
-    panBy: (dx: number, dy: number) => setViewBox(v => ({
-      ...v, x: v.x + dx * (v.w / 800), y: v.y + dy * (v.h / 600)
-    })),
+    panBy: (dx: number, dy: number) => setViewBox(v =>
+      clampViewBox({ ...v, x: v.x + dx * (v.w / 800), y: v.y + dy * (v.h / 600) })
+    ),
     recenter: () => centerOnNodes(),
-  }), [centerOnNodes]);
+  }), [centerOnNodes, clampViewBox]);
 
   // Full pathway highlighting — prefer the explicit override (which is
   // discipline-aware in FuturisticMap) over the naive edge walker.

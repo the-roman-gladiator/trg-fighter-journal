@@ -209,6 +209,32 @@ export default function Dashboard() {
     const pieData = Object.entries(typeCounts).map(([name, value]) => ({ name, value }));
     setClassTypeData(pieData);
 
+    // Total sessions (any registered note)
+    setTotalSessions((allSessions || []).length);
+
+    // Average intensity across the four key class types
+    const intensityClassTypes = new Set([
+      'Technical Skills',
+      'Sparring & Rolling',
+      'Cardio & Endurance',
+      'Strength & Conditioning',
+    ]);
+    const intensityVals = (allSessions || [])
+      .filter((s: any) => s.class_type && intensityClassTypes.has(s.class_type) && s.intensity != null)
+      .map((s: any) => Number(s.intensity))
+      .filter((n: number) => !isNaN(n) && n > 0);
+    setAvgIntensity(
+      intensityVals.length > 0
+        ? Math.round((intensityVals.reduce((a: number, b: number) => a + b, 0) / intensityVals.length) * 10) / 10
+        : 0
+    );
+
+    // All-time day streak: count of unique days the user logged any session
+    const allUniqueDays = new Set(
+      (allSessions || []).map((s: any) => s.date).filter(Boolean)
+    );
+    setAllTimeDayStreak(allUniqueDays.size);
+
     // Discipline + Strategy breakdowns + latest notes (for desktop side panels)
     const discCounts: Record<string, number> = {};
     const stratCounts: Record<string, number> = {};

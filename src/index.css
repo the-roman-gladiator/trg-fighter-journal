@@ -138,20 +138,7 @@
   input[type="month"], input[type="week"] {
     color-scheme: dark;
   }
-  [data-theme='light'] input[type="date"],
-  [data-theme='light'] input[type="time"],
-  [data-theme='light'] input[type="datetime-local"],
-  [data-theme='light'] input[type="month"],
-  [data-theme='light'] input[type="week"] {
-    color-scheme: light;
-  }
-  [data-theme='light'] input[type="date"]::-webkit-calendar-picker-indicator,
-  [data-theme='light'] input[type="time"]::-webkit-calendar-picker-indicator,
-  [data-theme='light'] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
-  [data-theme='light'] input[type="month"]::-webkit-calendar-picker-indicator,
-  [data-theme='light'] input[type="week"]::-webkit-calendar-picker-indicator {
-    filter: none;
-  }
+  /* Light theme rules removed — app is dark-only. */
 }
 
 /* Strategy badge utility classes */
@@ -188,87 +175,7 @@
   }
 }
 
-/* Bottom navigation light-mode override: red background with white icons & text */
-[data-theme='light'] nav[data-bottom-nav] {
-  background-color: hsl(var(--primary)) !important;
-  border-top-color: hsl(0 0% 0% / 0.2);
-  box-shadow: 0 -8px 32px -8px hsl(0 0% 0% / 0.25);
-}
-[data-theme='light'] nav[data-bottom-nav]::before {
-  background: linear-gradient(to right, transparent, hsl(0 0% 0% / 0.4), transparent);
-}
-[data-theme='light'] nav[data-bottom-nav] .nav-item-inactive,
-[data-theme='light'] nav[data-bottom-nav] .nav-item-inactive svg {
-  color: hsl(0 0% 100% / 0.8) !important;
-}
-[data-theme='light'] nav[data-bottom-nav] .nav-item-inactive:hover,
-[data-theme='light'] nav[data-bottom-nav] .nav-item-inactive:hover svg {
-  color: hsl(0 0% 100%) !important;
-}
-[data-theme='light'] nav[data-bottom-nav] .nav-item-active,
-[data-theme='light'] nav[data-bottom-nav] .nav-item-active svg {
-  color: hsl(0 0% 100%) !important;
-}
-[data-theme='light'] nav[data-bottom-nav] .nav-indicator {
-  background-color: hsl(0 0% 100%) !important;
-}
-
-/* Page headers in light mode: match bottom nav — red background, white text & icons */
-[data-theme='light'] header {
-  background-color: hsl(var(--primary)) !important;
-  background-image: none !important;
-  border-bottom-color: hsl(0 0% 0% / 0.2) !important;
-  color: hsl(0 0% 100%) !important;
-}
-[data-theme='light'] header * {
-  color: hsl(0 0% 100%) !important;
-  border-color: hsl(0 0% 100% / 0.25) !important;
-}
-[data-theme='light'] header svg {
-  color: hsl(0 0% 100%) !important;
-  stroke: hsl(0 0% 100%) !important;
-}
-/* Keep header buttons readable on red background */
-[data-theme='light'] header button:hover {
-  background-color: hsl(0 0% 100% / 0.15) !important;
-}
-[data-theme='light'] header [class*="bg-card"],
-[data-theme='light'] header [class*="bg-secondary"],
-[data-theme='light'] header [class*="bg-muted"] {
-  background-color: hsl(0 0% 100% / 0.15) !important;
-  background-image: none !important;
-}
-
-/* Dashboard fighter silhouette inside the red header in light mode — keep image visible
-   with a slight tone-down so it blends on the red background */
-[data-theme='light'] header div[aria-hidden="true"][style*="background-image"] {
-  filter: brightness(0.9) contrast(1.1) !important;
-  opacity: 0.95 !important;
-}
-
-/* "JOURNAL" headline must be black in light mode (FIGHTER stays white from header rule above) */
-[data-theme='light'] header .journal-title {
-  color: hsl(0 0% 0%) !important;
-  -webkit-text-fill-color: hsl(0 0% 0%) !important;
-  filter: none !important;
-  text-shadow: none !important;
-}
-
-/* Mode switcher (Athlete / Fighter / Coach) — darker grey track in light mode for contrast on red header */
-[data-theme='light'] header .bg-secondary\/50 {
-  background-color: hsl(0 0% 25% / 0.85) !important;
-}
-[data-theme='light'] header .bg-secondary\/50 button {
-  color: hsl(0 0% 100%) !important;
-}
-[data-theme='light'] header .bg-secondary\/50 button[class*="bg-primary"],
-[data-theme='light'] header .bg-secondary\/50 .bg-primary {
-  background-color: hsl(0 0% 100%) !important;
-  color: hsl(var(--primary)) !important;
-}
-[data-theme='light'] header .bg-secondary\/50 button[class*="bg-primary"] * {
-  color: hsl(var(--primary)) !important;
-}
+/* Light-mode-specific bottom-nav, header, journal-title, and mode-switcher overrides removed (dark-only). */
 
 /* Loading warrior horizontal flip (Y-axis spin, no rotation) */
 @keyframes flip-y {

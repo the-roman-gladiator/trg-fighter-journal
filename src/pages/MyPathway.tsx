@@ -7,13 +7,33 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, BookOpen, Network, Search, X, Filter, GitBranch, Pencil } from 'lucide-react';
+import { ArrowLeft, BookOpen, Network, Search, X, Filter, GitBranch, Pencil, Brain, Swords, Dumbbell, Heart, Activity, Sparkles } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InteractiveMap } from '@/components/pathway/InteractiveMap';
 import { FuturisticMap } from '@/components/pathway/FuturisticMap';
+import { classTypeCategory, type SessionCategory } from '@/hooks/useUserLists';
 
-type ViewMode = 'home' | 'all-notes' | 'interactive-map' | 'pathways';
+type ViewMode = 'home' | 'all-notes' | 'interactive-map' | 'pathways' | 'category-detail';
+
+type PathwayCategoryKey = 'technical' | 'sparring' | 'strength' | 'cardio' | 'stretching' | 'fight_review';
+
+interface CategoryMeta {
+  key: PathwayCategoryKey;
+  title: string;
+  subtitle: string;
+  Icon: typeof Brain;
+  accent: string; // tailwind classes for icon tile
+}
+
+const CATEGORY_META: CategoryMeta[] = [
+  { key: 'technical',    title: 'Technical Skills / Neural Map', subtitle: 'Movement chains & techniques', Icon: Brain,    accent: 'bg-primary/10 text-primary' },
+  { key: 'sparring',     title: 'Sparring & Rolling',            subtitle: 'Live rounds & rolls',         Icon: Swords,   accent: 'bg-destructive/15 text-destructive' },
+  { key: 'strength',     title: 'Strength Training',             subtitle: 'Lifts, sets & load',          Icon: Dumbbell, accent: 'bg-amber-500/15 text-amber-300' },
+  { key: 'cardio',       title: 'Cardio & Conditioning',         subtitle: 'Endurance & HR work',         Icon: Heart,    accent: 'bg-rose-500/15 text-rose-300' },
+  { key: 'stretching',   title: 'Mobility, Stretching & Recovery', subtitle: 'Mobility & rehab',          Icon: Activity, accent: 'bg-emerald-500/15 text-emerald-300' },
+  { key: 'fight_review', title: 'Mindset & Fight Reflection',    subtitle: 'Reflection & fight review',   Icon: Sparkles, accent: 'bg-blue-500/15 text-blue-300' },
+];
 
 interface PathwayChain {
   strategy: string;

@@ -25,7 +25,7 @@ const PATHWAY_CARDS: CardDef[] = [
   { key: 'technical',    title: 'Technical Skills',     subtitle: 'Neural Map · chains',   icon: iconTechnical, accentTheme: 'tech',     textureType: 'grid' },
   { key: 'sparring',     title: 'Sparring & Rolling',   subtitle: 'Live rounds & rolls',   icon: iconSparring,  accentTheme: 'sparring', textureType: 'streaks' },
   { key: 'strength',     title: 'Strength Training',    subtitle: 'Lifts, sets & load',    icon: iconStrength,  accentTheme: 'strength', textureType: 'lines' },
-  { key: 'cardio',       title: 'Cardio & Conditioning',subtitle: 'Endurance & HR work',   icon: iconCardio,    accentTheme: 'cardio',   textureType: 'pulse' },
+  { key: 'cardio',       title: 'MY FIGHT REVIEW',      subtitle: 'Endurance & HR work',   icon: iconCardio,    accentTheme: 'cardio',   textureType: 'pulse' },
   { key: 'stretching',   title: 'Mobility & Recovery',  subtitle: 'Stretching · rehab',    icon: iconRecovery,  accentTheme: 'recovery', textureType: 'wave' },
   { key: 'fight_review', title: 'Mindset & Reflection', subtitle: 'Fight review',          icon: iconMindset,   accentTheme: 'mindset',  textureType: 'dots' },
 ];
@@ -52,7 +52,7 @@ export function PathwayHome({ archivedCount, categoryStats, onOpenCategory, onOp
           </div>
           <div>
             <h1
-              className="font-display uppercase font-black leading-[0.95] tracking-tight"
+              className="uppercase font-black leading-[0.95] tracking-tight font-sans text-3xl"
               style={{ fontSize: 40, color: 'var(--fj-text)' }}
             >
               My<br />Pathway
@@ -124,7 +124,7 @@ export function PathwayHome({ archivedCount, categoryStats, onOpenCategory, onOp
             </span>
             <div className="flex-1 min-w-0">
               <h3
-                className="uppercase font-display leading-tight"
+                className="uppercase leading-tight font-sans font-bold"
                 style={{ fontWeight: 800, fontSize: 15, color: 'var(--fj-text)', letterSpacing: '0.02em' }}
               >
                 All Notes

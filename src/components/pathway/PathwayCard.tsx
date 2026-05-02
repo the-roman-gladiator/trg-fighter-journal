@@ -51,33 +51,21 @@ export function PathwayCard({ data, index, variant = 'A', onClick }: Props) {
       type="button"
       onClick={onClick}
       aria-label={`${data.title} — ${data.sessionCount} sessions`}
-      className="group relative text-left w-full overflow-hidden transition-all duration-300 hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--fj-blue)]/50"
+      className="group relative text-left w-full overflow-hidden transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--fj-blue)]/50"
       style={{
         borderRadius: 'var(--fj-radius-card)',
         background: 'linear-gradient(180deg, rgba(18,24,32,0.96) 0%, rgba(9,12,17,0.98) 100%)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        border: '1px solid rgba(255,255,255,0.10)',
         boxShadow: useRedGlow
-          ? '0 18px 40px rgba(0,0,0,0.45), 0 6px 18px rgba(0,0,0,0.35), 0 0 22px rgba(255,43,43,0.12), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(255,255,255,0.02)'
-          : 'var(--fj-shadow-card), var(--fj-shadow-inset)',
+          ? '0 12px 28px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.4), 0 0 18px rgba(255,43,43,0.10), inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -1px 0 rgba(0,0,0,0.4)'
+          : '0 12px 28px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -1px 0 rgba(0,0,0,0.4)',
       }}
     >
-      {/* Top accent hairline — single, refined */}
+      {/* Subtle hover sheen — button-like */}
       <span
-        className="absolute top-0 left-4 right-4 h-px pointer-events-none"
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
         style={{
-          background: useRedGlow
-            ? 'linear-gradient(90deg, transparent, var(--fj-red), transparent)'
-            : `linear-gradient(90deg, transparent, hsl(${accent} / 0.7), transparent)`,
-          opacity: 0.85,
-        }}
-      />
-
-      {/* Soft accent vignette in corner — depth without noise */}
-      <span
-        className="absolute -top-10 -right-10 w-32 h-32 pointer-events-none"
-        style={{
-          background: `radial-gradient(circle, hsl(${accent} / 0.18), transparent 70%)`,
-          filter: 'blur(2px)',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 50%)',
         }}
       />
 
@@ -91,9 +79,9 @@ export function PathwayCard({ data, index, variant = 'A', onClick }: Props) {
               width: 52,
               height: 52,
               borderRadius: 14,
-              background: `linear-gradient(160deg, hsl(${accent} / 0.22), rgba(8,11,16,0.95))`,
-              border: `1px solid hsl(${accent} / 0.35)`,
-              boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -1px 0 rgba(0,0,0,0.5), 0 6px 16px rgba(0,0,0,0.45)`,
+              background: 'linear-gradient(160deg, rgba(255,255,255,0.06), rgba(8,11,16,0.95))',
+              border: '1px solid rgba(255,255,255,0.10)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.4)',
             }}
           >
             <img

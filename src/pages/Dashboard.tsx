@@ -62,6 +62,9 @@ export default function Dashboard() {
   // Stats
   const [yearlyStreak, setYearlyStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
+  const [allTimeDayStreak, setAllTimeDayStreak] = useState(0);
+  const [totalSessions, setTotalSessions] = useState(0);
+  const [avgIntensity, setAvgIntensity] = useState(0);
   const [avgEffort, setAvgEffort] = useState(0);
   const [weeklySessions, setWeeklySessions] = useState(0);
   const [trainingDays, setTrainingDays] = useState<string[]>([]);
@@ -117,10 +120,9 @@ export default function Dashboard() {
         .gte('date', yearStart),
       supabase
         .from('training_sessions')
-        .select('class_type')
+        .select('class_type, date, intensity')
         .eq('user_id', user.id)
-        .eq('session_type', 'Completed')
-        .not('class_type', 'is', null),
+        .eq('session_type', 'Completed'),
       supabase
         .from('training_sessions')
         .select('id, date, title, discipline, disciplines, strategy, class_type, notes, technique')
@@ -206,6 +208,32 @@ export default function Dashboard() {
     });
     const pieData = Object.entries(typeCounts).map(([name, value]) => ({ name, value }));
     setClassTypeData(pieData);
+
+    // Total sessions (any registered note)
+    setTotalSessions((allSessions || []).length);
+
+    // Average intensity across the four key class types
+    const intensityClassTypes = new Set([
+      'Technical Skills',
+      'Sparring & Rolling',
+      'Cardio & Endurance',
+      'Strength & Conditioning',
+    ]);
+    const intensityVals = (allSessions || [])
+      .filter((s: any) => s.class_type && intensityClassTypes.has(s.class_type) && s.intensity != null)
+      .map((s: any) => Number(s.intensity))
+      .filter((n: number) => !isNaN(n) && n > 0);
+    setAvgIntensity(
+      intensityVals.length > 0
+        ? Math.round((intensityVals.reduce((a: number, b: number) => a + b, 0) / intensityVals.length) * 10) / 10
+        : 0
+    );
+
+    // All-time day streak: count of unique days the user logged any session
+    const allUniqueDays = new Set(
+      (allSessions || []).map((s: any) => s.date).filter(Boolean)
+    );
+    setAllTimeDayStreak(allUniqueDays.size);
 
     // Discipline + Strategy breakdowns + latest notes (for desktop side panels)
     const discCounts: Record<string, number> = {};
@@ -491,19 +519,19 @@ export default function Dashboard() {
               {/* STREAK */}
               <div className="px-2 py-3 sm:px-4 sm:py-4 text-center flex flex-col items-center justify-center">
                 <Flame className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary mb-1" />
-                <p className="text-base sm:text-lg font-black text-foreground leading-none tabular-nums">3</p>
+                <p className="text-base sm:text-lg font-black text-foreground leading-none tabular-nums">{allTimeDayStreak}</p>
                 <p className="mt-1 text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-semibold">Day Streak</p>
               </div>
               {/* SESSIONS */}
               <div className="px-2 py-3 sm:px-4 sm:py-4 text-center flex flex-col items-center justify-center">
                 <CalendarDays className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary mb-1" />
-                <p className="text-base sm:text-lg font-black text-foreground leading-none tabular-nums">17</p>
+                <p className="text-base sm:text-lg font-black text-foreground leading-none tabular-nums">{totalSessions}</p>
                 <p className="mt-1 text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-semibold">Sessions</p>
               </div>
               {/* INTENSITY */}
               <div className="px-2 py-3 sm:px-4 sm:py-4 text-center flex flex-col items-center justify-center">
                 <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary mb-1" />
-                <p className="text-base sm:text-lg font-black text-foreground leading-none tabular-nums">3.3</p>
+                <p className="text-base sm:text-lg font-black text-foreground leading-none tabular-nums">{avgIntensity || '—'}</p>
                 <p className="mt-1 text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-semibold">Intensity</p>
               </div>
             </div>

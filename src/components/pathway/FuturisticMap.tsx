@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Zap, GitBranch, ZoomIn, ZoomOut, Crosshair, Box, Square } from 'lucide-react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { MapCanvas, MapCanvasHandle } from './MapCanvas';
-import { MapCanvas3D } from './MapCanvas3D';
+const MapCanvas3D = lazy(() =>
+  import('./MapCanvas3D').then(m => ({ default: m.MapCanvas3D }))
+);
 import { PathwayPanel } from './PathwayPanel';
 
 export interface PathwayNode {
@@ -492,13 +494,15 @@ export function FuturisticMap({ onBack, initialSessionId }: FuturisticMapProps) 
         {/* Map Canvas */}
         <div className="flex-1 relative">
           {view3D ? (
-            <MapCanvas3D
-              nodes={nodes}
-              edges={edges}
-              selectedNodeId={selectedNodeId}
-              onNodeClick={handleCanvasClick}
-              pathwayNodeIdsOverride={pathwayNodeIds}
-            />
+            <Suspense fallback={<div className="absolute inset-0 flex items-center justify-center text-cyan-300/60 text-sm">Loading 3D…</div>}>
+              <MapCanvas3D
+                nodes={nodes}
+                edges={edges}
+                selectedNodeId={selectedNodeId}
+                onNodeClick={handleCanvasClick}
+                pathwayNodeIdsOverride={pathwayNodeIds}
+              />
+            </Suspense>
           ) : (
             <MapCanvas
               ref={mapRef}

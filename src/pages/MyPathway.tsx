@@ -12,6 +12,7 @@ import { format, subDays } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InteractiveMap } from '@/components/pathway/InteractiveMap';
 import { FuturisticMap } from '@/components/pathway/FuturisticMap';
+import { PathwayHome } from '@/components/pathway/PathwayHome';
 import { classTypeCategory, type SessionCategory } from '@/hooks/useUserLists';
 import iconTechnical from '@/assets/pathway-technical.png';
 import iconSparring from '@/assets/pathway-sparring.png';
@@ -302,74 +303,13 @@ export default function MyPathway() {
 
   // Home — 6 pathway folders + secondary tools
   if (view === 'home') {
-    return (
-      <div className="min-h-screen bg-background">
-        <header className="border-b border-border bg-card">
-          <div className="container mx-auto px-4 py-4">
-            <h1 className="text-xl font-bold">My Pathway</h1>
-            <p className="text-sm text-muted-foreground">Your training knowledge base</p>
-          </div>
-        </header>
-        <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              {CATEGORY_META.map(({ key, title, subtitle, Icon, iconImg, accent }) => {
-                const { count, latest, avgIntensity } = categoryStats(key);
-                return (
-                  <Card
-                    key={key}
-                    className="cursor-pointer hover:border-primary/40 transition-colors"
-                    onClick={() => {
-                      setSelectedCategory(key);
-                      setView('category-detail');
-                    }}
-                  >
-                    <CardContent className="pt-4 pb-4 space-y-2">
-                      <div className="h-12 w-12 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 overflow-hidden">
-                        <img src={iconImg} alt="" loading="lazy" width={48} height={48} className="h-10 w-10 object-contain" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-sm leading-tight uppercase tracking-wide">{title}</h3>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>
-                      </div>
-                      <div className="flex items-center justify-between pt-1">
-                        <Badge variant="outline" className="text-[10px]">{count} session{count === 1 ? '' : 's'}</Badge>
-                        {avgIntensity !== null && (
-                          <span className="text-[10px] text-muted-foreground">avg {avgIntensity.toFixed(1)}/5</span>
-                        )}
-                      </div>
-                      {latest && (
-                        <p className="text-[10px] text-muted-foreground truncate">
-                          Last: {format(new Date(latest.date), 'MMM d')}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-
-            <Card className="cursor-pointer hover:border-primary/30 transition-colors" onClick={() => setView('all-notes')}>
-              <CardContent className="pt-4 pb-4 flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <BookOpen className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-sm">All Notes</h3>
-                  <p className="text-xs text-muted-foreground">{archivedSessions.length} archived sessions</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="py-4 text-center">
-                <p className="text-sm font-semibold text-primary italic">
-                  "Progress is not given. It is earned session by session."
-                </p>
-              </CardContent>
-            </Card>
-        </main>
-      </div>
-    );
+    return <PathwayHome
+      variant={(typeof window !== 'undefined' ? (localStorage.getItem('pathway-variant') as 'A' | 'B') : null) || 'A'}
+      categoryStats={categoryStats}
+      onOpenCategory={(k) => { setSelectedCategory(k); setView('category-detail'); }}
+      onOpenAllNotes={() => setView('all-notes')}
+      archivedCount={archivedSessions.length}
+    />;
   }
 
   // Category detail — total / latest / avg intensity / history

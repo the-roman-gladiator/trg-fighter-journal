@@ -281,6 +281,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
   }, [centerOnNodes, onNodeClick]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    // If a pinch is currently active, ignore additional pointer-downs (avoid pan during pinch)
+    if (lastPinchDist.current !== null) return;
     const target = e.target as SVGElement;
     const nodeId = target.closest('[data-node-id]')?.getAttribute('data-node-id');
     

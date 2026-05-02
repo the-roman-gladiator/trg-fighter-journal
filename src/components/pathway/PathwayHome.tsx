@@ -399,90 +399,178 @@ function TacticalCard({ meta, count, avgIntensity, latest, onClick }: CardProps)
   return (
     <button
       onClick={onClick}
-      className="group relative text-left rounded-2xl overflow-hidden transition-all duration-200 active:scale-[0.98] hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+      className="group relative text-left overflow-hidden transition-all duration-200 active:scale-[0.98] hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fj-blue)]/50"
       style={{
-        background: 'linear-gradient(180deg, hsl(0 0% 10%) 0%, hsl(220 8% 6%) 100%)',
-        boxShadow: 'inset 0 1px 0 hsl(0 0% 100% / 0.06), inset 0 0 0 1px hsl(0 0% 100% / 0.05), 0 12px 30px -12px hsl(0 0% 0% / 0.85)',
+        borderRadius: 'var(--fj-radius-card)',
+        background: 'linear-gradient(180deg, rgba(18,24,32,0.96) 0%, rgba(9,12,17,0.98) 100%)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: 'var(--fj-shadow-card), var(--fj-shadow-inset)',
       }}
     >
-      {/* Hover glow */}
-      <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-        style={{ boxShadow: `0 0 0 1px hsl(${accent} / 0.5), 0 0 24px hsl(${accent} / 0.3)` }} />
+      {/* Hover edge glow */}
+      <span
+        className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        style={{
+          borderRadius: 'var(--fj-radius-card)',
+          boxShadow: `0 0 0 1px hsl(${accent} / 0.45), 0 0 22px hsl(${accent} / 0.25), var(--fj-glow-blue)`,
+        }}
+      />
 
-      {/* Corner brackets (tactical) */}
-      <Bracket position="tl" color={`hsl(var(--primary))`} />
-      <Bracket position="tr" color={`hsl(var(--primary))`} />
+      {/* Top glow line */}
+      <span className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+
+      {/* Corner brackets */}
+      <Bracket position="tl" color="var(--fj-red)" />
+      <Bracket position="tr" color="var(--fj-red)" />
       <Bracket position="bl" color={`hsl(${accent})`} />
       <Bracket position="br" color={`hsl(${accent})`} />
 
-      {/* Pattern */}
-      <PatternOverlay pattern={meta.pattern} accent={accent} />
+      {/* Faint texture overlay */}
+      <div className="absolute inset-0 pointer-events-none" style={{ opacity: 0.06 }}>
+        <PatternOverlay pattern={meta.pattern} accent={accent} />
+      </div>
 
-      {/* Top engineered strip */}
-      <div className="relative h-7 flex items-center justify-between px-2.5 border-b border-white/5"
-        style={{ background: 'linear-gradient(180deg, hsl(0 0% 13%), hsl(0 0% 8%))' }}
+      {/* Top engineered strip — angled surface panel */}
+      <div
+        className="relative flex items-center justify-between"
+        style={{
+          height: 28,
+          padding: '0 14px',
+          background: 'linear-gradient(180deg, rgba(22,28,38,0.95), rgba(12,16,22,0.95))',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+        }}
       >
-        <span className="text-[8px] font-mono font-bold tracking-[0.2em] text-muted-foreground">
+        <span
+          className="font-mono uppercase"
+          style={{
+            fontSize: '9px',
+            fontWeight: 800,
+            letterSpacing: '0.22em',
+            color: 'var(--fj-text-muted)',
+          }}
+        >
           FJ-{String(idx).padStart(2, '0')}
         </span>
-        <div className="flex items-center gap-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
-          <span className="text-[8px] font-mono font-bold tracking-wider" style={{ color: `hsl(${accent})` }}>
+        <div className="flex items-center gap-1.5">
+          <span
+            className="rounded-full"
+            style={{
+              height: 6,
+              width: 6,
+              background: 'var(--fj-red)',
+              boxShadow: '0 0 8px var(--fj-red-glow)',
+            }}
+          />
+          <span
+            className="font-mono uppercase"
+            style={{
+              fontSize: '9px',
+              fontWeight: 800,
+              letterSpacing: '0.18em',
+              color: 'var(--fj-text-soft)',
+            }}
+          >
             ACTIVE
           </span>
         </div>
       </div>
 
-      <div className="relative p-3 space-y-2.5">
-        {/* Icon — beveled hex */}
+      <div className="relative space-y-3" style={{ padding: '18px' }}>
+        {/* Icon — beveled hex with red glow */}
         <div className="flex items-start justify-between">
-          <div className="relative h-12 w-12">
-            <span className="absolute inset-0 blur-md opacity-50" style={{ background: `radial-gradient(circle, hsl(${accent} / 0.6), transparent 70%)` }} />
-            <div
-              className="relative h-12 w-12 flex items-center justify-center"
+          <div className="relative" style={{ height: 56, width: 56 }}>
+            <span
+              className="absolute inset-0 blur-md"
               style={{
+                background: 'radial-gradient(circle, var(--fj-red-glow), transparent 70%)',
+              }}
+            />
+            <div
+              className="relative flex items-center justify-center"
+              style={{
+                height: 56,
+                width: 56,
                 clipPath: 'polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)',
-                background: `linear-gradient(160deg, hsl(${accent} / 0.25), hsl(0 0% 6%))`,
-                boxShadow: `inset 0 1px 0 hsl(0 0% 100% / 0.15), inset 0 0 0 1px hsl(${accent} / 0.5)`,
+                background: 'linear-gradient(180deg, rgba(25,28,36,0.96), rgba(10,12,18,0.98))',
+                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.10), 0 8px 20px rgba(0,0,0,0.35), 0 0 18px rgba(255,43,43,0.14), inset 0 0 0 2px hsl(${accent} / 0.18)`,
               }}
             >
-              <img src={meta.iconImg} alt="" loading="lazy" width={40} height={40} className="h-10 w-10 object-contain" />
+              <img src={meta.iconImg} alt="" loading="lazy" width={42} height={42} className="h-[42px] w-[42px] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]" />
             </div>
           </div>
-          <span className="font-display text-3xl font-black tabular-nums leading-none mt-1"
-            style={{ color: `hsl(${accent})`, textShadow: `0 0 12px hsl(${accent} / 0.5)` }}>
+          <span
+            className="font-display tabular-nums leading-none mt-1"
+            style={{
+              fontSize: '34px',
+              fontWeight: 900,
+              color: 'var(--fj-text)',
+              textShadow: `0 0 14px hsl(${accent} / 0.45), 0 2px 4px rgba(0,0,0,0.6)`,
+            }}
+          >
             {count}
           </span>
         </div>
 
         {/* Title */}
         <div>
-          <h3 className="font-display uppercase font-black text-[13px] leading-[1.05] tracking-wide text-foreground">
+          <h3
+            className="font-display uppercase leading-[1.05]"
+            style={{
+              fontWeight: 800,
+              color: 'var(--fj-text)',
+              fontSize: '14px',
+              letterSpacing: '0.01em',
+            }}
+          >
             {meta.title}
           </h3>
-          <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{meta.subtitle}</p>
+          <p
+            className="mt-1 truncate"
+            style={{ color: 'var(--fj-text-muted)', fontSize: '11px', lineHeight: 1.35 }}
+          >
+            {meta.subtitle}
+          </p>
         </div>
 
-        {/* Intensity bar */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-[8px] font-mono uppercase tracking-wider text-muted-foreground">
+        {/* Intensity bar — inset pill */}
+        <div className="space-y-1.5">
+          <div
+            className="flex items-center justify-between font-mono uppercase"
+            style={{ fontSize: '9px', letterSpacing: '0.18em', color: 'var(--fj-text-muted)' }}
+          >
             <span>Intensity</span>
-            <span className="text-foreground/80">{avgIntensity !== null ? `${avgIntensity.toFixed(1)}/5` : '—'}</span>
+            <span style={{ color: 'var(--fj-text-soft)' }}>
+              {avgIntensity !== null ? `${avgIntensity.toFixed(1)}/5` : '—'}
+            </span>
           </div>
-          <div className="h-1 rounded-full overflow-hidden bg-black/60 border border-white/5">
+          <div
+            className="overflow-hidden"
+            style={{
+              height: 6,
+              borderRadius: 999,
+              background: 'rgba(0,0,0,0.55)',
+              border: '1px solid rgba(255,255,255,0.06)',
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.6)',
+            }}
+          >
             <div
-              className="h-full rounded-full transition-all"
+              className="h-full transition-all"
               style={{
                 width: `${avgIntensity !== null ? (avgIntensity / 5) * 100 : 0}%`,
-                background: `linear-gradient(90deg, hsl(${accent}), hsl(var(--primary)))`,
-                boxShadow: `0 0 6px hsl(${accent} / 0.6)`,
+                background: `linear-gradient(90deg, hsl(${accent}), var(--fj-red))`,
+                boxShadow: `0 0 8px hsl(${accent} / 0.6)`,
+                borderRadius: 999,
               }}
             />
           </div>
         </div>
 
         {latest && (
-          <p className="text-[9px] text-muted-foreground/80 truncate font-mono uppercase tracking-wider">
+          <p
+            className="truncate font-mono uppercase tracking-[0.15em]"
+            style={{ color: 'var(--fj-text-muted)', fontSize: '9.5px' }}
+          >
             ▸ {format(new Date(latest.date), 'MMM d, yyyy')}
           </p>
         )}

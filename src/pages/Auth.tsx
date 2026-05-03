@@ -227,7 +227,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-primary">Fighter Training Journal</h1>
+          <h1 className="font-display uppercase tracking-wide text-4xl font-bold text-foreground">Fighter Journal</h1>
           <p className="mt-2 text-muted-foreground">{headings[mode]}</p>
           <p className="mt-1 text-sm text-muted-foreground">{descriptions[mode]}</p>
           <p className="mt-3 text-xs text-muted-foreground italic">

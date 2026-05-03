@@ -342,46 +342,25 @@ export function SignUpWizard({ onSwitchToLogin, signupsOpen }: Props) {
             </p>
           </div>
 
-          <div className="space-y-3">
-            {(['terms', 'privacy', 'cookies'] as const).map((key) => {
-              const checked =
-                key === 'terms' ? agreeTerms : key === 'privacy' ? agreePrivacy : agreeCookies;
-              const setter =
-                key === 'terms'
-                  ? setAgreeTerms
-                  : key === 'privacy'
-                    ? setAgreePrivacy
-                    : setAgreeCookies;
-              return (
-                <label
-                  key={key}
-                  className="flex items-start gap-3 rounded-md border border-border bg-card/50 p-3 cursor-pointer"
-                >
-                  <Checkbox
-                    checked={checked}
-                    onCheckedChange={(v) => setter(Boolean(v))}
-                    className="mt-0.5"
-                  />
-                  <span className="text-sm">
-                    I agree to the{' '}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setOpenDoc(key);
-                      }}
-                      className="text-primary underline underline-offset-2"
-                    >
-                      {LEGAL_DOCS[key].title}
-                    </button>
-                  </span>
-                </label>
-              );
-            })}
-          </div>
+          <p className="text-sm text-muted-foreground">
+            By tapping <span className="font-medium text-foreground">Agree &amp; continue</span> you accept our{' '}
+            <button type="button" onClick={() => setOpenDoc('terms')} className="text-primary underline underline-offset-2">Terms of Service</button>,{' '}
+            <button type="button" onClick={() => setOpenDoc('privacy')} className="text-primary underline underline-offset-2">Privacy Policy</button>, and{' '}
+            <button type="button" onClick={() => setOpenDoc('cookies')} className="text-primary underline underline-offset-2">Cookie Policy</button>.
+          </p>
 
-          <Button onClick={goFromStep1} disabled={!allAgreed} className="w-full">
-            Continue
+          <Button
+            onClick={() => {
+              const now = new Date().toISOString();
+              setAgreeTerms(true);
+              setAgreePrivacy(true);
+              setAgreeCookies(true);
+              setAcceptedAt({ terms: now, privacy: now, cookies: now });
+              setStep(2);
+            }}
+            className="w-full"
+          >
+            Agree &amp; continue
           </Button>
 
           <div className="text-center">

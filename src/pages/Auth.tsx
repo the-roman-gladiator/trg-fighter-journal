@@ -172,9 +172,6 @@ export default function Auth() {
         toast({ title: 'Welcome back!', description: 'Successfully logged in.' });
         navigate('/');
       } else {
-        if (signupsOpen === false) {
-          throw new Error('Private access only. New registrations are closed.');
-        }
         const pwError = validateStrongPassword(password);
         if (pwError) throw new Error(pwError);
         if (!captchaToken) throw new Error('Please complete the security check.');
@@ -233,7 +230,7 @@ export default function Auth() {
           <p className="mt-3 text-xs text-muted-foreground italic">
             This app is currently in private testing. Only approved users can access.
           </p>
-          {signupsOpen === false && (
+          {false && signupsOpen === false && (
             <p className="mt-2 text-sm font-medium text-primary">
               Private access only. New registrations are closed.
             </p>
@@ -327,15 +324,13 @@ export default function Auth() {
                   Forgot your password?
                 </button>
               )}
-              {!(signupsOpen === false && mode === 'login') && (
-                <button
-                  type="button"
-                  onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                  className="text-sm text-primary hover:underline"
-                >
-                  {mode === 'login' ? "Don't have an account? Sign up" : 'Back to Sign in'}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                className="text-sm text-primary hover:underline"
+              >
+                {mode === 'login' ? "Don't have an account? Sign up" : 'Back to Sign in'}
+              </button>
             </div>
           )}
 

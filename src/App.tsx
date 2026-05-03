@@ -56,9 +56,6 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
   (window as any).requestIdleCallback(() => {
     import('./pages/SessionEdit');
-    import('./pages/MyPathway');
-    import('./pages/Trends');
-    import('./pages/Reflection');
     import('./pages/Profile');
   });
 }

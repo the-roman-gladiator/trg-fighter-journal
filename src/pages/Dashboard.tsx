@@ -12,7 +12,7 @@ import { Plus, User, Map, Swords, Shield, Network, GraduationCap, CalendarDays, 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format, startOfWeek, startOfYear, subDays } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+
 import fighterBgDark from '@/assets/dashboard-bg-octagon.webp';
 import { CoachNoteOffersInbox } from '@/components/coach/CoachNoteOffersInbox';
 import { LoadingScreen } from '@/components/LoadingScreen';

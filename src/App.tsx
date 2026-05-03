@@ -95,7 +95,19 @@ function AdminLockGate({ children }: { children: React.ReactNode }) {
   }
   return <>{children}</>;
 }
-
+import { BrowserRouter, Routes, Route } from 'react-router-dom';   // line 1
+import Landing from './pages/Landing';                              // line 2
+import Auth from './pages/Auth';                                    // line 3
+import Dashboard from './pages/Dashboard';                          // line 4
+// ← paste the 8 new imports HERE, right after the last page import
+                                                                    
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        ...
+        
 function GlobalDarkBackground() {
   const { pathname } = useLocation();
   // Background image lives ONLY on the main dashboard route ("/").

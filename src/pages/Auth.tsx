@@ -240,8 +240,16 @@ export default function Auth() {
           )}
         </div>
 
+        {mode === 'signup' ? (
+          <div className="mt-8 bg-card p-6 sm:p-8 rounded-lg border border-border">
+            <SignUpWizard
+              signupsOpen={signupsOpen}
+              onSwitchToLogin={() => setMode('login')}
+            />
+          </div>
+        ) : (
         <form onSubmit={handleAuth} className="mt-8 space-y-6 bg-card p-8 rounded-lg border border-border">
-          {mode === 'signup' && (
+          {false && (
             <div>
               <Label htmlFor="name">Name</Label>
               <Input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} required className="mt-1" />

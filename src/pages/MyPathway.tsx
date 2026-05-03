@@ -282,7 +282,9 @@ export default function MyPathway() {
               {session.notes && <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{session.notes}</p>}
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Badge variant="outline" className="text-[10px]">{session.discipline}</Badge>
+              {!(selectedCategory === 'strength' || selectedCategory === 'cardio' || selectedCategory === 'stretching') && (
+                <Badge variant="outline" className="text-[10px]">{session.discipline}</Badge>
+              )}
               <button
                 onClick={(e) => {
                   e.stopPropagation();

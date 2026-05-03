@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { logEvent } from '@/hooks/useAnalytics';
 import { Turnstile } from '@/components/Turnstile';
+import { SignUpWizard } from '@/components/auth/SignUpWizard';
 
 // Public Cloudflare Turnstile site key (safe to expose in frontend).
 // The matching SECRET key must be configured in Cloud → Auth Settings → CAPTCHA Protection.
@@ -239,8 +240,16 @@ export default function Auth() {
           )}
         </div>
 
+        {mode === 'signup' ? (
+          <div className="mt-8 bg-card p-6 sm:p-8 rounded-lg border border-border">
+            <SignUpWizard
+              signupsOpen={signupsOpen}
+              onSwitchToLogin={() => setMode('login')}
+            />
+          </div>
+        ) : (
         <form onSubmit={handleAuth} className="mt-8 space-y-6 bg-card p-8 rounded-lg border border-border">
-          {mode === 'signup' && (
+          {false && (
             <div>
               <Label htmlFor="name">Name</Label>
               <Input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} required className="mt-1" />
@@ -254,20 +263,15 @@ export default function Auth() {
             </div>
           )}
 
-          {(mode === 'login' || mode === 'signup') && (
+          {mode === 'login' && (
             <div>
               <Label htmlFor="password">Password</Label>
               <div className="relative mt-1">
-                <Input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={mode === 'signup' ? 8 : 6} className="pr-10" />
+                <Input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="pr-10" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {mode === 'signup' && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Min 8 characters, with uppercase, lowercase, and a number.
-                </p>
-              )}
             </div>
           )}
 
@@ -326,10 +330,10 @@ export default function Auth() {
               {!(signupsOpen === false && mode === 'login') && (
                 <button
                   type="button"
-                  onClick={() => setMode(mode === 'signup' ? 'login' : mode === 'login' ? 'signup' : 'login')}
+                  onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
                   className="text-sm text-primary hover:underline"
                 >
-                  {mode === 'signup' ? 'Already have an account? Sign in' : mode === 'login' ? "Don't have an account? Sign up" : 'Back to Sign in'}
+                  {mode === 'login' ? "Don't have an account? Sign up" : 'Back to Sign in'}
                 </button>
               )}
             </div>
@@ -351,6 +355,7 @@ export default function Auth() {
             </div>
           )}
         </form>
+        )}
       </div>
     </div>
   );

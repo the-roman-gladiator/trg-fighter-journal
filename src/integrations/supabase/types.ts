@@ -1270,7 +1270,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           account_type: string
+          age_at_signup: number | null
           approval_status: Database["public"]["Enums"]["approval_status"] | null
           approved_by: string | null
           assigned_by_coach: boolean | null
@@ -1279,9 +1281,12 @@ export type Database = {
           coach_discipline: string | null
           coach_level: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled: boolean | null
+          cookies_accepted_at: string | null
+          cookies_version: string | null
           created_at: string
           custom_motivation_text: string | null
           daily_motivation_mode: string
+          date_of_birth: string | null
           discipline: string | null
           email: string
           fighter_status: string | null
@@ -1297,18 +1302,29 @@ export type Database = {
           my_statement: string | null
           name: string
           nickname: string | null
+          parent_consent_at: string | null
+          parent_consent_ip: string | null
+          parent_email: string | null
+          parent_first_name: string | null
+          parent_last_name: string | null
           primary_goal: string | null
+          privacy_accepted_at: string | null
+          privacy_version: string | null
           strength_level: string | null
           strength_program_start_date: string | null
           surname: string | null
           suspended: boolean
           target: string | null
+          terms_accepted_at: string | null
+          terms_version: string | null
           training_days: string[]
           training_frequency_per_week: string | null
           updated_at: string
         }
         Insert: {
+          account_status?: string
           account_type?: string
+          age_at_signup?: number | null
           approval_status?:
             | Database["public"]["Enums"]["approval_status"]
             | null
@@ -1319,9 +1335,12 @@ export type Database = {
           coach_discipline?: string | null
           coach_level?: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled?: boolean | null
+          cookies_accepted_at?: string | null
+          cookies_version?: string | null
           created_at?: string
           custom_motivation_text?: string | null
           daily_motivation_mode?: string
+          date_of_birth?: string | null
           discipline?: string | null
           email: string
           fighter_status?: string | null
@@ -1337,18 +1356,29 @@ export type Database = {
           my_statement?: string | null
           name: string
           nickname?: string | null
+          parent_consent_at?: string | null
+          parent_consent_ip?: string | null
+          parent_email?: string | null
+          parent_first_name?: string | null
+          parent_last_name?: string | null
           primary_goal?: string | null
+          privacy_accepted_at?: string | null
+          privacy_version?: string | null
           strength_level?: string | null
           strength_program_start_date?: string | null
           surname?: string | null
           suspended?: boolean
           target?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           training_days?: string[]
           training_frequency_per_week?: string | null
           updated_at?: string
         }
         Update: {
+          account_status?: string
           account_type?: string
+          age_at_signup?: number | null
           approval_status?:
             | Database["public"]["Enums"]["approval_status"]
             | null
@@ -1359,9 +1389,12 @@ export type Database = {
           coach_discipline?: string | null
           coach_level?: Database["public"]["Enums"]["coach_level"] | null
           coach_override_enabled?: boolean | null
+          cookies_accepted_at?: string | null
+          cookies_version?: string | null
           created_at?: string
           custom_motivation_text?: string | null
           daily_motivation_mode?: string
+          date_of_birth?: string | null
           discipline?: string | null
           email?: string
           fighter_status?: string | null
@@ -1377,12 +1410,21 @@ export type Database = {
           my_statement?: string | null
           name?: string
           nickname?: string | null
+          parent_consent_at?: string | null
+          parent_consent_ip?: string | null
+          parent_email?: string | null
+          parent_first_name?: string | null
+          parent_last_name?: string | null
           primary_goal?: string | null
+          privacy_accepted_at?: string | null
+          privacy_version?: string | null
           strength_level?: string | null
           strength_program_start_date?: string | null
           surname?: string | null
           suspended?: boolean
           target?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           training_days?: string[]
           training_frequency_per_week?: string | null
           updated_at?: string

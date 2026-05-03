@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { logEvent } from '@/hooks/useAnalytics';
 import { Turnstile } from '@/components/Turnstile';
+import { SignUpWizard } from '@/components/auth/SignUpWizard';
 
 // Public Cloudflare Turnstile site key (safe to expose in frontend).
 // The matching SECRET key must be configured in Cloud → Auth Settings → CAPTCHA Protection.

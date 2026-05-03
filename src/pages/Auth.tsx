@@ -330,10 +330,10 @@ export default function Auth() {
               {!(signupsOpen === false && mode === 'login') && (
                 <button
                   type="button"
-                  onClick={() => setMode(mode === 'signup' ? 'login' : mode === 'login' ? 'signup' : 'login')}
+                  onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
                   className="text-sm text-primary hover:underline"
                 >
-                  {mode === 'signup' ? 'Already have an account? Sign in' : mode === 'login' ? "Don't have an account? Sign up" : 'Back to Sign in'}
+                  {mode === 'login' ? "Don't have an account? Sign up" : 'Back to Sign in'}
                 </button>
               )}
             </div>

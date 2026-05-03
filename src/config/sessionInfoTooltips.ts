@@ -14,7 +14,6 @@ export const sessionInfoTooltips: Record<string, SessionInfoEntry> = {
   },
   'movement-chain': {
     boxId: 'movement-chain',
-    shortAnspwer: '',
     shortAnswer:
       'The 1st–2nd–3rd action sequence: what you did, what your opponent did, and your follow-up.',
     detailedExplanation:

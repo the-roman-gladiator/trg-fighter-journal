@@ -13,7 +13,7 @@ import { ErrorBoundary, GlobalErrorListener } from "./components/ErrorBoundary";
 import { useBrowserNotifications } from "./hooks/useBrowserNotifications";
 import { useAnalytics } from "./hooks/useAnalytics";
 import { useSubscription } from "./hooks/useSubscription";
-import globalBgDark from "@/assets/dashboard-bg-octagon.png";
+import globalBgDark from "@/assets/dashboard-bg-octagon.webp";
 import { SubscriptionProvider } from "./hooks/useSubscription";
 import { FighterProfileProvider } from "./hooks/useFighterProfile";
 

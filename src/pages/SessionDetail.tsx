@@ -14,6 +14,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { logEvent } from '@/hooks/useAnalytics';
+import { InfoButton } from '@/components/InfoButton';
 
 export default function SessionDetail() {
   const { id } = useParams();
@@ -155,7 +156,8 @@ export default function SessionDetail() {
 
       <main className="container mx-auto px-4 py-4 max-w-2xl space-y-4">
         {/* Core info */}
-        <Card>
+        <Card className="relative">
+          <InfoButton boxId="core-info" />
           <CardContent className="pt-6 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>

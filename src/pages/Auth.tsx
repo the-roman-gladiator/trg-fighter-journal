@@ -230,7 +230,7 @@ export default function Auth() {
           <p className="mt-3 text-xs text-muted-foreground italic">
             This app is currently in private testing. Only approved users can access.
           </p>
-          {signupsOpen === false && (
+          {false && signupsOpen === false && (
             <p className="mt-2 text-sm font-medium text-primary">
               Private access only. New registrations are closed.
             </p>

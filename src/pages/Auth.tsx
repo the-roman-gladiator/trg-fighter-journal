@@ -172,9 +172,6 @@ export default function Auth() {
         toast({ title: 'Welcome back!', description: 'Successfully logged in.' });
         navigate('/');
       } else {
-        if (signupsOpen === false) {
-          throw new Error('Private access only. New registrations are closed.');
-        }
         const pwError = validateStrongPassword(password);
         if (pwError) throw new Error(pwError);
         if (!captchaToken) throw new Error('Please complete the security check.');

@@ -50,13 +50,11 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
-
-
 // Pre-warm route chunks while the browser is idle so first navigation is instant
-if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+if (typeof window !== "undefined" && "requestIdleCallback" in window) {
   (window as any).requestIdleCallback(() => {
-    import('./pages/SessionEdit');
-    import('./pages/Profile');
+    import("./pages/SessionEdit");
+    import("./pages/Profile");
   });
 }
 
@@ -90,7 +88,7 @@ function AdminLockGate({ children }: { children: React.ReactNode }) {
   const { isAdmin, loading: subLoading } = useSubscription();
   const { pathname } = useLocation();
   if (authLoading || (user && subLoading)) return <>{children}</>;
-  if (user && isAdmin && !pathname.startsWith('/admin') && pathname !== '/auth') {
+  if (user && isAdmin && !pathname.startsWith("/admin") && pathname !== "/auth") {
     return <Navigate to="/admin" replace />;
   }
   return <>{children}</>;
@@ -100,7 +98,7 @@ function GlobalDarkBackground() {
   const { pathname } = useLocation();
   // Background image lives ONLY on the main dashboard route ("/").
   // Every other page uses the plain dark --background color from CSS.
-  if (pathname !== '/') return null;
+  if (pathname !== "/") return null;
   return (
     <>
       <div
@@ -108,9 +106,9 @@ function GlobalDarkBackground() {
         className="pointer-events-none fixed inset-0 z-0"
         style={{
           backgroundImage: `url(${globalBgDark})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center top',
-          backgroundRepeat: 'no-repeat',
+          backgroundSize: "cover",
+          backgroundPosition: "center top",
+          backgroundRepeat: "no-repeat",
           opacity: 0.42,
         }}
       />
@@ -126,52 +124,62 @@ function AppShell() {
   useBrowserNotifications();
   useAnalytics();
   const { pathname } = useLocation();
-  const excludeBg = pathname.startsWith('/profile');
+  const excludeBg = pathname.startsWith("/profile");
   return (
-    <div className={`h-[100dvh] flex flex-col overflow-hidden ${excludeBg ? 'bg-background' : 'bg-transparent'} relative`}>
+    <div
+      className={`h-[100dvh] flex flex-col overflow-hidden ${excludeBg ? "bg-background" : "bg-transparent"} relative`}
+    >
       <GlobalDarkBackground />
       <main className="flex-1 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] relative z-10">
-      <AdminLockGate>
-      <Suspense fallback={<LoadingScreen />}>
-      <Routes>
-        <Route path="/" element={<RootRoute />} />
-        <Route path="/auth" element={<Auth />} />
-        
-        <Route path="/session/new" element={<SessionEdit />} />
-        <Route path="/session/:id" element={<SessionDetail />} />
-        <Route path="/session/:id/edit" element={<SessionEdit />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/strength" element={<StrengthTraining />} />
-        <Route path="/strength/workout/:templateId" element={<WorkoutSessionPage />} />
-        <Route path="/strength/workout/:logId/resume" element={<WorkoutSessionPage />} />
-        
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/beginner" element={<BeginnerDashboard />} />
-        <Route path="/guided-session/:workoutId" element={<GuidedSession />} />
-        <Route path="/pathway" element={<MyPathway />} />
-        <Route path="/fighter" element={<FighterDashboard />} />
-        <Route path="/fighter/session/new" element={<FighterSessionEdit />} />
-        <Route path="/fighter/session/:id" element={<FighterSessionDetail />} />
-        <Route path="/fighter/session/:id/edit" element={<FighterSessionEdit />} />
-        <Route path="/fighter/pathway" element={<FighterPathway />} />
-        <Route path="/coach" element={<CoachDashboard />} />
-        <Route path="/coach/session/new" element={<CoachSessionEdit />} />
-        <Route path="/coach/session/:id/edit" element={<CoachSessionEdit />} />
-        <Route path="/coach-note/save/:offerId" element={<StudentSaveCoachNote />} />
-        <Route path="/library" element={<TechniqueLibrary />} />
-        
-        <Route path="/records" element={<Records />} />
-        <Route path="/trends" element={<Trends />} />
-        <Route path="/reflection" element={<Reflection />} />
-        <Route path="/award" element={<Award />} />
-        <Route path="/ai-assistant" element={<AIFighterAssistant />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/analytics" element={<AdminAnalytics />} />
-        
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      </Suspense>
-      </AdminLockGate>
+        <AdminLockGate>
+          <Suspense fallback={<LoadingScreen />}>
+            <Routes>
+              <Route path="/legal/terms" element={<TermsOfService />} />
+              <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+              <Route path="/legal/cookies" element={<CookiePolicy />} />
+              <Route path="/legal/disclaimer" element={<Disclaimer />} />
+              <Route path="/legal/health-data-notice" element={<ConsumerHealthDataNotice />} />
+              <Route path="/legal/privacy-choices" element={<PrivacyChoices />} />
+              <Route path="/signup/consent" element={<SignUpConsent />} />
+              <Route path="/provider/register" element={<ProviderRegister />} />
+              <Route path="/" element={<RootRoute />} />
+              <Route path="/auth" element={<Auth />} />
+
+              <Route path="/session/new" element={<SessionEdit />} />
+              <Route path="/session/:id" element={<SessionDetail />} />
+              <Route path="/session/:id/edit" element={<SessionEdit />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/strength" element={<StrengthTraining />} />
+              <Route path="/strength/workout/:templateId" element={<WorkoutSessionPage />} />
+              <Route path="/strength/workout/:logId/resume" element={<WorkoutSessionPage />} />
+
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/beginner" element={<BeginnerDashboard />} />
+              <Route path="/guided-session/:workoutId" element={<GuidedSession />} />
+              <Route path="/pathway" element={<MyPathway />} />
+              <Route path="/fighter" element={<FighterDashboard />} />
+              <Route path="/fighter/session/new" element={<FighterSessionEdit />} />
+              <Route path="/fighter/session/:id" element={<FighterSessionDetail />} />
+              <Route path="/fighter/session/:id/edit" element={<FighterSessionEdit />} />
+              <Route path="/fighter/pathway" element={<FighterPathway />} />
+              <Route path="/coach" element={<CoachDashboard />} />
+              <Route path="/coach/session/new" element={<CoachSessionEdit />} />
+              <Route path="/coach/session/:id/edit" element={<CoachSessionEdit />} />
+              <Route path="/coach-note/save/:offerId" element={<StudentSaveCoachNote />} />
+              <Route path="/library" element={<TechniqueLibrary />} />
+
+              <Route path="/records" element={<Records />} />
+              <Route path="/trends" element={<Trends />} />
+              <Route path="/reflection" element={<Reflection />} />
+              <Route path="/award" element={<Award />} />
+              <Route path="/ai-assistant" element={<AIFighterAssistant />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/analytics" element={<AdminAnalytics />} />
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </AdminLockGate>
       </main>
       <BottomNav />
     </div>

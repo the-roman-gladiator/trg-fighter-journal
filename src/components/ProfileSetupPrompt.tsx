@@ -13,7 +13,7 @@ interface Props {
 }
 
 function isComplete(p: any) {
-  return !!(p?.first_name && p?.surname && p?.discipline && p?.primary_goal);
+  return !!(p?.first_name && p?.surname && p?.discipline);
 }
 
 export function ProfileSetupPrompt({ profile }: Props) {
@@ -23,8 +23,6 @@ export function ProfileSetupPrompt({ profile }: Props) {
   const checks = [
     { label: 'Name', done: !!(profile?.first_name && profile?.surname) },
     { label: 'Discipline', done: !!profile?.discipline },
-    { label: 'Training goal', done: !!profile?.primary_goal },
-    { label: 'Fitness level', done: !!profile?.fitness_level },
   ];
   const completeCount = checks.filter((c) => c.done).length;
 

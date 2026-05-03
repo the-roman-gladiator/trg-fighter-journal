@@ -196,14 +196,6 @@ export function SignUpWizard({ onSwitchToLogin, signupsOpen }: Props) {
   };
 
   const createAccount = async () => {
-    if (signupsOpen === false) {
-      toast({
-        title: 'Signups closed',
-        description: 'Private access only. New registrations are closed.',
-        variant: 'destructive',
-      });
-      return;
-    }
     if (!captchaToken) {
       toast({
         title: 'Security check required',

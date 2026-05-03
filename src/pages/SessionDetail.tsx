@@ -194,7 +194,8 @@ export default function SessionDetail() {
 
         {/* Movement Chain */}
         {hasMovementChain && (
-          <Card>
+          <Card className="relative">
+            <InfoButton boxId="movement-chain" />
             <CardContent className="pt-6">
               <p className="text-xs text-muted-foreground mb-3 font-semibold uppercase tracking-wide">Movement Chain</p>
               <div className="space-y-2">
@@ -223,9 +224,9 @@ export default function SessionDetail() {
 
         {/* Notes */}
         {session.notes && (
-          <Card>
+          <Card className="relative">
+            <InfoButton boxId="notes" />
             <CardContent className="pt-6">
-              <p className="text-xs text-muted-foreground mb-1">Notes</p>
               <p className="text-sm whitespace-pre-wrap">{session.notes}</p>
             </CardContent>
           </Card>
@@ -233,9 +234,9 @@ export default function SessionDetail() {
 
         {/* Video URL */}
         {(session as any).video_url && (
-          <Card>
+          <Card className="relative">
+            <InfoButton boxId="video" />
             <CardContent className="pt-6">
-              <p className="text-xs text-muted-foreground mb-1">Video</p>
               <a
                 href={(session as any).video_url}
                 target="_blank"
@@ -250,9 +251,9 @@ export default function SessionDetail() {
 
         {/* Tags */}
         {tags.length > 0 && (
-          <Card>
+          <Card className="relative">
+            <InfoButton boxId="tags" />
             <CardContent className="pt-6">
-              <p className="text-xs text-muted-foreground mb-2">Tags</p>
               <div className="flex flex-wrap gap-1.5">
                 {tags.map(tag => (
                   <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>

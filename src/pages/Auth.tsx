@@ -263,20 +263,15 @@ export default function Auth() {
             </div>
           )}
 
-          {(mode === 'login' || mode === 'signup') && (
+          {mode === 'login' && (
             <div>
               <Label htmlFor="password">Password</Label>
               <div className="relative mt-1">
-                <Input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={mode === 'signup' ? 8 : 6} className="pr-10" />
+                <Input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="pr-10" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {mode === 'signup' && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Min 8 characters, with uppercase, lowercase, and a number.
-                </p>
-              )}
             </div>
           )}
 

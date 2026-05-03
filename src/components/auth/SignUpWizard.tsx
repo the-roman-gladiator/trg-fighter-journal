@@ -1,5 +1,11 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { Eye, EyeOff, ExternalLink, Check } from 'lucide-react';
+import { Eye, EyeOff, Check } from 'lucide-react';
+import {
+  TermsOfServiceContent,
+  PrivacyPolicyContent,
+  CookiePolicyContent,
+} from '@/pages/legal/content';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -668,34 +674,30 @@ export function SignUpWizard({ onSwitchToLogin, signupsOpen }: Props) {
 
       {/* Legal modals */}
       <Dialog open={openDoc !== null} onOpenChange={(o) => !o && setOpenDoc(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           {openDoc && (
             <>
               <DialogHeader>
                 <DialogTitle>{LEGAL_DOCS[openDoc].title}</DialogTitle>
-                <DialogDescription>Version {
-                  openDoc === 'terms' ? TERMS_VERSION
-                    : openDoc === 'privacy' ? PRIVACY_VERSION
-                    : COOKIES_VERSION
-                }</DialogDescription>
+                <DialogDescription>
+                  Version{' '}
+                  {openDoc === 'terms'
+                    ? TERMS_VERSION
+                    : openDoc === 'privacy'
+                      ? PRIVACY_VERSION
+                      : COOKIES_VERSION}
+                </DialogDescription>
               </DialogHeader>
-              <div className="text-sm text-muted-foreground space-y-3 max-h-[50vh] overflow-y-auto">
-                <p>{LEGAL_DOCS[openDoc].summary}</p>
-                <p>
-                  Read the full document on our website for the complete, up-to-date legal text.
-                </p>
-              </div>
-              <DialogFooter className="flex-col sm:flex-row gap-2">
-                <a
-                  href={LEGAL_DOC_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-1 text-sm text-primary hover:underline"
-                >
-                  Open full document <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-                <Button type="button" onClick={() => setOpenDoc(null)}>
-                  Close
+              <ScrollArea className="max-h-[60vh] pr-4">
+                <div className="text-sm text-muted-foreground space-y-3">
+                  {openDoc === 'terms' && <TermsOfServiceContent />}
+                  {openDoc === 'privacy' && <PrivacyPolicyContent />}
+                  {openDoc === 'cookies' && <CookiePolicyContent />}
+                </div>
+              </ScrollArea>
+              <DialogFooter>
+                <Button type="button" onClick={() => setOpenDoc(null)} className="w-full sm:w-auto">
+                  Back to sign-up
                 </Button>
               </DialogFooter>
             </>

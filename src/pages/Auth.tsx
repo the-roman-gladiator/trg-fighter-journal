@@ -324,15 +324,13 @@ export default function Auth() {
                   Forgot your password?
                 </button>
               )}
-              {!(signupsOpen === false && mode === 'login') && (
-                <button
-                  type="button"
-                  onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                  className="text-sm text-primary hover:underline"
-                >
-                  {mode === 'login' ? "Don't have an account? Sign up" : 'Back to Sign in'}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                className="text-sm text-primary hover:underline"
+              >
+                {mode === 'login' ? "Don't have an account? Sign up" : 'Back to Sign in'}
+              </button>
             </div>
           )}
 

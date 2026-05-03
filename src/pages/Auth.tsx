@@ -360,6 +360,7 @@ export default function Auth() {
             </div>
           )}
         </form>
+        )}
       </div>
     </div>
   );

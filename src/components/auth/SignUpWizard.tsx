@@ -196,14 +196,6 @@ export function SignUpWizard({ onSwitchToLogin, signupsOpen }: Props) {
   };
 
   const createAccount = async () => {
-    if (signupsOpen === false) {
-      toast({
-        title: 'Signups closed',
-        description: 'Private access only. New registrations are closed.',
-        variant: 'destructive',
-      });
-      return;
-    }
     if (!captchaToken) {
       toast({
         title: 'Security check required',
@@ -303,22 +295,7 @@ export function SignUpWizard({ onSwitchToLogin, signupsOpen }: Props) {
 
   // ------- UI -------
 
-  if (signupsOpen === false) {
-    return (
-      <div className="text-center space-y-4">
-        <p className="text-sm font-medium text-primary">
-          Private access only. New registrations are closed.
-        </p>
-        <button
-          type="button"
-          onClick={onSwitchToLogin}
-          className="text-sm text-primary hover:underline"
-        >
-          Back to Sign in
-        </button>
-      </div>
-    );
-  }
+  // Signups are open to everyone.
 
   return (
     <div className="space-y-6">

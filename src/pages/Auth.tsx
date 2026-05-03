@@ -153,11 +153,9 @@ export default function Auth() {
         });
         setMode('login');
       } else if (mode === 'login') {
-        if (!captchaToken) throw new Error('Please complete the security check.');
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
-          options: { captchaToken },
         });
         if (error) {
           resetCaptcha();
@@ -213,7 +211,7 @@ export default function Auth() {
     reset: 'Enter your new password below',
   };
 
-  const showCaptcha = mode === 'signup' || mode === 'login' || mode === 'forgot';
+  const showCaptcha = mode === 'signup' || mode === 'forgot';
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">

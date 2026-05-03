@@ -102,12 +102,7 @@ export default function Auth() {
     return () => { cancelled = true; };
   }, []);
 
-  // If signups are closed and user is on signup tab, send them to login.
-  useEffect(() => {
-    if (signupsOpen === false && mode === 'signup') {
-      setMode('login');
-    }
-  }, [signupsOpen, mode]);
+  // Signups are open to everyone; no auto-redirect from signup tab.
 
   // Reset captcha token when switching modes
   useEffect(() => {

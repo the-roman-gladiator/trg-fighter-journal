@@ -50,6 +50,15 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
+const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
+const CookiePolicy = lazy(() => import("./pages/legal/CookiePolicy"));
+const Disclaimer = lazy(() => import("./pages/legal/Disclaimer"));
+const ConsumerHealthDataNotice = lazy(() => import("./pages/legal/ConsumerHealthDataNotice"));
+const PrivacyChoices = lazy(() => import("./pages/legal/PrivacyChoices"));
+const SignUpConsent = lazy(() => import("./pages/SignUpConsent"));
+const ProviderRegister = lazy(() => import("./pages/ProviderRegister"));
+
 // Pre-warm route chunks while the browser is idle so first navigation is instant
 if (typeof window !== "undefined" && "requestIdleCallback" in window) {
   (window as any).requestIdleCallback(() => {

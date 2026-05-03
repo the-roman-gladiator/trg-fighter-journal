@@ -26,7 +26,7 @@ export function InfoButton({ boxId, className }: InfoButtonProps) {
           setExpanded(false);
         }}
         className={cn(
-          'absolute top-2 right-2 z-10 h-5 w-5 rounded-full border border-muted-foreground/50 text-muted-foreground text-[11px] leading-none flex items-center justify-center font-serif italic transition-colors hover:border-[hsl(var(--combat-red))] hover:text-[hsl(var(--combat-red))]',
+          'absolute top-2 right-2 z-10 h-5 w-5 rounded-full border border-muted-foreground/50 text-muted-foreground text-[11px] leading-none flex items-center justify-center font-serif italic transition-colors hover:border-[var(--fj-red)] hover:text-[var(--fj-red)]',
           className,
         )}
       >
@@ -35,7 +35,7 @@ export function InfoButton({ boxId, className }: InfoButtonProps) {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="bg-[hsl(var(--combat-red))] text-white border-0 rounded-xl mx-4 max-w-md p-6 [&>button]:text-white [&>button]:opacity-100 [&>button:hover]:opacity-80"
+          className="bg-[var(--fj-red)] text-white border-0 rounded-xl mx-4 max-w-md p-6 [&>button]:text-white [&>button]:opacity-100 [&>button:hover]:opacity-80"
         >
           <DialogTitle className="sr-only">Information</DialogTitle>
           <div className="space-y-3">

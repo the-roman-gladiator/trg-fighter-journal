@@ -17,6 +17,7 @@ import { disciplines, strategies } from '@/config/dropdownOptions';
 import { PredictiveTagInput } from './PredictiveTagInput';
 import { MultiDisciplineSelect } from './MultiDisciplineSelect';
 import { StrengthWorkoutForm } from './StrengthWorkoutForm';
+import { SC_TEMPLATES } from '@/data/scTemplates';
 import { Brain, Heart, Zap, Swords, Dumbbell, Activity, ListChecks } from 'lucide-react';
 import { useUserLists, DEFAULT_CLASS_TYPES, DEFAULT_EMOTIONS, DEFAULT_MINDSETS, classTypeCategory } from '@/hooks/useUserLists';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -1573,30 +1574,43 @@ export function SessionForm({ sessionId }: SessionFormProps) {
                     </TabsContent>
 
                     <TabsContent value="program" className="mt-4">
-                      {templates.length === 0 ? (
-                        <p className="text-sm text-muted-foreground py-4 text-center">
-                          No saved programs yet. Build one in the "Build live" tab and save it as a template.
-                        </p>
-                      ) : (
-                        <div className="space-y-2">
-                          {templates.map((tmpl) => (
+                      <div className="space-y-2">
+                        {SC_TEMPLATES.map((tmpl) => {
+                          const repsToNum = (r: string): number | null => {
+                            const m = r.match(/\d+/);
+                            return m ? Number(m[0]) : null;
+                          };
+                          return (
                             <Button
                               key={tmpl.id}
                               type="button"
                               variant="outline"
                               className="w-full justify-start h-auto py-3 text-left"
-                              onClick={() => loadTemplateIntoForm(tmpl.id)}
+                              onClick={() => {
+                                setWorkoutName(tmpl.name);
+                                setWorkoutType(tmpl.focus);
+                                const loaded: StrengthExerciseState[] = tmpl.exercises.map((ex) => {
+                                  const reps = repsToNum(ex.reps);
+                                  const sets = Array.from({ length: ex.sets }, (_, i) => ({
+                                    setNumber: i + 1,
+                                    reps,
+                                    weight: null,
+                                  }));
+                                  return { exerciseName: ex.name, sets };
+                                });
+                                setExercises(loaded);
+                                setStrengthTab('live');
+                                toast({ title: 'Program loaded', description: `Loaded "${tmpl.name}" — edit freely` });
+                              }}
                             >
                               <div>
                                 <p className="font-medium">{tmpl.name}</p>
-                                {tmpl.workout_type && (
-                                  <p className="text-xs text-muted-foreground">{tmpl.workout_type}</p>
-                                )}
+                                <p className="text-xs text-muted-foreground">{tmpl.focus} · {tmpl.exercises.length} exercises</p>
                               </div>
                             </Button>
-                          ))}
-                        </div>
-                      )}
+                          );
+                        })}
+                      </div>
                     </TabsContent>
                   </Tabs>
                 </CardContent>

@@ -27,6 +27,7 @@ const SessionEdit = lazy(() => import("./pages/SessionEdit"));
 const SessionDetail = lazy(() => import("./pages/SessionDetail"));
 const Profile = lazy(() => import("./pages/Profile"));
 const StrengthTraining = lazy(() => import("./pages/StrengthTraining"));
+const SCTemplates = lazy(() => import("./pages/SCTemplates"));
 const WorkoutSessionPage = lazy(() => import("./pages/WorkoutSessionPage"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 
@@ -161,6 +162,8 @@ function AppShell() {
               <Route path="/strength" element={<StrengthTraining />} />
               <Route path="/strength/workout/:templateId" element={<WorkoutSessionPage />} />
               <Route path="/strength/workout/:logId/resume" element={<WorkoutSessionPage />} />
+              <Route path="/sc-templates" element={<SCTemplates />} />
+              <Route path="/sc-templates/:id" element={<SCTemplates />} />
 
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/beginner" element={<BeginnerDashboard />} />

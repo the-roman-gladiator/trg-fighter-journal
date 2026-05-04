@@ -77,22 +77,21 @@ function TemplateGrid({ onSelect }: { onSelect: (t: SCTemplate) => void }) {
 }
 
 function SessionView({ template }: { template: SCTemplate }) {
-  // completed[exerciseIdx][setIdx] = boolean
-  const [completed, setCompleted] = useState<boolean[][]>(() =>
-    template.exercises.map((e) => Array(e.sets).fill(false)),
+  const [rows, setRows] = useState<ExerciseRow[]>(() =>
+    template.exercises.map((e) => ({ ...e, done: false, repsValue: e.reps })),
   );
 
-  const totalSets = template.exercises.reduce((s, e) => s + e.sets, 0);
-  const doneSets = completed.flat().filter(Boolean).length;
-  const pct = Math.round((doneSets / totalSets) * 100);
+  const total = rows.length;
+  const doneCount = rows.filter((r) => r.done).length;
+  const pct = total ? Math.round((doneCount / total) * 100) : 0;
 
-  const toggle = (eIdx: number, sIdx: number) => {
-    setCompleted((prev) => {
-      const next = prev.map((row) => [...row]);
-      next[eIdx][sIdx] = !next[eIdx][sIdx];
-      return next;
-    });
-  };
+  const toggle = (i: number) =>
+    setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, done: !r.done } : r)));
+
+  const updateReps = (i: number, value: string) =>
+    setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, repsValue: value } : r)));
+
+  const removeRow = (i: number) => setRows((prev) => prev.filter((_, idx) => idx !== i));
 
   return (
     <div className="space-y-4">
@@ -113,13 +112,13 @@ function SessionView({ template }: { template: SCTemplate }) {
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" /> {template.duration}
             </span>
-            <span>· {totalSets} total sets</span>
+            <span>· {total} exercises</span>
           </div>
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Progress</span>
               <span className="font-semibold text-primary">
-                {doneSets}/{totalSets} sets · {pct}%
+                {doneCount}/{total} done · {pct}%
               </span>
             </div>
             <Progress value={pct} className="h-2" />
@@ -127,50 +126,66 @@ function SessionView({ template }: { template: SCTemplate }) {
         </CardContent>
       </Card>
 
-      <div className="space-y-3">
-        {template.exercises.map((ex, eIdx) => {
-          const exDone = completed[eIdx].every(Boolean);
-          return (
-            <Card key={eIdx} className={cn(exDone && 'border-primary/50')}>
-              <CardContent className="pt-4 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="font-semibold text-sm uppercase tracking-wide">{ex.name}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {ex.equipment} · Reps {ex.reps} · Rest {ex.rest}
+      <div className="space-y-2">
+        {rows.map((ex, i) => (
+          <Card key={i} className={cn(ex.done && 'border-primary/50 bg-primary/5')}>
+            <CardContent className="pt-3 pb-3">
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  checked={ex.done}
+                  onCheckedChange={() => toggle(i)}
+                  className="mt-1 h-5 w-5"
+                  aria-label={`Mark ${ex.name} as done`}
+                />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className={cn('font-semibold text-sm uppercase tracking-wide', ex.done && 'line-through text-muted-foreground')}>
+                        {ex.name}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        {ex.equipment} · {ex.sets} sets · Rest {ex.rest}
+                      </div>
                     </div>
-                  </div>
-                  {exDone && <Check className="h-4 w-4 text-primary shrink-0" />}
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                  {completed[eIdx].map((done, sIdx) => (
-                    <button
-                      key={sIdx}
-                      onClick={() => toggle(eIdx, sIdx)}
-                      className={cn(
-                        'h-11 min-w-[3.25rem] px-3 rounded-md border text-xs font-semibold uppercase tracking-wide transition-colors',
-                        done
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'border-border bg-muted/30 text-muted-foreground hover:border-primary/50 hover:text-foreground',
-                      )}
-                      aria-pressed={done}
-                      aria-label={`Set ${sIdx + 1} ${done ? 'completed' : 'incomplete'}`}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeRow(i)}
+                      className="h-7 w-7 p-0 shrink-0"
+                      aria-label="Delete exercise"
                     >
-                      Set {sIdx + 1}
-                    </button>
-                  ))}
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Reps</label>
+                    <Input
+                      value={ex.repsValue}
+                      onChange={(e) => updateReps(i, e.target.value)}
+                      className="h-8 text-sm max-w-[140px]"
+                    />
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        {rows.length === 0 && (
+          <Card>
+            <CardContent className="pt-6 pb-6 text-center text-sm text-muted-foreground">
+              No exercises left. Go back and pick another template.
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {pct === 100 && (
+      {pct === 100 && rows.length > 0 && (
         <Card className="border-primary/60 bg-primary/5">
           <CardContent className="pt-4 text-center">
-            <div className="text-sm font-bold uppercase tracking-wide text-primary">Session Complete</div>
-            <p className="text-xs text-muted-foreground mt-1">All sets logged. Recover well.</p>
+            <div className="text-sm font-bold uppercase tracking-wide text-primary flex items-center justify-center gap-2">
+              <Check className="h-4 w-4" /> Session Complete
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">All exercises logged. Recover well.</p>
           </CardContent>
         </Card>
       )}

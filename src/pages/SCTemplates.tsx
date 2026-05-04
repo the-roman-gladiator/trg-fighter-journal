@@ -4,9 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Clock, Dumbbell, Play, Check } from 'lucide-react';
-import { SC_TEMPLATES, SCTemplate } from '@/data/scTemplates';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, Clock, Dumbbell, Play, Check, Trash2 } from 'lucide-react';
+import { SC_TEMPLATES, SCExercise, SCTemplate } from '@/data/scTemplates';
 import { cn } from '@/lib/utils';
+
+type ExerciseRow = SCExercise & { done: boolean; repsValue: string };
 
 export default function SCTemplates() {
   const navigate = useNavigate();

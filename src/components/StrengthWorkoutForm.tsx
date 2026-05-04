@@ -210,22 +210,34 @@ export function StrengthWorkoutForm({
         </CardContent>
       </Card>
 
-      {/* Template Picker */}
+      {/* Exercise Library Browser */}
       {workoutMode === 'template' && (
         <Card>
-          <CardContent className="pt-6">
-            <Label>Choose Template</Label>
-            <Select onValueChange={loadTemplate}>
-              <SelectTrigger><SelectValue placeholder="Select a template" /></SelectTrigger>
-              <SelectContent>
-                {templates.map(t => (
-                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {templates.length === 0 && (
-              <p className="text-sm text-muted-foreground mt-2">No templates yet. Create a workout and save it as a template.</p>
-            )}
+          <CardContent className="pt-6 space-y-3">
+            <Label>Exercise Library</Label>
+            <Input
+              placeholder="Search exercises..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+            <div className="max-h-72 overflow-y-auto space-y-1 border rounded-md p-1">
+              {filteredLibrary.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No exercises found.</p>
+              ) : (
+                filteredLibrary.map(item => (
+                  <Button
+                    key={item.id} type="button" variant="ghost"
+                    className="w-full justify-start text-sm h-auto py-2"
+                    onClick={() => addExerciseFromLibrary(item)}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-2 text-primary" />
+                    <span>{item.name}</span>
+                    {item.muscle_group && <span className="text-xs text-muted-foreground ml-2">({item.muscle_group})</span>}
+                  </Button>
+                ))
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">Tap an exercise to add it to your workout.</p>
           </CardContent>
         </Card>
       )}
